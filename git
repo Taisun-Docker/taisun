@@ -1,0 +1,9 @@
+#! /bin/bash
+if [ $1 = 'commit' ]; then
+  echo -n "To Commit Please enter your gitlab username:"
+  read username
+  /usr/bin/gitbin config user.name "$username"
+  /usr/bin/gitbin "$@"
+else 
+  /usr/bin/gitbin "$@"
+fi
