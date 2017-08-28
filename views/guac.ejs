@@ -1,9 +1,84 @@
 <html>
   <body>
+    <style>
+      /* Navigation Menu - Background */
+      .sidebar {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 0;
+      }
+      .site-wrap {
+        min-height: 100%;
+        min-width: 100%;
+        background-color: white;
+        position: relative;
+        top: 0;
+        bottom: 100%;
+        left: 0;
+        z-index: 1;
+      }
+      .nav-trigger {
+        /* critical styles - hide the checkbox input */
+        position: absolute;
+        clip: rect(0, 0, 0, 0);
+      }
+      label[for="nav-trigger"] {
+        /* critical positioning styles */
+        position: fixed;
+        left: 0; top: 50%;
+        z-index: 2;
+        height: 30px;
+        width: 8px;
+        cursor: pointer;
+        background: #1e5799;
+        background-size: contain;
+      }
+      .nav-trigger + label, .site-wrap {
+        transition: left 0.2s;
+      }
+      .nav-trigger:checked + label {
+        left: 200px;
+      }
+      .nav-trigger:checked ~ .site-wrap {
+        left: 200px;
+        box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
+      }
+      body {
+        overflow-x: hidden;
+      }
+      h1, h3, p {
+        max-width: 600px;
+        margin: 0 auto 1em;
+      }
+      code {
+          padding: 2px;
+          background: #ddd;
+      }
+      *,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
+      html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }
+  </style>
     <!-- Guacamole -->
     <script type="text/javascript" src="/public/js/guac.min.js"></script>
+    <!-- Vendor -->
+    <script type="text/javascript" src="/public/vendor/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <!-- Client side -->
+    <script type="text/javascript" src="/public/js/desktop.js"></script>
+    <!-- SideBar -->
+    <div class="sidebar" style="cursor:initial;">
+      THIS CAN BE ANYTHING
+    </div>
+    <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+    <label for="nav-trigger"></label>
     <!-- Display -->
-    <div id="display" style="width:100%;height:100vh;overflow:hidden;position:absolute;left:0;top:0;"></div>
+    <div class="site-wrap">
+      <div id="display" style="width:100%;height:100vh;overflow:hidden;position:absolute;left:0;top:0;"></div>
+    </div>
     <!-- Init -->
     <script type="text/javascript"> /* <![CDATA[ */
       // Hide Cursor

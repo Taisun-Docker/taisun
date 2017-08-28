@@ -95,8 +95,100 @@ io.on('connection', function(socket){
   socket.join(clientIp);
     // Select current active containers in docker and send it to the client
     emitter.emit('updatepage');
+    ///////////////////////////
+    ////// Socket events //////
+    ///////////////////////////
+    // create a desktop
+    socket.on('createdesktop', function(name, wm, type){
+      createdesktop(name, wm, type);
+    });
+    // destroy a desktop
+    socket.on('destroydesktop', function(name){
+      destroydesktop(name, 'no');
+    });
+    // resize a desktop
+    socket.on('resizedesktop', function(width,height,path,monitor){
+      var id = path.replace('/desktop/','');
+      resizedesktop(width,height,id,monitor);
+    });
+    // Resize monitor when clients browser sends it to us
+    function resizedesktop(width,height,id,monitor){
+      var cmd = 'docker exec ' + id + ' /changeres.sh ' + monitor.toString() + ' ' + width.toString() + ' ' + height.toString() ;
+      exec(cmd, function(err, stdout, stderr) {
+        if (err){
+          console.log(err);
+        }
+        else{
+          console.log('Resized Desktop for ' + id + ' on screen ' +  monitor.toString() + ' to the dimensions ' + width.toString() + 'x' + height.toString());
+        }
+      });
+    }
 });
 
+
+//// Functions ////
+// Launch the container for a desktop
+function createdesktop(name,wm,type){
+  // Grab the current running docker container information
+  docker.listContainers(function (err, containers) {
+    if (err){
+      io.emit('error_popup','Could not list containers something is wrong with docker on this host');
+    }
+    else{
+        var desktopoptions ={
+          Image: 'desktopubuntu',
+          Cmd: ["/usr/bin/supervisord"],
+          name: 'taisunvdi_' + name,
+          ENV: [
+            'SCREEN_RESOLUTION=1920x1080'
+          ],
+          HostConfig:{
+            Binds: ['/var/run/docker.sock:/var/run/docker.sock'],
+          }
+        };
+        docker.createContainer(desktopoptions, function (err, container){
+          if (err){
+            console.log(JSON.stringify(err));
+            io.emit('error_popup','Could not launch the desktop for ' + name);
+          }
+          else{
+            container.start(function (err, data){
+              if (err){
+                console.log(JSON.stringify(err));
+                io.emit('error_popup','Could not launch the desktop for ' + name);
+              }
+              else{
+                console.log('Created desktop for ' + name);
+              }
+            });
+          }
+        });
+      }
+  });
+}
+// Destroy a desktop container set
+function destroydesktop(name, auto){
+  docker.listContainers({all: true}, function (err, containers) {
+    if (err){
+      io.emit('error_popup','Could not list containers something is wrong with docker on this host');
+    }
+    else{
+      containers.forEach(function (container){
+        if (container.Names[0] == '/taisunvdi_' + name){
+          docker.getContainer(container.Id).remove({force: true},function (err, data) {
+            if (err){
+              console.log(JSON.stringify(err));
+              io.emit('error_popup','Could destroy desktop container for ' + name);
+            }
+            else{
+              console.log('Destroyed Desktop container for ' + name);
+            }
+          });
+        }
+      });
+    }
+  });
+}
 
 // Spin up application on port 80
 http.listen(80, function(){
