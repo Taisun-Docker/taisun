@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Taisun - Containers</title>
+    <link href="public/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="public/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="public/vendor/datatables/dataTables.bootstrap4.css" rel="stylesheet">
+    <link href="public/css/sb-admin.css" rel="stylesheet">
+  </head>
+  <body class="fixed-nav" id="page-top">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+      <a class="navbar-brand" href="#">Taisun</a>
+      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul class="navbar-nav navbar-sidenav">
+          <li class="nav-item active" data-toggle="tooltip" data-placement="right" title="Containers">
+            <a class="nav-link" href="/">
+              <i class="fa fa-fw fa-server"></i>
+              <span class="nav-link-text">
+                Containers</span>
+            </a>
+          </li>
+          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Launch">
+            <a class="nav-link" href="#">
+              <i class="fa fa-fw fa-rocket"></i>
+              <span class="nav-link-text">
+                Launch</span>
+            </a>
+          </li>
+          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="VDI">
+            <a class="nav-link" href="/vdi">
+              <i class="fa fa-fw fa-desktop"></i>
+              <span class="nav-link-text">
+                VDI</span>
+            </a>
+          </li>
+          </li>
+        </ul>
+        <ul class="navbar-nav sidenav-toggler">
+          <li class="nav-item">
+            <a class="nav-link text-center" id="sidenavToggler">
+              <i class="fa fa-fw fa-angle-left"></i>
+            </a>
+          </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" data-toggle="modal" data-target="#exampleModal">
+              <i class="fa fa-fw fa-sign-out"></i>
+              Logout</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <!-- /.Navigation -->
+    <div class="content-wrapper py-3">
+      <div class="container-fluid">
+        <!-- Containers Table -->
+        <div class="card mb-3">
+          <div class="card-header">
+            <i class="fa fa-cubes"></i>
+            Docker Containers
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="dockercontainers" class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>PortMap</th>
+                    <th>Image</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Command</th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /.container-fluid -->
+    </div>
+    <!-- /.content-wrapper -->
+    <!-- Scroll to Top Button -->
+    <a class="scroll-to-top rounded" href="#page-top">
+      <i class="fa fa-angle-up"></i>
+    </a>
+    <!-- Logout Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            Select "Logout" below if you are ready to end your current session.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <a class="btn btn-primary" href="login.html">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Bootstrap core JavaScript -->
+    <script src="public/vendor/jquery/jquery.min.js"></script>
+    <script src="public/vendor/popper/popper.min.js"></script>
+    <script src="public/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <!-- Plugin JavaScript -->
+    <script src="public/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="public/vendor/datatables/jquery.dataTables.js"></script>
+    <script src="public/vendor/datatables/dataTables.bootstrap4.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Custom scripts for Taisun -->
+    <script src="public/js/taisun.js"></script>
+  </body>
+</html>
