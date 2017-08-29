@@ -7,41 +7,57 @@ $(document).ready(function(){
   var port = window.location.port;
   var socket = io.connect('http://' + host + ':' + port, {
   });
+  // When the desktop form is submitted send the reqest to the server
+  $("#createdesktop").click(function(){
+    socket.emit('createdesktop', $('#desktopname').val(),$('#socket').val());
+  });
+  // When the destroy desktop form is submitted send the reqest to the server
+  $("#destroydesktop").click(function(){
+    socket.emit('destroydesktop', $('#desktop-destroy').val());
+  });
   // Whenever the stack list is updated rebuild the displayed table
   socket.on('updatepage', function(containers) {
+    $("#dockercontainers").dataTable().fnDestroy();
     var containertable = $('#dockercontainers').DataTable( {} );
-    //Loop through the containers to build the table
+    containertable.clear();
+    //Loop through the containers to build the containers table
     for (var container in containers){
       var info = containers[container];
-      var ports = info.Ports;
+      if ( typeof info.Ports[0] !== 'undefined' && typeof info.Ports[0].PublicPort !== 'undefined' && info.Ports[0].PublicPort ){
+        var ports = info.Ports[0];
+      }
+      else {
+        var ports = {"PublicPort":"null","PrivatePort":"null"};
+      }
       containertable.row.add( 
         [info.Names[0], 
-        '<a href="http://' + host + ':' + ports[0].PublicPort + '" target="_blank">' + ports[0].PublicPort + '</a> => ' + ports[0].PrivatePort,
+        '<a href="http://' + host + ':' + ports.PublicPort + '" target="_blank">' + ports.PublicPort + '</a> => ' + ports.PrivatePort,
         info.Image, 
-        info.State, 
+        info.State + ' ' + info.Status, 
         new Date( info.Created * 1e3).toISOString().slice(0,19),
         info.Command] 
-      ).draw();
+      );
     }
-    // Empty desktops Table
-    $('#desktops').empty();
+    containertable.draw();
+    // Loop through the VDIs deployed to show them on the vdi page
+    $("#desktops").dataTable().fnDestroy();
+    var desktoptable = $('#desktops').DataTable( {} );
+    desktoptable.clear();
+    //Loop through the containers to build the containers table
     for (var container in containers){
       var info = containers[container];
-      var ports = info.Ports;
       if (info.Names[0].indexOf("taisunvdi_") != -1 ){
-        $('#desktops').append(
-  					'<div class="card text-center" style="width: 10rem;">' +
-            '  <img class="card-img-top" src="/public/img/debian.png">' +
-            '  <div class="card-block">' +
-            '    <h4 class="card-title">' + info.Names[0].replace('/taisunvdi_','') +'</h4>' +
-            '    <div class="card-footer">' + 
-            '      <a href="/desktop/' + info.Id + '" target="_blank" class="btn btn-primary">Launch</a>' +
-            '    </div>' + 
-            '  </div>' +
-            '</div>'
+        desktoptable.row.add( 
+          [info.Names[0].replace('/taisunvdi_',''), 
+          '<a href="/desktop/' + info.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+          info.Image, 
+          info.State + ' ' + info.Status, 
+          new Date( info.Created * 1e3).toISOString().slice(0,19),
+          info.Command] 
         );
       }
     }
+    desktoptable.draw();
   });
 });
 

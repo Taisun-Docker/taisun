@@ -28,14 +28,14 @@
                 Containers</span>
             </a>
           </li>
-          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Launch">
+          <li class="nav-item active" data-toggle="tooltip" data-placement="right" title="Launch">
             <a class="nav-link" href="/launch">
               <i class="fa fa-fw fa-rocket"></i>
               <span class="nav-link-text">
                 Launch</span>
             </a>
           </li>
-          <li class="nav-item active" data-toggle="tooltip" data-placement="right" title="VDI">
+          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="VDI">
             <a class="nav-link" href="/vdi">
               <i class="fa fa-fw fa-desktop"></i>
               <span class="nav-link-text">
@@ -66,13 +66,13 @@
         <div class="row">
           <div class="col-xl-3 col-sm-6 mb-3">
             <a href="" data-toggle="modal" data-target="#create" class="text-white">
-              <div class="card text-white bg-success o-hidden h-60">
+              <div class="card text-white bg-info o-hidden h-60">
                 <div class="card-body">
                   <div class="card-body-icon">
-                    <i class="fa fa-fw fa-plus-square-o"></i>
+                    <i class="fa fa-fw fa-hdd-o"></i>
                   </div>
                   <div class="mr-5">
-                    Launch Desktop
+                    Local Images
                   </div>
                 </div>
               </a>
@@ -80,13 +80,13 @@
           </div>
           <div class="col-xl-3 col-sm-6 mb-3">
             <a href="" data-toggle="modal" data-target="#destroy" class="text-white">
-              <div class="card text-white bg-danger o-hidden h-60">
+              <div class="card text-white bg-info o-hidden h-60">
                 <div class="card-body">
                   <div class="card-body-icon">
                     <i class="fa fa-fw fa-minus-circle"></i>
                   </div>
                   <div class="mr-5">
-                    Destroy Desktop
+                    DockerHub
                   </div>
                 </div>
               </a>
@@ -94,13 +94,13 @@
           </div>
           <div class="col-xl-3 col-sm-6 mb-3">
             <a href="#" class="text-white">
-              <div class="card text-white bg-primary o-hidden h-60">
+              <div class="card text-white bg-info o-hidden h-60">
                 <div class="card-body">
                   <div class="card-body-icon">
-                    <i class="fa fa-fw fa-linux"></i>
+                    <i class="fa fa-fw fa-github"></i>
                   </div>
                   <div class="mr-5">
-                    Desktop Builder
+                    From GitHub
                   </div>
                 </div>
               </a>
@@ -108,13 +108,13 @@
           </div>
           <div class="col-xl-3 col-sm-6 mb-3">
             <a href="#" class="text-white">
-              <div class="card text-white bg-success o-hidden h-60">
+              <div class="card text-white bg-info o-hidden h-60">
                 <div class="card-body">
                   <div class="card-body-icon">
-                    <i class="fa fa-fw fa-thumbs-o-up"></i>
+                    <i class="fa fa-fw fa-bars"></i>
                   </div>
                   <div class="mr-5">
-                    GuacD
+                    Taisun Stacks
                   </div>
                 </div>
               </a>
@@ -124,20 +124,19 @@
         <!-- Containers Table -->
         <div class="card mb-3">
           <div class="card-header">
-            <i class="fa fa-desktop"></i>
-            Deployed Desktops
+            <i class="fa fa-hdd-o"></i>
+            Local Images
           </div>
           <div class="card-body">
             <div class="table-responsive">
-              <table id="desktops" class="table table-bordered" width="100%" cellspacing="0">
+              <table id="images" class="table table-bordered" width="100%" cellspacing="0">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>URL</th>
                     <th>Image</th>
-                    <th>Status</th>
+                    <th>ID</th>
                     <th>Created</th>
-                    <th>Command</th>
+                    <th>Size</th>
+                    <th>Launch</th>
                   </tr>
                 </thead>
               </table>
@@ -237,6 +236,6 @@
     <script src="public/vendor/datatables/dataTables.bootstrap4.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <!-- Custom scripts for Taisun -->
-    <script src="public/js/taisun.js"></script>
+    <script src="public/js/launch.js"></script>
   </body>
 </html>

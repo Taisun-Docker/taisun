@@ -25,6 +25,7 @@
     "guacamole-lite": "^0.4.4",
     "http": "0.0.0",
     "http-proxy": "^1.16.2",
+    "http-proxy-middleware": "^0.17.4",
     "request": "^2.81.0",
     "socket.io": "^2.0.1",
     "util": "^0.10.3"
