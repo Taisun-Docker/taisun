@@ -6,7 +6,10 @@ FROM node:8.4
 MAINTAINER Ryan Kuba <ryankuba@gmail.com>
 
 #Install Dependencies
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y supervisor && \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y git supervisor software-properties-common apt-transport-https && \
+  curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && \
+  add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && \
+  apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install docker-ce && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
