@@ -12,8 +12,8 @@ job1:
   stage: build
   script:
     - echo $DOCKERPASS | docker login -u taisun --password-stdin
-    - docker build -f Dockerfile -t taisun/webapp:$CI_BUILD_REF .
-    - docker build -f Dockerfile.dev -t taisun/webapp:$CI_BUILD_REF.dev .
+    - docker build -f ./Dockerfile -t taisun/webapp:$CI_BUILD_REF .
+    - docker build -f ./Dockerfile.dev -t taisun/webapp:$CI_BUILD_REF.dev .
     - docker tag taisun/webapp:$CI_BUILD_REF taisun/webapp:latest
     - docker tag taisun/webapp:$CI_BUILD_REF.dev taisun/webapp:latest.dev
     - docker push taisun/webapp:$CI_BUILD_REF
