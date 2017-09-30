@@ -1,0 +1,33 @@
+<!--Main Body-->
+<div class="container-fluid">
+  <div class="card mb-3">
+    <div class="card-header">
+      <i class="fa fa-desktop"></i>
+      VDI Management
+    </div>
+    <div class="card-body">
+      <center>
+        <h2>To run virtual desktops you must first launch Guacamole Server</h2>
+        <br>
+        <button type="button" class="btn btn-lg btn-primary" data-toggle="modal" data-target="#launchguac" id="guacdlaunch">Launch Now</button>
+      </center>
+    </div>
+  </div>
+</div>
+
+<!--Launch Guac Modal Form-->
+<div id="launchguac" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Launching Guacd</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <form id="restartform">
+        <div id="guaclaunch-out"></div>
+      </div>
+        </form>
+    </div>
+  </div>
+</div>

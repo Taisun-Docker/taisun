@@ -59,6 +59,14 @@ $(document).ready(function(){
     }
     desktoptable.draw();
   });
+  // When the guacd button is pressed tell the server to launch guacd docker container
+  $("#guacdlaunch").click(function(){
+    socket.emit('launchguac');
+  });
+  // Parse output from the server on status of launching Guacd
+  socket.on('guac_update', function(message) {
+    $('#guaclaunch-out').append('<pre>' + message + '<pre>');
+  });
 });
 
 

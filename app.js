@@ -15,17 +15,15 @@ var io = require('socket.io')(http);
 var Docker = require('dockerode');
 var docker = new Docker({socketPath: '/var/run/docker.sock'});
 var exec = require('child_process').exec;
-
+const fs = require('fs');
+var dockops = require('dockops');
+var dockerops = dockops.createDocker();
+var images = new dockops.Images(dockerops);
+var containers = new dockops.Containers(dockerops);
+    
 ///// Guac Websocket Tunnel ////
 const GuacamoleLite = require('guacamole-lite');
-const websocketOptions = {
-  port: 3000
-};
-const guacdOptions = {
-  host: "172.17.0.5",
-  port: 4822
-};
-const clientOptions = {
+var clientOptions = {
   crypt: {
     cypher: 'AES-256-CBC',
     key: 'TaisunKYTaisunKYTaisunKYTaisunKY'
@@ -34,9 +32,27 @@ const clientOptions = {
     verbose: false
   }
 };
-// Spinup the Guac websocket proxy on port 3000
-const guacServer = new GuacamoleLite(websocketOptions, guacdOptions, clientOptions);
-// Function needed to encrypt the token string
+// Spinup the Guac websocket proxy on port 3000 if guacd is running
+var guacontainer = docker.getContainer('guacd');
+guacontainer.inspect(function (err, containerdata) {
+  // For first time users or people that do not care about VDI
+  if (containerdata == null){
+    console.log('Guacd does not exist on this server will not start websocket tunnel');
+  }
+  else {
+    // Start Guacd if it exists and it not running then exit the process supervisor will pick it up
+    if (containerdata.State.Status != 'running'){
+      guacontainer.start(function (err, data) {
+        process.exit();
+      });
+    }
+    // If it is up and running use the IP we got from inspect to fire up the websocket tunnel used by the VDI application
+    else {
+      const guacServer = new GuacamoleLite({port:3000},{host:containerdata.NetworkSettings.IPAddress,port:4822},clientOptions);
+    }
+  }
+});
+// Function needed to encrypt the token string for guacamole connections
 const encrypt = (value) => {
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(clientOptions.crypt.cypher, clientOptions.crypt.key, iv);
@@ -48,7 +64,7 @@ const encrypt = (value) => {
   };
   return new Buffer(JSON.stringify(data)).toString('base64');
 };
-// Proxy websocket requests using a path so the client can connect even behind firewalls or through a proxy
+// ***TODO**** Proxy websocket requests using a path so the client can connect even behind firewalls or through a proxy
 
 
 ////// PATHS //////
@@ -57,8 +73,20 @@ app.get("/", function (req, res) {
   res.render(__dirname + '/views/containers.ejs');
 });
 //// VDI ////
-app.get("/vdi", function (req, res) {
-  res.render(__dirname + '/views/vdi.ejs');
+app.get("/vdi*", function (req, res) {
+  var guacontainer = docker.getContainer('guacd');
+  guacontainer.inspect(function (err, data) {
+    if (data == null){
+      fs.readFile('/usr/src/Taisun/views/body/vdi/noguac.html', function (err, data) {
+        res.render(__dirname + '/views/vdi.ejs', {body : data});
+      });
+    }
+    else{
+      fs.readFile('/usr/src/Taisun/views/body/vdi/running.html', function (err, data) {
+        res.render(__dirname + '/views/vdi.ejs', {body : data});
+      });
+    }
+  });
 });
 //// Launch ////
 app.get("/launch", function (req, res) {
@@ -70,7 +98,7 @@ app.use('/public', express.static(__dirname + '/public'));
 app.get("/desktop/:containerid", function (req, res) {
   var container = docker.getContainer(req.params.containerid);
   container.inspect(function (err, data) {
-    if (err){
+    if (data == null){
       res.send('container does not exist');
     }
     else{
@@ -151,10 +179,62 @@ io.on('connection', function(socket){
         io.emit('sendimages',JSON.parse(body));
       });
     });
+    // Launch Guacd
+    socket.on('launchguac', function(){
+      io.emit('guac_update','Starting Launch Process for Guacd');
+      // Check if the guacd image exists on this server
+      images.list(function (err, res) {
+        if (res.indexOf('glyptodon/guacd:latest') > -1 ){
+          deployguac();
+        }
+        else {
+          io.emit('guac_update','Guacd image not present on server downloading now');
+          docker.pull('glyptodon/guacd:latest', function(err, stream) {
+            stream.pipe(process.stdout);
+            stream.once('end', deployguac);
+          });
+        }
+      });
+    });
 });
 
 
 //// Functions ////
+// Launch Guacd container
+function deployguac(){
+  // Grab the current running docker container information
+  docker.listContainers(function (err, containers) {
+    if (err){
+      io.emit('error_popup','Could not list containers something is wrong with docker on this host');
+    }
+    else{
+        var guacoptions ={
+          Image: 'glyptodon/guacd',
+          name: 'guacd'
+        };
+        docker.createContainer(guacoptions, function (err, container){
+          if (err){
+            console.log(JSON.stringify(err));
+            io.emit('error_popup','Could not pull Guacd container');
+          }
+          else{
+            io.emit('guac_update','Downloaded image and created Guacd container');
+            container.start(function (err, data){
+              if (err){
+                console.log(JSON.stringify(err));
+                io.emit('error_popup','Could not start Guacd');
+              }
+              else{
+                io.emit('guac_update','Guacd launched , Restarting server Please refresh');
+                // Exit the application supervisor will restart
+                process.exit();
+              }
+            });
+          }
+        });
+      }
+  });
+}
 // Launch the container for a desktop
 function createdesktop(name,socket){
   // Grab the current running docker container information
