@@ -69,14 +69,20 @@
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <!-- Client side -->
     <script type="text/javascript" src="/public/js/desktop.js"></script>
+    
     <!-- SideBar -->
-    <div class="sidebar" style="cursor:initial;">
-      THIS CAN BE ANYTHING
+    <div class="sidebar" style="cursor:initial;" style="width:200px;">
+      Taisun Desktop Admin<br>
+      <!-- Clipboard -->
+      Client:<br>
+      <textarea id="clipboard" class="stopcapture" rows="10"></textarea><br>
+      Host:<br>
+      <textarea id="clipboardinput" class="stopcapture" rows="10"></textarea>
     </div>
     <input type="checkbox" id="nav-trigger" class="nav-trigger" />
     <label for="nav-trigger"></label>
     <!-- Display -->
-    <div class="site-wrap">
+    <div class="site-wrap" onmouseover="this.focus();" tabindex="0" style="outline:none;">
       <div id="display" style="width:100%;height:100vh;overflow:hidden;position:absolute;left:0;top:0;"></div>
     </div>
     <!-- Init -->
@@ -91,6 +97,23 @@
       var guac = new Guacamole.Client(
         new Guacamole.WebSocketTunnel("ws://" + host + ":3001/?token=<%- token -%>")
       );
+      // Show current client clipboard
+      guac.onclipboard = function clientClipboardReceived(stream, mimetype) {
+        var reader;
+        // If the received data is text, read it as a simple string (ignore blob data)
+        if (/^text\//.exec(mimetype)) {
+          reader = new Guacamole.StringReader(stream);
+          // Assemble received data into a single string
+          var data = '';
+          reader.ontext = function textReceived(text) {
+            $('#clipboard').val(text);
+          };
+        }
+      };
+      // Grab user input to set client clipboard
+      $('#clipboardinput').on('input', function() { 
+        guac.setClipboard($(this).val());
+      });
       // Add client to display div
       display.appendChild(guac.getDisplay().getElement());
       // Error handler
@@ -118,6 +141,18 @@
       keyboard.onkeyup = function (keysym) {
         guac.sendKeyEvent(0, keysym);
       };
+      // Disable keyboard events if our sidebar inputs are used
+      $(".stopcapture").click(function(e) {
+        keyboard.onkeydown = null;
+        keyboard.onkeyup = null;
+      }).on("blur", function(e) {
+        keyboard.onkeydown = function(keysym) {
+          guac.sendKeyEvent(1, keysym);
+        };
+        keyboard.onkeyup = function(keysym) {
+          guac.sendKeyEvent(0, keysym);
+        };
+      });
     /* ]]> */ </script>
   </body>
 </html>

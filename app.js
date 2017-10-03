@@ -108,23 +108,6 @@ app.get("/desktop/:containerid", function (req, res) {
   });
 });
 
-//// Development Proxy ////
-var devrouter = function(req) {
-    return 'http://192.168.10.13:' + req.url.replace('/dev/', '');
-};
-var options = {
-    target: 'dynamic',
-    router: devrouter,
-    pathRewrite: {
-        '^/dev/[0-9]{4}' : '/'
-    },
-    ws: true,
-    changeOrigin: true,
-    logLevel: 'silent'
-};
-var devproxy = proxy(options);
-app.use('/dev**', devproxy);
-
 // Socket IO connection
 io.on('connection', function(socket){
   //// Socket Connect ////
