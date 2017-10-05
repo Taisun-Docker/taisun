@@ -20,6 +20,7 @@ var dockops = require('dockops');
 var dockerops = dockops.createDocker();
 var images = new dockops.Images(dockerops);
 var containers = new dockops.Containers(dockerops);
+var xparse = require('xrandr-parse');
     
 ///// Guac Websocket Tunnel ////
 const GuacamoleLite = require('guacamole-lite');
@@ -133,6 +134,11 @@ io.on('connection', function(socket){
       var id = path.replace('/desktop/','');
       resizedesktop(width,height,id,monitor);
     });
+    // When client requests resolutions call container xrandr
+    socket.on('getres', function(path){
+      var id = path.replace('/desktop/','');
+      getres(id);
+    });
     // Resize monitor when clients browser sends it to us
     function resizedesktop(width,height,id,monitor){
       var cmd = 'docker exec ' + id + ' /changeres.sh ' + monitor.toString() + ' ' + width.toString() + ' ' + height.toString() ;
@@ -143,6 +149,14 @@ io.on('connection', function(socket){
         else{
           console.log('Resized Desktop for ' + id + ' on screen ' +  monitor.toString() + ' to the dimensions ' + width.toString() + 'x' + height.toString());
         }
+      });
+    }
+    // Get available resolutions from container
+    function getres(id){
+      var xcmd = 'docker exec ' + id + ' xrandr';
+      exec(xcmd, function (err, stdout) {
+        var resolutions = xparse(stdout);
+        io.emit('sendres', resolutions);
       });
     }
     // Update the containers page

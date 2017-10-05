@@ -77,7 +77,13 @@
       Client:<br>
       <textarea id="clipboard" class="stopcapture" rows="10"></textarea><br>
       Host:<br>
-      <textarea id="clipboardinput" class="stopcapture" rows="10"></textarea>
+      <textarea id="clipboardinput" class="stopcapture" rows="10"></textarea><br>
+      <!-- Resolution Management -->
+      Browser Window: <br><input id="currentsize" readonly="readonly" class="stopcapture"><br>
+      Resize Desktop: <br>
+      <input list="resolutions" name="resolutions" class="stopcapture" id="resform">
+      <datalist id="resolutions">
+      </datalist>
     </div>
     <input type="checkbox" id="nav-trigger" class="nav-trigger" />
     <label for="nav-trigger"></label>
@@ -153,6 +159,12 @@
           guac.sendKeyEvent(0, keysym);
         };
       });
+      // Desktop Resolution management
+      window.onresize = displayWindowSize;
+      window.onload = displayWindowSize;
+      function displayWindowSize() {
+        $('#currentsize').val($(window).width() + 'x' + $(window).height());
+      };
     /* ]]> */ </script>
   </body>
 </html>

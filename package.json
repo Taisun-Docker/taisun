@@ -29,6 +29,7 @@
     "http-proxy-middleware": "^0.17.4",
     "request": "^2.81.0",
     "socket.io": "^2.0.1",
-    "util": "^0.10.3"
+    "util": "^0.10.3",
+    "xrandr-parse": "^1.0.0"
   }
 }
