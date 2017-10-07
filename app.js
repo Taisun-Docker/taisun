@@ -122,8 +122,22 @@ io.on('connection', function(socket){
     ////// Socket events //////
     ///////////////////////////
     // create a desktop
-    socket.on('createdesktop', function(name, socket){
-      createdesktop(name, socket);
+    socket.on('createdesktop', function(name,socket){
+      io.emit('desktop_update','Starting Launch Process for desktop ' + name);
+      // Check if the guacd image exists on this server
+      images.list(function (err, res) {
+        if (JSON.stringify(res).indexOf('taisun/vdi_debian:latest') > -1 ){
+          createdesktop(name,socket);
+        }
+        else {
+          console.log('imagenotfound');
+          io.emit('desktop_update','Desktop image not present on server downloading now');
+          docker.pull('taisun/vdi_debian:latest', function(err, stream) {
+            stream.pipe(process.stdout);
+            stream.once('end', createdesktop(name,socket));
+          });
+        }
+      });
     });
     // destroy a desktop
     socket.on('destroydesktop', function(name){
@@ -181,7 +195,7 @@ io.on('connection', function(socket){
       io.emit('guac_update','Starting Launch Process for Guacd');
       // Check if the guacd image exists on this server
       images.list(function (err, res) {
-        if (res.indexOf('glyptodon/guacd:latest') > -1 ){
+        if (JSON.stringify(res).indexOf('glyptodon/guacd:latest') > -1 ){
           deployguac();
         }
         else {
@@ -241,7 +255,7 @@ function createdesktop(name,socket){
     }
     else{
         var desktopoptions ={
-          Image: 'desktopbase',
+          Image: 'taisun/vdi_debian',
           Cmd: ["/usr/bin/supervisord"],
           name: 'taisunvdi_' + name,
           ENV: [

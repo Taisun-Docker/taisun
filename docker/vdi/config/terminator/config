@@ -1,0 +1,14 @@
+[global_config]
+[keybindings]
+[profiles]
+  [[default]]
+    foreground_color = "#00ff00"
+[layouts]
+  [[default]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+    [[[window0]]]
+      type = Window
+      parent = ""
+[plugins]

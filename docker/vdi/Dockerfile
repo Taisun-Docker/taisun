@@ -62,6 +62,10 @@ COPY ./xorg.conf /etc/X11/xorg.conf
 # Helper script for changing the resolution
 COPY ./changeres.sh /
 
+# Basic desktop config files for xfce
+COPY ./config /home/taisun/.config/
+RUN chown -R taisun:taisun /home/taisun/.config
+
 # Set display
 ENV DISPLAY :0
 
