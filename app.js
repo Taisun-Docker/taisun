@@ -21,6 +21,8 @@ var dockerops = dockops.createDocker();
 var images = new dockops.Images(dockerops);
 var containers = new dockops.Containers(dockerops);
 var xparse = require('xrandr-parse');
+let dockerHubAPI = require('docker-hub-api');
+dockerHubAPI.setCacheOptions({enabled: false});
     
 ///// Guac Websocket Tunnel ////
 const GuacamoleLite = require('guacamole-lite');
@@ -186,8 +188,8 @@ io.on('connection', function(socket){
     });
     // Send local images
     socket.on('getimages', function(){
-      request({url: 'http://unix:/var/run/docker.sock:/images/json', headers:{host: 'http'}}, function(err, response, body){
-        io.emit('sendimages',JSON.parse(body));
+      images.list(function (err, res) {
+        io.emit('sendimages',res);
       });
     });
     // Launch Guacd
@@ -205,6 +207,34 @@ io.on('connection', function(socket){
             stream.once('end', deployguac);
           });
         }
+      });
+    });
+    // Get Docker Hub results
+    socket.on('searchdocker', function(string, page){
+      request.get({url:'https://registry.hub.docker.com/v1/search?q=' + string + '&page=' + page},function(error, response, body){
+        io.emit('hubresults',JSON.parse(body));
+      });
+    });
+    // Get complete dockerhub info for given image
+    socket.on('gethubinfo', function(name){
+      if (name.indexOf("/") != -1 ){
+        var user = name.split('/')[0];
+        var repo = name.split('/')[1];
+      }
+      else {
+        var user = '_';
+        var repo = name;
+      }
+      dockerHubAPI.repository(user, repo).then(function (info) {
+        io.emit('sendhubinfo', info);
+      });
+    });
+    // Get the tags for a specific image from dockerhub
+    socket.on('gettags', function(name){
+      var user = name.split('/')[0];
+      var repo = name.split('/')[1];
+      dockerHubAPI.tags(user, repo).then(function (info) {
+        io.emit('sendtagsinfo', info);
       });
     });
 });

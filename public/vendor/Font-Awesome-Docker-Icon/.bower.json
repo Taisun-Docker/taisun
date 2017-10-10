@@ -1,0 +1,36 @@
+{
+  "name": "Font-Awesome-Docker-Icon",
+  "homepage": "https://github.com/Dev-Crea/Font-Awesome-Docker-Icon",
+  "authors": [
+    "vaillant.jeremy@dev-crea.com"
+  ],
+  "description": "Icon docker",
+  "main": [
+    "./fontcustom/fontcustom.css",
+    "./fontcustom/fontcustom_cb066050d5b786186aa0e7f121427d8b.eot",
+    "./fontcustom/fontcustom_cb066050d5b786186aa0e7f121427d8b.svg",
+    "./fontcustom/fontcustom_cb066050d5b786186aa0e7f121427d8b.ttf",
+    "./fontcustom/fontcustom_cb066050d5b786186aa0e7f121427d8b.woff"
+  ],
+  "moduleType": [
+    "globals"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "dcaa4df76d",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "dcaa4df76da207b8b0d28414f71fde5f8778cf16"
+  },
+  "_source": "https://github.com/Dev-Crea/Font-Awesome-Docker-Icon.git",
+  "_target": "*",
+  "_originalSource": "Font-Awesome-Docker-Icon",
+  "_direct": true
+}

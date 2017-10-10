@@ -11,6 +11,24 @@
     <link href="public/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="public/vendor/datatables/dataTables.bootstrap4.css" rel="stylesheet">
     <link href="public/css/sb-admin.css" rel="stylesheet">
+    <link href="public/css/fontcustom.css" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="57x57" href="public/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="public/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="public/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="public/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="public/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="public/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="public/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="public/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="public/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="public/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="public/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="public/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="public/favicon/favicon-16x16.png">
+    <link rel="manifest" href="public/favicon/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="public/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
   </head>
   <body class="fixed-nav" id="page-top">
     <!-- Navigation -->
@@ -64,8 +82,7 @@
       <div class="container-fluid">
         <!-- Function Buttons -->
         <div class="row">
-          <div class="col-xl-3 col-sm-6 mb-3">
-            <a href="" data-toggle="modal" data-target="#create" class="text-white">
+          <div class="col-xl-3 col-sm-6 mb-3" id="local" style="cursor:pointer;">
               <div class="card text-white bg-info o-hidden h-60">
                 <div class="card-body">
                   <div class="card-body-icon">
@@ -75,26 +92,22 @@
                     Local Images
                   </div>
                 </div>
-              </a>
             </div>
           </div>
-          <div class="col-xl-3 col-sm-6 mb-3">
-            <a href="" data-toggle="modal" data-target="#destroy" class="text-white">
+          <div class="col-xl-3 col-sm-6 mb-3" id="dockerhub" style="cursor:pointer;">
               <div class="card text-white bg-info o-hidden h-60">
                 <div class="card-body">
                   <div class="card-body-icon">
-                    <i class="fa fa-fw fa-minus-circle"></i>
+                    <i class="fa fa-fw fa-docker"></i>
                   </div>
                   <div class="mr-5">
                     DockerHub
                   </div>
                 </div>
-              </a>
             </div>
           </div>
           <div class="col-xl-3 col-sm-6 mb-3">
-            <a href="#" class="text-white">
-              <div class="card text-white bg-info o-hidden h-60">
+              <div class="card text-white bg-info o-hidden h-60" style="cursor:pointer;">
                 <div class="card-body">
                   <div class="card-body-icon">
                     <i class="fa fa-fw fa-github"></i>
@@ -103,12 +116,10 @@
                     From GitHub
                   </div>
                 </div>
-              </a>
             </div>
           </div>
           <div class="col-xl-3 col-sm-6 mb-3">
-            <a href="#" class="text-white">
-              <div class="card text-white bg-info o-hidden h-60">
+              <div class="card text-white bg-info o-hidden h-60" style="cursor:pointer;">
                 <div class="card-body">
                   <div class="card-body-icon">
                     <i class="fa fa-fw fa-bars"></i>
@@ -117,31 +128,11 @@
                     Taisun Stacks
                   </div>
                 </div>
-              </a>
             </div>
           </div>
         </div>
-        <!-- Containers Table -->
-        <div class="card mb-3">
-          <div class="card-header">
-            <i class="fa fa-hdd-o"></i>
-            Local Images
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table id="images" class="table table-bordered" width="100%" cellspacing="0">
-                <thead>
-                  <tr>
-                    <th>Image</th>
-                    <th>ID</th>
-                    <th>Created</th>
-                    <th>Size</th>
-                    <th>Launch</th>
-                  </tr>
-                </thead>
-              </table>
-            </div>
-          </div>
+        <!-- Launch Page Content -->
+        <div id="launchcontent">
         </div>
       </div>
       <!-- /.container-fluid -->
@@ -171,61 +162,32 @@
         </div>
       </div>
     </div>
-   <!--Create Desktop Modal Form-->
-    <div id="create" class="modal fade" tabindex="-1" role="dialog">
-      <div class="modal-dialog">
+   <!--Pull image Modal-->
+    <div id="pull" class="modal fade" tabindex="-1" role="dialog" style="overflow-y:scroll;">
+      <div class="modal-dialog" style="max-width:80%!important;">
         <div class="modal-content">
           <div class="modal-header">
-            <h4 class="modal-title"><div id="createtitle">Create Desktop</div></h4>
+            <h4 class="modal-title"><div id="pulltitle"></div></h4>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           </div>
-          <div class="modal-body">
-            <form id="createform">
-              <div id="desktopname-form" class="form-group row">
-              <label for="docker" class="col-sm-2 control-label">Name</label>
-                <div class="col-sm-10">
-                <input type="text" class="form-control" id="desktopname" placeholder="Custom Desktop Name" maxlength="12">
-                </div>
-              </div>
-              <div class="form-check">
-                <label class="form-check-label">
-                  <input type="checkbox" class="form-check-input" id="socket">
-                  Enable access to host Docker socket
-                </label>
-              </div>
+          <div class="modal-body" id="pullbody">
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-success" id="createdesktop" data-dismiss="modal">Create Desktop</button>
-          </div>
-            </form>
         </div>
       </div>
     </div>
-    <!--Destory Desktop Modal Form-->
-    <div id="destroy" class="modal fade" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document">
+   <!--Browse Tags Modal-->
+    <div id="tags" class="modal fade" tabindex="-1" role="dialog" style="overflow-y:scroll;">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Destroy Desktop</h5>
+            <h4 class="modal-title"><div id="tagstitle"></div></h4>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           </div>
-          <div class="modal-body">
-            <form id="destroyform">
-              <div class="form-group row">
-              <label for="desktop-destroy" class="col-sm-2 control-label">Name</label>
-                <div class="col-sm-10">
-                <input type="text" class="form-control" id="desktop-destroy" placeholder="Desktop Name">
-                </div>
-              </div>
+          <div class="modal-body" id="tagsbody">
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-success" id="destroydesktop" data-dismiss="modal">Destroy</button>
-          </div>
-            </form>
         </div>
       </div>
+    </div>
     <!-- Bootstrap core JavaScript -->
     <script src="public/vendor/jquery/jquery.min.js"></script>
     <script src="public/vendor/popper/popper.min.js"></script>
@@ -234,6 +196,7 @@
     <script src="public/vendor/jquery-easing/jquery.easing.min.js"></script>
     <script src="public/vendor/datatables/jquery.dataTables.js"></script>
     <script src="public/vendor/datatables/dataTables.bootstrap4.js"></script>
+    <script src="public/vendor/showdown/showdown.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <!-- Custom scripts for Taisun -->
     <script src="public/js/launch.js"></script>
