@@ -16,7 +16,7 @@
   "dependencies": {
     "crypto": "^1.0.1",
     "docker-hub-api": "^0.5.1",
-    "dockerode": "^2.4.3",
+    "dockerode": "^2.5.2",
     "dockops": "^0.2.1",
     "ejs": "^2.5.7",
     "events": "^1.1.1",

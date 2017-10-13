@@ -233,8 +233,23 @@ io.on('connection', function(socket){
     socket.on('gettags', function(name){
       var user = name.split('/')[0];
       var repo = name.split('/')[1];
-      dockerHubAPI.tags(user, repo).then(function (info) {
-        io.emit('sendtagsinfo', info);
+      dockerHubAPI.tags(user, repo).then(function (data) {
+        io.emit('sendtagsinfo', [data, name]);
+      });
+    });
+    // Pull image
+    socket.on('sendpullcommand', function(image){
+      io.emit('sendpullstart', 'Starting Pull process for ' + image);
+      console.log('Pulling ' + image);
+      docker.pull(image, function(err, stream) {
+        docker.modem.followProgress(stream, onFinished, onProgress);
+        function onProgress(event) {
+          io.emit('sendpulloutput', JSON.stringify(event));
+        }
+        function onFinished(err, output) {
+          io.emit('sendpulloutput', 'Finished Pull process for ' + image);
+          console.log('Finished Pulling ' + image);
+        }       
       });
     });
 });
@@ -314,12 +329,6 @@ function createdesktop(name,socket){
           }
         });
       }
-  });
-}
-// Get current docker images on local machine
-function getimages(){
-  request({url: 'http://unix:/var/run/docker.sock:/images/json', headers:{host: 'http'}}, function(err, response, body){
-    return body;
   });
 }
 // Destroy a desktop container set

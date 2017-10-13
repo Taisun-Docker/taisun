@@ -146,7 +146,7 @@ socket.on('hubresults', function(data) {
 $('body').on('click', '.hubinfo', function(){
   socket.emit('gethubinfo', $(this).attr("value"));
   $('#pulltitle').empty();
-  $('#pulltitle').append($(this).attr("value") + ' Image Information' );
+  $('#pulltitle').append($(this).attr("value").replace('_/','') + ' Image Information' );
   $('#pullbody').empty();
   $('#pullbody').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
 });
@@ -173,8 +173,8 @@ socket.on('sendhubinfo', function(data) {
       </ul><br>\
     </div>\
     <div class="col-lg-4"><br><center>\
-      <button type="button" style="cursor:pointer;" class="btn btn-success btn-xs pullimage" value="' + name + '"><i class="fa fa-download"></i> Pull Latest</button><br><br>\
-      <button type="button" style="cursor:pointer;" data-dismiss="modal" data-toggle="modal" data-target="#tags" class="btn btn-primary btn-xs browsetags" value="'+user+'/'+name+'"><i class="fa fa-eye"></i> Browse Tags</button><br><br>\
+      <button type="button" style="cursor:pointer;" class="btn btn-success btn-xs pullimage" data-dismiss="modal" data-toggle="modal" data-target="#pullconsole" value="' + (user + '/' + name).replace('_/','') + ':latest' + '"><i class="fa fa-download"></i> Pull Latest</button><br><br>\
+      <button type="button" style="cursor:pointer;" data-dismiss="modal" data-toggle="modal" data-target="#tags" class="btn btn-primary btn-xs browsetags" value="' + user + '/' + name + '"><i class="fa fa-eye"></i> Browse Tags</button><br><br>\
     </center></div>\
   </div>');
   $('#pullbody').append('\
@@ -192,31 +192,41 @@ socket.on('sendhubinfo', function(data) {
 $('body').on('click', '.browsetags', function(){
   socket.emit('gettags', $(this).attr("value"));
   $('#tagstitle').empty();
-  $('#tagstitle').append($(this).attr("value") + ' Repo Tags' );
+  $('#tagstitle').append($(this).attr("value").replace('_/','') + ' Repo Tags' );
   $('#tagsbody').empty();
   $('#tagsbody').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
 });
 // When the server sends tag info populate tags modal
-socket.on('sendtagsinfo', function(data) {
+socket.on('sendtagsinfo', function(arr) {
+  var data = arr[0];
+  var name = arr[1];
   $('#tagsbody').empty();
   $('#tagsbody').append('<table style="width:100%" id="tagsresults" class="table table-bordered table-hover"></table>');
   $('#tagsresults').append('<thead><tr><th>Name</th><th>Size</th><th>Updated</th><th></th></tr></thead>');
   for (i = 0; i < data.length; i++){
-    var name = data[i].name;
+    var tag = data[i].name;
     var size = data[i].full_size;
     var updated = data[i].last_updated;
-    $('#tagsresults').append('<tr><td>' + name + '</td><td>' + (size / 1000000) + ' MB' + '</td><td>' + updated + '</td><td><button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs pullimage" value="' + name + '"><i class="fa fa-download"></i> Pull</button></td></tr>')
+    $('#tagsresults').append('<tr><td>' + tag + '</td><td>' + (size / 1000000) + ' MB' + '</td><td>' + updated + '</td><td><button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs pullimage" data-dismiss="modal" data-toggle="modal" data-target="#pullconsole" value="' + name.replace('_/','') + ':' + tag  + '"><i class="fa fa-download"></i> Pull</button></td></tr>')
   }  
 });
-
-
-// Force modal scrolling
-$('body').on('hidden.bs.modal', function () {
-  if($('.modal.in').length > 0)
-  {
-    $('body').addClass('modal-open');
-  }
+// Pull image at specific tag
+$('body').on('click', '.pullimage', function(){
+  socket.emit('sendpullcommand', $(this).attr("value"));
+  $('#pullconsoletitle').empty();
+  $('#pullconsoletitle').append('Pulling ' + $(this).attr("value"));
+  $('#pullconsolebody').empty();
+  $('#pullconsolebody').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
 });
+// Show console output for pull
+socket.on('sendpullstart', function(output) {
+  $('#pullconsolebody').empty();
+  $('#pullconsolebody').append('<pre>' + output + '</pre>')
+});
+socket.on('sendpulloutput', function(output) {
+  $('#pullconsolebody').append('<pre>' + output + '</pre>')
+});
+
 // Render local page on page load
 renderlocal();
 
