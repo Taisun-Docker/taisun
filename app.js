@@ -252,6 +252,10 @@ io.on('connection', function(socket){
         }       
       });
     });
+    // Pull image
+    socket.on('sendlaunchcommand', function(image){
+      launchcontainer(image);
+    });
 });
 
 
@@ -353,6 +357,41 @@ function destroydesktop(name, auto){
         }
       });
     }
+  });
+}
+// Launch A single container
+function launchcontainer(image){
+  // Grab the current running docker container information
+  docker.listContainers(function (err, containers) {
+    if (err){
+      io.emit('error_popup','Could not list containers something is wrong with docker on this host');
+    }
+    else{
+        var containeroptions ={
+          Image: image
+        };
+        docker.createContainer(containeroptions, function (err, container){
+          if (err){
+            console.log(JSON.stringify(err));
+            io.emit('error_popup','Could not pull Guacd container');
+          }
+          else{
+            io.emit('container_update','Created container');
+            container.start(function (err, data){
+              if (err){
+                console.log(JSON.stringify(err));
+                io.emit('error_popup','Could not start container from ' + image);
+              }
+              else{
+                io.emit('container_update','Container started, details below:');
+                container.inspect(function (err, containerdata) {
+                  io.emit('container_update',JSON.stringify(containerdata));
+                });
+              }
+            });
+          }
+        });
+      }
   });
 }
 

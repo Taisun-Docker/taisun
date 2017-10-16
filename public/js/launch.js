@@ -44,12 +44,12 @@ function renderlocal(){
     </div>\
   </div>');
   socket.emit('getimages');
-  // Whenever the stack list is updated rebuild the displayed table
+  // When the server sends us the images on this machine render in the rows
   socket.on('sendimages', function(images) {
     $("#images").dataTable().fnDestroy();
     var imagestable = $('#images').DataTable( {} );
     imagestable.clear();
-    //Loop through the containers to build the containers table
+    //Loop through the images to build the images table
     for (i = 0; i < images.length; i++){
       var image = images[i];
       if (image.RepoTags){
@@ -60,7 +60,7 @@ function renderlocal(){
             image.Id.split(':')[1].substring(0,12),
             new Date( image.Created * 1e3).toISOString().slice(0,19), 
             (image.Size / 1000000) + ' MB', 
-            '<a href="/desktop/' + image.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>'] 
+            '<button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs launchcontainer" data-dismiss="modal" data-toggle="modal" data-target="#launchconsole" value="' + image.RepoTags[0] + '"><i class="fa fa-rocket"></i> Launch</button>'] 
           );
         }
       }
@@ -225,6 +225,16 @@ socket.on('sendpullstart', function(output) {
 });
 socket.on('sendpulloutput', function(output) {
   $('#pullconsolebody').append('<pre>' + output + '</pre>')
+});
+// Launch a single container (just console for now)
+$('body').on('click', '.launchcontainer', function(){
+  socket.emit('sendlaunchcommand', $(this).attr("value"));
+  $('#launchconsoletitle').empty();
+  $('#launchconsoletitle').append('Launching ' + $(this).attr("value"));
+  $('#launchconsolebody').empty();
+});
+socket.on('container_update', function(output) {
+  $('#launchconsolebody').append('<pre>' + output + '</pre>')
 });
 
 // Render local page on page load
