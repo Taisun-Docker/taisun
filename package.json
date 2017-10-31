@@ -28,6 +28,8 @@
     "http": "0.0.0",
     "http-proxy": "^1.16.2",
     "http-proxy-middleware": "^0.17.4",
+    "js-yaml": "^3.10.0",
+    "nunjucks": "^3.0.1",
     "request": "^2.81.0",
     "socket.io": "^2.0.1",
     "util": "^0.10.3",

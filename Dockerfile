@@ -11,7 +11,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y git supe
   add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && \
   apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install docker-ce && \
   apt-get clean && \
-  rm -rf /var/lib/apt/lists/*
+  rm -rf /var/lib/apt/lists/* &&\
+  curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose &&\
+  chmod +x /usr/local/bin/docker-compose
 
 #Copy over supervisor config file
 COPY ./taisun.conf /etc/supervisor/conf.d/taisun.conf

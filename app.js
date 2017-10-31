@@ -2,6 +2,9 @@
 // Main Node.js app
 
 //// Application Variables ////
+var bash = require('child_process').exec;
+var nunjucks = require('nunjucks');
+var yaml = require('js-yaml');
 var request = require('request');
 const crypto = require('crypto');
 var events = require('events');
@@ -256,7 +259,43 @@ io.on('connection', function(socket){
     socket.on('sendlaunchcommand', function(image){
       launchcontainer(image);
     });
+    // Get Taisun.io stacks from json dump
+    socket.on('getstacks', function(page){
+      request.get({url:'http://localhost/public/stackstemp/stacks.json'},function(error, response, body){
+        io.emit('stacksresults',JSON.parse(body));
+      });
+    });
+    // Parse Taisun Stacks Yaml and send form to client
+    socket.on('sendstackurl', function(url){
+      request.get({url:url},function(error, response, body){
+        var yml = yaml.safeLoad(body);
+        var name = yml.name;
+        var description = yml.description;
+        var form = yml.form;
+        io.emit('stackurlresults', [name,description,form,url]);
+      });
+    });
+    // When user submits stack data launch the stack
+    socket.on('launchstack', function(userinput){
+      var url = userinput.stackurl;
+      var inputs = userinput.inputs;
+      request.get({url:url},function(error, response, body){
+        var yml = yaml.safeLoad(body);
+        var compose = yml.compose;
+        var composefile = nunjucks.renderString(compose, inputs);
+        var cmd = 'echo \'' + composefile + '\' | docker-compose -f - up -d';
+        bash(cmd, function(error, stdout, stderr) {
+          if(error){
+            console.log(error);
+          }
+          else{
+            console.log(stdout + stderr);
+          }
+        });
+      });
+    });
 });
+
 
 
 //// Functions ////
