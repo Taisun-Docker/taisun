@@ -162,71 +162,23 @@
         </div>
       </div>
     </div>
-   <!--Pull image Modal-->
-    <div id="pull" class="modal fade" tabindex="-1" role="dialog" style="overflow-y:scroll;">
+   <!--Taisun Modal-->
+    <div id="modal" class="modal fade" tabindex="-1" role="dialog" style="overflow-y:scroll;">
       <div class="modal-dialog" style="max-width:80%!important;">
         <div class="modal-content">
           <div class="modal-header">
-            <h4 class="modal-title"><div id="pulltitle"></div></h4>
+            <h4 class="modal-title"><div id="modaltitle"></div></h4>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           </div>
-          <div class="modal-body" id="pullbody">
+          <div class="modal-body">
+            <div id="modalloading"><i class="fa fa-refresh fa-spin" style="font-size:36px"></i></div>
+            <div id="modalbody"></div>
+            <pre id="modalconsole"></pre>
           </div>
+          <div class="modal-footer" id="modalfooter"></div>
         </div>
       </div>
-    </div>
-   <!--Browse Tags Modal-->
-    <div id="tags" class="modal fade" tabindex="-1" role="dialog" style="overflow-y:scroll;">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title"><div id="tagstitle"></div></h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          </div>
-          <div class="modal-body" id="tagsbody">
-          </div>
-        </div>
-      </div>
-    </div>
-   <!--Pull console output Modal-->
-    <div id="pullconsole" class="modal fade" tabindex="-1" role="dialog" style="overflow-y:scroll;">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title"><div id="pullconsoletitle"></div></h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          </div>
-          <div class="modal-body" id="pullconsolebody">
-          </div>
-        </div>
-      </div>
-    </div>
-   <!--Launch container console output Modal-->
-    <div id="launchconsole" class="modal fade" tabindex="-1" role="dialog" style="overflow-y:scroll;">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title"><div id="launchconsoletitle"></div></h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          </div>
-          <div class="modal-body" id="launchconsolebody">
-          </div>
-        </div>
-      </div>
-    </div>
-   <!--Taisun Stack form Modal-->
-    <div id="stackconfigure" class="modal fade" tabindex="-1" role="dialog" style="overflow-y:scroll;">
-      <div class="modal-dialog" style="max-width:80%!important;">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title"><div id="stackmodaltitle"></div></h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          </div>
-          <div class="modal-body" id="stackmodalbody">
-          </div>
-        </div>
-      </div>
-    </div>
+    </div>    
     <!-- Bootstrap core JavaScript -->
     <script src="public/vendor/jquery/jquery.min.js"></script>
     <script src="public/vendor/popper/popper.min.js"></script>

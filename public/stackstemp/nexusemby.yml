@@ -1,4 +1,4 @@
-name: Media Nexus Plex
+name: Media Nexus Emby
 description: |
   An h1 header
   ============
@@ -30,7 +30,7 @@ compose: |
   services:
   
     plex:
-      image: linuxserver/plex
+      image: linuxserver/emby
       container_name: {{ tag }}_taisun_plex
       environment:
         - DOWNLOADER={{ dlclient }}

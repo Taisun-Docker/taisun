@@ -2,7 +2,7 @@
 // Main Node.js app
 
 //// Application Variables ////
-var bash = require('child_process').exec;
+const { spawn } = require('child_process');
 var nunjucks = require('nunjucks');
 var yaml = require('js-yaml');
 var request = require('request');
@@ -250,7 +250,7 @@ io.on('connection', function(socket){
           io.emit('sendpulloutput', JSON.stringify(event));
         }
         function onFinished(err, output) {
-          io.emit('sendpulloutput', 'Finished Pull process for ' + image);
+          io.emit('sendpulloutputdone', 'Finished Pull process for ' + image);
           console.log('Finished Pulling ' + image);
         }       
       });
@@ -283,14 +283,14 @@ io.on('connection', function(socket){
         var yml = yaml.safeLoad(body);
         var compose = yml.compose;
         var composefile = nunjucks.renderString(compose, inputs);
-        var cmd = 'echo \'' + composefile + '\' | docker-compose -f - up -d';
-        bash(cmd, function(error, stdout, stderr) {
-          if(error){
-            console.log(error);
-          }
-          else{
-            console.log(stdout + stderr);
-          }
+        var composecommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -f - up -d'];
+        const composeup = spawn('unbuffer', composecommand);
+        composeup.stdout.setEncoding('utf8');
+        composeup.stdout.on('data', (data) => {
+          socket.emit('stackupdate',data);
+        });
+        composeup.on('close', (code) => {
+          socket.emit('stacklaunched','Compose up process exited with code ' + code);
         });
       });
     });
@@ -424,7 +424,7 @@ function launchcontainer(image){
               else{
                 io.emit('container_update','Container started, details below:');
                 container.inspect(function (err, containerdata) {
-                  io.emit('container_update',JSON.stringify(containerdata));
+                  io.emit('container_finish',JSON.stringify(containerdata));
                 });
               }
             });

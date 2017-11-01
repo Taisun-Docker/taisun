@@ -64,7 +64,7 @@ function renderlocal(){
             image.Id.split(':')[1].substring(0,12),
             new Date( image.Created * 1e3).toISOString().slice(0,19), 
             (image.Size / 1000000) + ' MB', 
-            '<button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs launchcontainer" data-dismiss="modal" data-toggle="modal" data-target="#launchconsole" value="' + image.RepoTags[0] + '">Launch <i class="fa fa-rocket"></i></button>'] 
+            '<button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs launchcontainer" data-toggle="modal" data-target="#modal" value="' + image.RepoTags[0] + '">Launch <i class="fa fa-rocket"></i></button>'] 
           );
         }
       }
@@ -141,7 +141,7 @@ socket.on('hubresults', function(data) {
       var name = data.results[i].name;
       var description = data.results[i].description;
       var stars = data.results[i].star_count;
-      $('#hubresults').append('<tr><td>' + name + '</td><td>' + '<i class="fa fa-star-o"></i>' + stars + '</td><td>' + description + '</td><td><button type="button" data-toggle="modal" data-target="#pull" style="cursor:pointer;" class="btn btn-primary btn-xs hubinfo" value="' + name + '"><i class="fa fa-download"></i> Pull</button></td></tr>')
+      $('#hubresults').append('<tr><td>' + name + '</td><td>' + '<i class="fa fa-star-o"></i>' + stars + '</td><td>' + description + '</td><td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs hubinfo" value="' + name + '"><i class="fa fa-download"></i> Pull</button></td></tr>')
     }
     // Pagination logic show +2 and -2 pages at the bottom of the table
     $('#dockerresults').append('<ul id="dockerhubpages" class="pagination"></ul>');
@@ -165,14 +165,14 @@ socket.on('hubresults', function(data) {
 //// Get supplimental info on the dockerhub container
 $('body').on('click', '.hubinfo', function(){
   socket.emit('gethubinfo', $(this).attr("value"));
-  $('#pulltitle').empty();
-  $('#pulltitle').append($(this).attr("value").replace('_/','') + ' Image Information' );
-  $('#pullbody').empty();
-  $('#pullbody').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
+  modalpurge();
+  $('#modaltitle').append($(this).attr("value").replace('_/','') + ' Image Information' );
+  $('#modalloading').show();
 });
 // Render in info page for image on pull modal
 socket.on('sendhubinfo', function(data) {
-  $('#pullbody').empty();
+  $('#modalloading').hide();
+  $('#modalbody').show();
   if (data.user == 'library'){
     var user = '_';
   }
@@ -183,7 +183,7 @@ socket.on('sendhubinfo', function(data) {
   var pullcount = data.pull_count;
   var stars = data.star_count;
   var description = data.description;
-  $('#pullbody').append('\
+  $('#modalbody').append('\
   <div class="row">\
     <div class="col-lg-8">' +
       description + '<br><br>\
@@ -194,10 +194,10 @@ socket.on('sendhubinfo', function(data) {
     </div>\
     <div class="col-lg-4"><br><center>\
       <button type="button" style="cursor:pointer;" class="btn btn-success btn-xs pullimage" data-dismiss="modal" data-toggle="modal" data-target="#pullconsole" value="' + (user + '/' + name).replace('_/','') + ':latest' + '"><i class="fa fa-download"></i> Pull Latest</button><br><br>\
-      <button type="button" style="cursor:pointer;" data-dismiss="modal" data-toggle="modal" data-target="#tags" class="btn btn-primary btn-xs browsetags" value="' + user + '/' + name + '"><i class="fa fa-eye"></i> Browse Tags</button><br><br>\
+      <button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs browsetags" value="' + user + '/' + name + '"><i class="fa fa-eye"></i> Browse Tags</button><br><br>\
     </center></div>\
   </div>');
-  $('#pullbody').append('\
+  $('#modalbody').append('\
   <div class="card mb-3">\
     <div class="card-header">\
       <i class="fa fa-book"></i>\
@@ -211,50 +211,66 @@ socket.on('sendhubinfo', function(data) {
 // When the tags modal is launched clear it out and ask the server for the info
 $('body').on('click', '.browsetags', function(){
   socket.emit('gettags', $(this).attr("value"));
-  $('#tagstitle').empty();
-  $('#tagstitle').append($(this).attr("value").replace('_/','') + ' Repo Tags' );
-  $('#tagsbody').empty();
-  $('#tagsbody').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
+  modalpurge();
+  $('#modaltitle').append($(this).attr("value").replace('_/','') + ' Repo Tags' );
+  $('#modalloading').show();
 });
 // When the server sends tag info populate tags modal
 socket.on('sendtagsinfo', function(arr) {
   var data = arr[0];
   var name = arr[1];
-  $('#tagsbody').empty();
-  $('#tagsbody').append('<table style="width:100%" id="tagsresults" class="table table-bordered table-hover"></table>');
+  $('#modalloading').hide();
+  $('#modalbody').show();
+  $('#modalbody').append('<table style="width:100%" id="tagsresults" class="table table-bordered table-hover"></table>');
   $('#tagsresults').append('<thead><tr><th>Name</th><th>Size</th><th>Updated</th><th></th></tr></thead>');
   for (i = 0; i < data.length; i++){
     var tag = data[i].name;
     var size = data[i].full_size;
     var updated = data[i].last_updated;
-    $('#tagsresults').append('<tr><td>' + tag + '</td><td>' + (size / 1000000) + ' MB' + '</td><td>' + updated + '</td><td><button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs pullimage" data-dismiss="modal" data-toggle="modal" data-target="#pullconsole" value="' + name.replace('_/','') + ':' + tag  + '"><i class="fa fa-download"></i> Pull</button></td></tr>')
+    $('#tagsresults').append('<tr><td>' + tag + '</td><td>' + (size / 1000000) + ' MB' + '</td><td>' + updated + '</td><td><button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs pullimage" value="' + name.replace('_/','') + ':' + tag  + '"><i class="fa fa-download"></i> Pull</button></td></tr>')
   }  
 });
 // Pull image at specific tag
 $('body').on('click', '.pullimage', function(){
   socket.emit('sendpullcommand', $(this).attr("value"));
-  $('#pullconsoletitle').empty();
-  $('#pullconsoletitle').append('Pulling ' + $(this).attr("value"));
-  $('#pullconsolebody').empty();
-  $('#pullconsolebody').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
+  modalpurge();
+  $('#modaltitle').append('Pulling ' + $(this).attr("value"));
+  $('#modalloading').show();
 });
 // Show console output for pull
 socket.on('sendpullstart', function(output) {
-  $('#pullconsolebody').empty();
-  $('#pullconsolebody').append('<pre>' + output + '</pre>')
+  $('#modalconsole').show();
+  $('#modalconsole').append(output)
 });
 socket.on('sendpulloutput', function(output) {
-  $('#pullconsolebody').append('<pre>' + output + '</pre>')
+  $('#modalconsole').append(output);
+});
+socket.on('sendpulloutputdone', function(output) {
+  $('#modalloading').hide();
+  $('#modalconsole').append(output);
+  $('#modalfooter').show();
+  $('#modalfooter').append('\
+  <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
+  ');  
 });
 // Launch a single container (just console for now)
 $('body').on('click', '.launchcontainer', function(){
   socket.emit('sendlaunchcommand', $(this).attr("value"));
-  $('#launchconsoletitle').empty();
-  $('#launchconsoletitle').append('Launching ' + $(this).attr("value"));
-  $('#launchconsolebody').empty();
+  modalpurge();
+  $('#modaltitle').append('Launching ' + $(this).attr("value"));
+  $('#modalloading').show();
+  $('#modalconsole').show();
 });
 socket.on('container_update', function(output) {
-  $('#launchconsolebody').append('<pre>' + output + '</pre>')
+  $('#modalconsole').append(output);
+});
+socket.on('container_finish', function(output) {
+  $('#modalloading').hide();
+  $('#modalconsole').append(output);
+  $('#modalfooter').show();
+  $('#modalfooter').append('\
+  <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
+  ');
 });
 
 //// Taisun Stacks logic
@@ -274,44 +290,43 @@ socket.on('stacksresults', function(data) {
       var description = data.stacktemplates[i].description;
       var iconurl = data.stacktemplates[i].icon;
       var dataurl = data.stacktemplates[i].stackdata;
-      $('#stackstable').append('<tr height="130"><td><center><img src="' + iconurl + '"></center></td><td>' + name + '</td><td>' + description + '</td><td><button type="button" data-toggle="modal" data-target="#stackconfigure" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td></tr>')
+      $('#stackstable').append('<tr height="130"><td><center><img src="' + iconurl + '"></center></td><td>' + name + '</td><td>' + description + '</td><td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td></tr>')
     }
   }
 });
 // When the configure button is clicked send the URL to the server and give the user a spinner
 $('body').on('click', '.configurestack', function(){
   socket.emit('sendstackurl', $(this).attr("value"));
-  $('#stackmodaltitle').empty();
-  $('#stackmodaltitle').append('Pulling definition from ' + $(this).attr("value"));
-  $('#stackmodalbody').empty();
-  $('#stackmodalbody').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
+  modalpurge();
+  $('#modaltitle').append('Pulling definition from ' + $(this).attr("value"));
+  $('#modalloading').show();
 });
 
 // When the server sends us the stack data render in the configure modal
 socket.on('stackurlresults', function(data) {
+  $('#modalloading').hide();
   var name = data[0];
   var markdown = data[1];
   var url = data[3];
-  $('#stackmodaltitle').empty();
-  $('#stackmodaltitle').append(name);
-  $('#stackmodalbody').empty();
-  $('#stackmodalbody').append(converter.makeHtml(markdown));
-  $('#stackmodalbody').append('\
+  $('#modaltitle').empty();
+  $('#modaltitle').append(name);
+  $('#modalbody').show();
+  $('#modalbody').append(converter.makeHtml(markdown));
+  $('#modalbody').append('\
   <div class="card mb-3">\
     <div class="card-header">\
       <i class="fa fa-pencil"></i>\
       Launch Options\
     </div>\
-    <div class="card-body">\
-      <form id="stackform">' + 
+    <div class="card-body">' + 
        formbuilder(data[2]) +
-        '<div class="modal-footer">\
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel <i class="fa fa-times-circle-o"></i></button>\
-          <button type="button" class="btn btn-success" id="createstack" data-dismiss="modal" value="' + url + '">Create Stack <i class="fa fa-rocket"></i></button>\
-        </div>\
-      </form>\
-    </div>\
+    '</div>\
   </div>');
+  $('#modalfooter').show();
+  $('#modalfooter').append('\
+  <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel <i class="fa fa-times-circle-o"></i></button>\
+  <button type="button" class="btn btn-success" id="createstack" value="' + url + '">Create Stack <i class="fa fa-rocket"></i></button>\
+  ');
 });
 // Convert the body object we get from the server into a bootstrap form
 function formbuilder(data){
@@ -377,13 +392,39 @@ $('body').on('click', '#createstack', function(){
     inputs[label] = value;
   }).promise().done(function(){
     socket.emit('launchstack',{"stackurl":url,"inputs":inputs});
+    modalpurge();
+    $('#modalloading').show();
+    $('#modaltitle').append('Launching ' + url);
+    $('#modalconsole').show();
   });
 });
-
-
+// Show output from launch command
+socket.on('stackupdate', function(data) {
+  $('#modalconsole').append(data);
+});
+// On finish remove spinner and add close button
+socket.on('stacklaunched', function(data) {
+  $('#modalloading').hide();
+  $('#modalconsole').append(data);
+  $('#modalfooter').show();
+  $('#modalfooter').append('\
+  <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
+  ');
+});
 // Render local page on page load
 renderlocal();
 
+// Purge the modal of data
+function modalpurge(){
+  $('#modaltitle').empty();
+  $('#modalbody').empty();
+  $('#modalconsole').empty();
+  $('#modalfooter').empty();
+  $('#modalloading').hide();
+  $('#modalbody').hide();
+  $('#modalconsole').hide();
+  $('#modalfooter').hide();
+}
 // Grabbed from the admin template
 (function($) {
   "use strict"; // Start of use strict
