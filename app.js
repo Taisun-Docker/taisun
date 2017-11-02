@@ -76,27 +76,7 @@ const encrypt = (value) => {
 ////// PATHS //////
 //// Main ////
 app.get("/", function (req, res) {
-  res.render(__dirname + '/views/containers.ejs');
-});
-//// VDI ////
-app.get("/vdi*", function (req, res) {
-  var guacontainer = docker.getContainer('guacd');
-  guacontainer.inspect(function (err, data) {
-    if (data == null){
-      fs.readFile('/usr/src/Taisun/views/body/vdi/noguac.html', function (err, data) {
-        res.render(__dirname + '/views/vdi.ejs', {body : data});
-      });
-    }
-    else{
-      fs.readFile('/usr/src/Taisun/views/body/vdi/running.html', function (err, data) {
-        res.render(__dirname + '/views/vdi.ejs', {body : data});
-      });
-    }
-  });
-});
-//// Launch ////
-app.get("/launch", function (req, res) {
-  res.render(__dirname + '/views/launch.ejs');
+  res.sendFile(__dirname + '/public/index.html');
 });
 //// Public JS and CSS ////
 app.use('/public', express.static(__dirname + '/public'));
@@ -121,8 +101,10 @@ io.on('connection', function(socket){
   var clientIp = socket.request.connection.remoteAddress;
   console.log(clientIp + ' connected time=' + (new Date).getTime());
   socket.join(clientIp);
-    // Select current active containers in docker and send it to the client
-    emitter.emit('updatepage');
+    // When container info is requested send to client
+    socket.on('getcontainers', function(){
+      emitter.emit('updatepage');
+    });
     ///////////////////////////
     ////// Socket events //////
     ///////////////////////////
@@ -294,6 +276,28 @@ io.on('connection', function(socket){
         });
       });
     });
+    socket.on('checkguac', function(){
+      var guacontainer = docker.getContainer('guacd');
+      guacontainer.inspect(function (err, data) {
+        if (data == null){
+          io.emit('rendervdi', 'no');
+        }
+        else{
+          io.emit('rendervdi', 'yes');
+        }
+      });
+    });
+    socket.on('getguacinfo', function(){
+      var guacontainer = docker.getContainer('guacd');
+      guacontainer.inspect(function (err, data) {
+        if (data == null){
+          io.emit('guacinfo', 'Error Getting GuacD infor');
+        }
+        else{
+          io.emit('guacinfo', data);
+        }
+      });
+    });   
 });
 
 
