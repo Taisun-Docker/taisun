@@ -1,6 +1,6 @@
 {
   "name": "Taisun",
-  "version": "0.0.1",
+  "version": "0.2",
   "description": "Taisun docker server management",
   "main": "app.js",
   "scripts": {
@@ -12,7 +12,7 @@
   },
   "author": "Ryan Kuba",
   "license": "ISC",
-  "homepage": "https://gitlab.com/thelamer/taisun#readme",
+  "homepage": "http://taisun.io",
   "dependencies": {
     "crypto": "^1.0.1",
     "docker-hub-api": "^0.5.1",
@@ -24,7 +24,7 @@
     "express-http-proxy": "^1.0.6",
     "express-session": "^1.15.3",
     "express-socket.io-session": "^1.3.2",
-    "guacamole-lite": "^0.4.4",
+    "guacamole-lite": "^0.5.0",
     "http": "0.0.0",
     "http-proxy": "^1.16.2",
     "http-proxy-middleware": "^0.17.4",

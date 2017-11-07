@@ -21,7 +21,6 @@ On a Docker enabled host run the following command from cli:
 ```
 sudo docker run --name taisun -d \
 -p 3000:80 \
--p 3001:3000 \
 -v /var/run/docker.sock:/var/run/docker.sock \
 taisun/webapp:latest
 ```
@@ -35,7 +34,6 @@ On a Docker enabled host run the following command from cli:
 ```
 sudo docker run --name taisun -d \
 -p 3000:80 \
--p 3001:3000 \
 -p 8000:8000 \
 -v /var/run/docker.sock:/var/run/docker.sock \
 taisun/webapp:latest.dev

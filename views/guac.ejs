@@ -95,13 +95,14 @@
     <script type="text/javascript"> /* <![CDATA[ */
       // Hide Cursor
       document.body.style.cursor = 'none';
-      // Get hostname
+      // Get hostname and port
       var host = window.location.hostname;
+      var port = window.location.port;
       // Get display div from document
       var display = document.getElementById("display");
       // Instantiate client, using an HTTP tunnel for communications.
       var guac = new Guacamole.Client(
-        new Guacamole.WebSocketTunnel("ws://" + host + ":3001/?token=<%- token -%>")
+        new Guacamole.WebSocketTunnel("ws://" + host + ":" + port + "/guaclite?token=<%- token -%>")
       );
       // Show current client clipboard
       guac.onclipboard = function clientClipboardReceived(stream, mimetype) {

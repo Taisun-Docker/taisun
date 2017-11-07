@@ -743,6 +743,70 @@ socket.on('stacklaunched', function(data) {
   ');
 });
 
+//// Render the remote access pages ////
+function renderremote(){
+  $('.nav-item').removeClass('active');
+  $('#Remotenav').addClass('active');
+  $('#pagecontent').empty();
+  $('#pageheader').empty();  
+  socket.emit('checkremote');
+}
+// Render the page based on the response from the server
+socket.on('renderremote', function(data){
+  if (data == 'no'){
+    renderremotestart();
+  }
+  else {
+    rendergateway(data);
+  }
+});
+
+// Start page for remote access
+function renderremotestart() {
+  $('#pagecontent').append('\
+  <div class="card mb-3">\
+    <div class="card-header">\
+      <i class="fa fa-sitemap"></i>\
+      Remote access quickstart\
+    </div>\
+    <div class="card-body">\
+      <center>\
+        <h2>You will need a DNS endpoint that points to your IP to continue <a href="https://api.taisun.io/prod/genurl" target="_blank">Click Here</a> to generate one</h2>\
+        <br>\
+        <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost/public/stackstemp/taisungateway.yml">I have an Endpoint</button>\
+      </center>\
+    </div>\
+  </div>\
+  ');
+}
+// Gateway management page
+function rendergateway(data) {
+  $('#pagecontent').append('\
+  <div class="card mb-3">\
+    <div class="card-header">\
+      <i class="fa fa-sitemap"></i>\
+      Taisun Gateway Status\
+    </div>\
+    <div class="card-body">\
+        <table class="table table-bordered">\
+          <tr><td>State</td><td>' + data.State.Status + '</td></tr>\
+          <tr><td>Ports</td><td>' + JSON.stringify(data.Config.ExposedPorts) + '</td></tr>\
+          <tr><td>Env</td><td>' + JSON.stringify(data.Config.Env) + '</a></td></tr>\
+        </table>\
+    </div>\
+  </div>\
+  ');
+}
+
+//// Render the portainer page ////
+function renderportainer(){
+  $('.nav-item').removeClass('active');
+  $('#Portainernav').addClass('active');
+  $('#pagecontent').empty();
+  $('#pageheader').empty(); 
+  $('#pagecontent').append('<iframe src="http://' + host + ':9000" frameborder="0"style="position: relative; height: calc(100vh - 95px); width: 100%;"></iframe>')
+}
+
 // Purge the modal of data
 function modalpurge(){
   $('#modaltitle').empty();

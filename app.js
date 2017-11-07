@@ -54,7 +54,7 @@ guacontainer.inspect(function (err, containerdata) {
     }
     // If it is up and running use the IP we got from inspect to fire up the websocket tunnel used by the VDI application
     else {
-      const guacServer = new GuacamoleLite({port:3000},{host:containerdata.NetworkSettings.IPAddress,port:4822},clientOptions);
+      const guacServer = new GuacamoleLite({server: http,path:'/guaclite'},{host:containerdata.NetworkSettings.IPAddress,port:4822},clientOptions);
     }
   }
 });
@@ -297,7 +297,19 @@ io.on('connection', function(socket){
           io.emit('guacinfo', data);
         }
       });
-    });   
+    });
+    // When the user checks the status of the remote gateway send it back
+    socket.on('checkremote', function(){
+      var remotecontainer = docker.getContainer('taisun_gateway');
+      remotecontainer.inspect(function (err, data) {
+        if (data == null){
+          io.emit('renderremote', 'no');
+        }
+        else{
+          io.emit('renderremote', data);
+        }
+      });
+    });
 });
 
 
