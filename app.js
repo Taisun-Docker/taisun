@@ -121,7 +121,9 @@ io.on('connection', function(socket){
           io.emit('desktop_update','Desktop image not present on server downloading now');
           docker.pull('taisun/vdi_debian:latest', function(err, stream) {
             stream.pipe(process.stdout);
-            stream.once('end', createdesktop(name,socket));
+            stream.once('end', function() {
+              createdesktop(name,socket);
+            });
           });
         }
       });
@@ -307,6 +309,20 @@ io.on('connection', function(socket){
         }
         else{
           io.emit('renderremote', data);
+          console.log(data);
+        }
+      });
+    });
+    // When the user checks the status of portainer
+    socket.on('checkportainer', function(){
+      var portainercontainer = docker.getContainer('taisun_portainer');
+      portainercontainer.inspect(function (err, data) {
+        if (data == null){
+          io.emit('renderportainer', 'no');
+        }
+        else{
+          io.emit('renderportainer', data);
+          console.log(data);
         }
       });
     });

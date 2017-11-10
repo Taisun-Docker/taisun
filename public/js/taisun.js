@@ -271,6 +271,15 @@ function vdibuildermodal(){
   Coming Soon\
   ');
 }
+
+function githubmodal(){
+  modalpurge();
+  $('#modaltitle').append('Import Project from github');
+  $('#modalbody').show();
+  $('#modalbody').append('\
+  Coming Soon\
+  ');
+}
 // Guacstatus modal
 function guacstatusmodal(){
   modalpurge();
@@ -326,7 +335,7 @@ function renderlaunch(){
       </div>\
     </div>\
     <div class="col-xl-3 col-sm-6 mb-3">\
-        <div class="card text-white bg-info o-hidden h-60" style="cursor:pointer;" onclick="rendergetpull()">\
+        <div data-toggle="modal" data-target="#modal" class="card text-white bg-info o-hidden h-60" style="cursor:pointer;" onclick="githubmodal()">\
           <div class="card-body">\
             <div class="card-body-icon">\
               <i class="fa fa-fw fa-github"></i>\
@@ -788,20 +797,68 @@ function rendergateway(data) {
       Taisun Gateway Status\
     </div>\
     <div class="card-body">\
-        <table class="table table-bordered">\
+        <p> A chrome extension for using the web proxy can be found <a href="https://chrome.google.com/webstore/detail/taisun-connect/cfikmlkjcnlbabkghfcnakfcbgnokkpd" target="_blank">here</a></p><br>\
+        <table id="gatewaytable" class="table table-bordered">\
           <tr><td>State</td><td>' + data.State.Status + '</td></tr>\
-          <tr><td>Ports</td><td>' + JSON.stringify(data.Config.ExposedPorts) + '</td></tr>\
-          <tr><td>Env</td><td>' + JSON.stringify(data.Config.Env) + '</a></td></tr>\
+          <tr><th>Env Variable</th><th>Value</th></tr>\
         </table>\
+    </div>\
+  </div>\
+  ').promise().done(function(){
+    var envarr = data.Config.Env;
+    for (i = 0; i < envarr.length; i++){
+      var key = envarr[i].split('=')[0];
+      var value = envarr[i].split('=')[1];
+      if (key == 'SQUIDPASS'){
+        $('#gatewaytable').append('<tr><td>' + key + '</td><td>***********</td></tr>');
+      }
+      else {
+        $('#gatewaytable').append('<tr><td>' + key + '</td><td>' + value + '</td></tr>');
+      }
+    }
+  });
+}
+
+
+//// Render the remote access pages ////
+function renderportainer(){
+  $('.nav-item').removeClass('active');
+  $('#Portainernav').addClass('active');
+  $('#pagecontent').empty();
+  $('#pageheader').empty();  
+  socket.emit('checkportainer');
+}
+// Render the page based on the response from the server
+socket.on('renderportainer', function(data){
+  if (data == 'no'){
+    renderportainerstart();
+  }
+  else {
+    renderportainerrunning(data);
+  }
+});
+
+// Start page for remote access
+function renderportainerstart() {
+  $('#pagecontent').append('\
+  <div class="card mb-3">\
+    <div class="card-header">\
+      <i class="fa fa-docker"></i>\
+      Portainer quickstart\
+    </div>\
+    <div class="card-body">\
+      <center>\
+        <h2>Portainer is a great web based management interface for docker.<br>It has more polished features than Taisun for basic container management <a href="https://portainer.io/" target="_blank">Portainer.io</a></h2>\
+        <br>\
+        <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost/public/stackstemp/taisunportainer.yml">Launch Portainer</button>\
+      </center>\
     </div>\
   </div>\
   ');
 }
 
 //// Render the portainer page ////
-function renderportainer(){
-  $('.nav-item').removeClass('active');
-  $('#Portainernav').addClass('active');
+function renderportainerrunning(){
   $('#pagecontent').empty();
   $('#pageheader').empty(); 
   $('#pagecontent').append('<iframe src="http://' + host + ':9000" frameborder="0"style="position: relative; height: calc(100vh - 95px); width: 100%;"></iframe>')

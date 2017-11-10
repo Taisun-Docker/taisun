@@ -48,7 +48,7 @@ compose: |
   version: "3"
   services:
     taisungateway:
-      image: taisun/gateway
+      image: taisun/gateway:latest
       container_name: taisun_gateway
       environment:
         - SERVERIP={{ domain }}
@@ -58,6 +58,8 @@ compose: |
         - EMAIL={{ email }}
       restart: always
       network_mode: bridge
+      cap_add:
+        - NET_ADMIN
       volumes:
         - "openvpn:/etc/openvpn"
         - "ssl:/etc/letsencrypt"
