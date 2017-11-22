@@ -1,6 +1,6 @@
 {
   "name": "Taisun",
-  "version": "0.2",
+  "version": "0.2.0",
   "description": "Taisun docker server management",
   "main": "app.js",
   "scripts": {

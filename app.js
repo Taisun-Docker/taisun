@@ -181,14 +181,14 @@ io.on('connection', function(socket){
     });
     // Launch Guacd
     socket.on('launchguac', function(){
-      io.emit('guac_update','Starting Launch Process for Guacd');
+      io.emit('modal_update','Starting Launch Process for Guacd');
       // Check if the guacd image exists on this server
       images.list(function (err, res) {
         if (JSON.stringify(res).indexOf('glyptodon/guacd:latest') > -1 ){
           deployguac();
         }
         else {
-          io.emit('guac_update','Guacd image not present on server downloading now');
+          io.emit('modal_update','Guacd image not present on server downloading now');
           docker.pull('glyptodon/guacd:latest', function(err, stream) {
             stream.pipe(process.stdout);
             stream.once('end', deployguac);
@@ -309,7 +309,6 @@ io.on('connection', function(socket){
         }
         else{
           io.emit('renderremote', data);
-          console.log(data);
         }
       });
     });
@@ -322,7 +321,6 @@ io.on('connection', function(socket){
         }
         else{
           io.emit('renderportainer', data);
-          console.log(data);
         }
       });
     });
@@ -349,14 +347,14 @@ function deployguac(){
             io.emit('error_popup','Could not pull Guacd container');
           }
           else{
-            io.emit('guac_update','Downloaded image and created Guacd container');
+            io.emit('modal_update','Downloaded image and created Guacd container');
             container.start(function (err, data){
               if (err){
                 console.log(JSON.stringify(err));
                 io.emit('error_popup','Could not start Guacd');
               }
               else{
-                io.emit('guac_update','Guacd launched , Restarting server Please refresh');
+                io.emit('modal_finish','Guacd launched , Restarting server Please refresh');
                 // Exit the application supervisor will restart
                 process.exit();
               }

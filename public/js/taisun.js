@@ -56,12 +56,21 @@ socket.on('updatepage', function(containers) {
 });
 
 // When the guacd button is pressed tell the server to launch guacd docker container
-$("#guacdlaunch").click(function(){
+$('body').on('click', '.guacdlaunch', function(){
   socket.emit('launchguac');
+  modalpurge();
+  $('#modaltitle').append('Launching GuacD');
+  $('#modalloading').show();
 });
 // Parse output from the server on status of launching Guacd
-socket.on('guac_update', function(message) {
-  $('#guaclaunch-out').append('<pre>' + message + '<pre>');
+socket.on('modal_update', function(message) {
+  $('#modalconsole').show();
+  $('#modalconsole').append(message + '\
+  ');
+});
+socket.on('modal_finish', function(message) {
+  $('#modalloading').hide();
+  $('#modalconsole').append(message);
 });
 
 
@@ -124,7 +133,7 @@ socket.on('rendervdi', function(response){
         <center>\
           <h2>To run virtual desktops you must first launch Guacamole Server</h2>\
           <br>\
-          <button type="button" class="btn btn-lg btn-primary" data-toggle="modal" data-target="#modal" id="guacdlaunch">Launch Now</button>\
+          <button type="button" class="btn btn-lg btn-primary guacdlaunch" data-toggle="modal" data-target="#modal">Launch Now</button>\
         </center>\
       </div>\
     </div>\
