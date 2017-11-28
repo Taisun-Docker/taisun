@@ -799,6 +799,8 @@ function renderremotestart() {
 }
 // Gateway management page
 function rendergateway(data) {
+  var envars = data[0];
+  var clientconfig = data[1];
   $('#pagecontent').append('\
   <div class="card mb-3">\
     <div class="card-header">\
@@ -808,13 +810,22 @@ function rendergateway(data) {
     <div class="card-body">\
         <p> A chrome extension for using the web proxy can be found <a href="https://chrome.google.com/webstore/detail/taisun-connect/cfikmlkjcnlbabkghfcnakfcbgnokkpd" target="_blank">here</a></p><br>\
         <table id="gatewaytable" class="table table-bordered">\
-          <tr><td>State</td><td>' + data.State.Status + '</td></tr>\
+          <tr><td>State</td><td>' + envars.State.Status + '</td></tr>\
           <tr><th>Env Variable</th><th>Value</th></tr>\
         </table>\
     </div>\
   </div>\
+  <div class="card mb-3">\
+    <div class="card-header">\
+      <i class="fa fa-file-code-o"></i>\
+      OpenVPN Client File\
+    </div>\
+    <div class="card-body">\
+    <pre>' + clientconfig + '<pre>\
+    </div>\
+  </div>\
   ').promise().done(function(){
-    var envarr = data.Config.Env;
+    var envarr = envars.Config.Env;
     for (i = 0; i < envarr.length; i++){
       var key = envarr[i].split('=')[0];
       var value = envarr[i].split('=')[1];

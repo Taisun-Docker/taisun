@@ -308,7 +308,11 @@ io.on('connection', function(socket){
           io.emit('renderremote', 'no');
         }
         else{
-          io.emit('renderremote', data);
+          var cmd = 'docker exec taisun_gateway ovpn_getclient taisun';
+          exec(cmd, function (err, stdout) {
+            var clientconfig = stdout;
+            io.emit('renderremote', [data,clientconfig]);
+          });
         }
       });
     });
