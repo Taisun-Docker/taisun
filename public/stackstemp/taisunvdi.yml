@@ -1,0 +1,44 @@
+name: Taisun VDI
+description: |
+  Taisun VDI launcher
+  ============
+  
+  This will launch a stateful web based Linux desktop accessible from the Taisun application.
+  
+  The Default Credentials are:
+    - User: taisun
+    - Pass: taisun
+    
+  To change your password launch a terminal and run:
+  ```
+  passwd
+  ```
+  
+  The Docker Socket option allows you to expose the Host level Docker environment to this container. All VDI images come with a current version of Docker and Compose for development.
+  
+  The first time you spinup a Desktop please allow 20-30 seconds for the Desktop to startup before clicking "Launch"
+form:
+  - type: input
+    format: text
+    label: name
+    FormName: Name
+    placeholder: Unique Name to identify
+  - type: select
+    label: os
+    FormName: OS
+    options:
+      - debian
+      - ubuntu
+  - type: checkbox
+    label: dockersock
+    FormName: Enable Docker Socket
+
+compose: |
+  version: "3"
+  services:
+    taisunvdi_{{ name }}:
+      image: taisun/vdi_{{ os }}:latest
+      container_name: taisunvdi_{{ name }}
+      network_mode: bridge
+      {% if dockersock == 'true' %}volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock"{% endif %}

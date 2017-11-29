@@ -143,7 +143,7 @@ socket.on('rendervdi', function(response){
     $('#pageheader').append('\
     <div class="row">\
       <div class="col-xl-3 col-sm-6 mb-3">\
-        <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="vdicreatemodal()">\
+        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost/public/stackstemp/taisunvdi.yml">\
           <div class="card text-white bg-success o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
@@ -227,31 +227,6 @@ socket.on('rendervdi', function(response){
     socket.emit('getcontainers');
   }
 });
-// VDI create modal
-function vdicreatemodal(){
-  modalpurge();
-  $('#modaltitle').append('Create Desktop');
-  $('#modalbody').show();
-  $('#modalbody').append('\
-  <div id="desktopname-form" class="form-group row">\
-  <label for="docker" class="col-sm-2 control-label">Name</label>\
-    <div class="col-sm-10">\
-    <input type="text" class="form-control" id="desktopname" placeholder="Custom Desktop Name" maxlength="12">\
-    </div>\
-  </div>\
-  <div class="form-check">\
-    <label class="form-check-label">\
-      <input type="checkbox" class="form-check-input" id="socket">\
-      Enable access to host Docker socket\
-    </label>\
-  </div>\
-  ');
-  $('#modalfooter').show();
-  $('#modalfooter').append('\
-  <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>\
-  <button type="button" class="btn btn-success" onclick="createdesktop()" data-dismiss="modal">Create Desktop</button>\
-  ');
-}
 // VDI destroy modal
 function vdidestroymodal(){
   modalpurge();
@@ -413,7 +388,7 @@ function renderlocal(){
             image.Id.split(':')[1].substring(0,12),
             new Date( image.Created * 1e3).toISOString().slice(0,19), 
             (image.Size / 1000000) + ' MB', 
-            '<button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs launchcontainer" data-toggle="modal" data-target="#modal" value="' + image.RepoTags[0] + '">Launch <i class="fa fa-rocket"></i></button>'] 
+            '<button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs configuregeneric" data-toggle="modal" data-target="#modal" value="' + image.RepoTags[0] + '">Launch <i class="fa fa-rocket"></i></button>']
           );
         }
       }
@@ -542,7 +517,7 @@ socket.on('sendhubinfo', function(data) {
       </ul><br>\
     </div>\
     <div class="col-lg-4"><br><center>\
-      <button type="button" style="cursor:pointer;" class="btn btn-success btn-xs pullimage" data-dismiss="modal" data-toggle="modal" data-target="#pullconsole" value="' + (user + '/' + name).replace('_/','') + ':latest' + '"><i class="fa fa-download"></i> Pull Latest</button><br><br>\
+      <button type="button" style="cursor:pointer;" class="btn btn-success btn-xs pullimage" value="' + (user + '/' + name).replace('_/','') + ':latest' + '"><i class="fa fa-download"></i> Pull Latest</button><br><br>\
       <button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs browsetags" value="' + user + '/' + name + '"><i class="fa fa-eye"></i> Browse Tags</button><br><br>\
     </center></div>\
   </div>');
@@ -650,6 +625,13 @@ $('body').on('click', '.configurestack', function(){
   $('#modaltitle').append('Pulling definition from ' + $(this).attr("value"));
   $('#modalloading').show();
 });
+// When the configuregeneric button is clicked send the container Image name to the server
+$('body').on('click', '.configuregeneric', function(){
+  socket.emit('sendimagename', $(this).attr("value"));
+  modalpurge();
+  $('#modaltitle').append('Generating Launch form for ' + $(this).attr("value"));
+  $('#modalloading').show();
+});
 
 // When the server sends us the stack data render in the configure modal
 socket.on('stackurlresults', function(data) {
@@ -674,7 +656,7 @@ socket.on('stackurlresults', function(data) {
   $('#modalfooter').show();
   $('#modalfooter').append('\
   <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel <i class="fa fa-times-circle-o"></i></button>\
-  <button type="button" class="btn btn-success" id="createstack" value="' + url + '">Create Stack <i class="fa fa-rocket"></i></button>\
+  <button type="button" class="btn btn-success" id="createstack" value="' + url + '">Create<i class="fa fa-rocket"></i></button>\
   ');
 });
 // Convert the body object we get from the server into a bootstrap form
@@ -696,6 +678,17 @@ function inputbuild(input) {
   var type = input.type;
   switch(type){
     case 'input':
+      if (input.value){
+      return '\
+        <div class="form-group row">\
+        <label class="col-sm-2 control-label">' + input.FormName + '</label>\
+          <div class="col-sm-10">\
+          <input type="text" data-label="' + input.label + '" class="form-control stackinputdata" value="' + input.value + '" placeholder="' + input.placeholder + '">\
+          </div>\
+        </div>';
+      break;        
+      }
+      else {
       return '\
         <div class="form-group row">\
         <label class="col-sm-2 control-label">' + input.FormName + '</label>\
@@ -704,6 +697,7 @@ function inputbuild(input) {
           </div>\
         </div>';
       break;
+      }
     case 'select':
       var options = '';
       var opts = input.options;
@@ -725,6 +719,66 @@ function inputbuild(input) {
            break;
         }
       }
+    case 'checkbox':
+      return '\
+        <div class="form-group row">\
+        <label class="col-sm-2 control-label">' + input.FormName + '</label>\
+          <div class="col-sm-10">\
+          <input type="checkbox" value="false" data-label="' + input.label + '" class="form-check-input stackinputdata">\
+          </div>\
+        </div>';
+      break;
+    case 'textarea':
+      if (input.value){
+      return '\
+        <div class="form-group row">\
+        <label class="col-sm-2 control-label">' + input.FormName + '</label>\
+          <div class="col-sm-10">\
+          <textarea data-label="' + input.label + '" class="form-control stackinputdata" value="' + input.value + '" placeholder="' + input.placeholder + '" rows="3"></textarea>\
+          </div>\
+        </div>';
+      break;        
+      }
+      else {
+      return '\
+        <div class="form-group row">\
+        <label class="col-sm-2 control-label">' + input.FormName + '</label>\
+          <div class="col-sm-10">\
+          <textarea type="text" data-label="' + input.label + '" class="form-control stackinputdata" placeholder="' + input.placeholder + '" rows="3"></textarea>\
+          </div>\
+        </div>';
+      break;
+      }
+    case 'advanced':
+      return '\
+        <div class="form-group row">\
+        <label class="col-sm-2 control-label">Command</label>\
+          <div class="col-sm-10">\
+          <input type="text" data-label="command" class="form-control stackinputdata" placeholder="Leave empty to run default">\
+          </div>\
+        </div>\
+        <div class="form-group row">\
+        <label class="col-sm-2 control-label">Volumes</label>\
+          <div class="col-sm-10">\
+          <textarea data-label="volumes" class="form-control stackinputdata" placeholder="To enter multiple use line breaks (enter) Format /hostfolder:/containerfolder" rows="3"></textarea>\
+          </div>\
+        </div>\
+        <div class="form-group row">\
+        <label class="col-sm-2 control-label">Ports</label>\
+          <div class="col-sm-10">\
+          <textarea data-label="ports" class="form-control stackinputdata" rows="3" placeholder="To enter multiple use line breaks (enter) Format <hostport>:<containerport>"></textarea>\
+          </div>\
+        </div>\
+        <div class="form-group row">\
+        <label class="col-sm-2 control-label">Environment Variables</label>\
+          <div class="col-sm-10">\
+          <textarea data-label="envars" class="form-control stackinputdata" rows="3" placeholder="To enter multiple use line breaks (enter) Format MYENVVALUE=SOMEVALUE"></textarea>\
+          </div>\
+        </div>';
+      break;
+    // If hidden return nothing
+    case 'hidden':
+      break;
     // if no matches return blank  
     default:
       return '';
@@ -736,9 +790,24 @@ $('body').on('click', '#createstack', function(){
   var url = $("#createstack").val();
   // Create an object with all the inputs for nunchucks
   $(".stackinputdata").each(function() {
-    var value = $(this).val();
-    var label = $(this).data('label');
-    inputs[label] = value;
+    if ($(this).is(':checked') == true ) {
+      var label = $(this).data('label');
+      inputs[label] = 'true';
+    }
+    else if ($(this).is("textarea") ) {
+      var value = $(this).val();
+      if (value != '') {
+        var label = $(this).data('label');
+        inputs[label] = value.split("\n");
+      }
+    }
+    else {
+      var value = $(this).val();
+      if (value != '') {
+        var label = $(this).data('label');
+        inputs[label] = value;
+      }
+    }
   }).promise().done(function(){
     socket.emit('launchstack',{"stackurl":url,"inputs":inputs});
     modalpurge();

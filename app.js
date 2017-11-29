@@ -26,6 +26,11 @@ var containers = new dockops.Containers(dockerops);
 var xparse = require('xrandr-parse');
 let dockerHubAPI = require('docker-hub-api');
 dockerHubAPI.setCacheOptions({enabled: false});
+
+// Sleep Helper
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
     
 ///// Guac Websocket Tunnel ////
 const GuacamoleLite = require('guacamole-lite');
@@ -49,7 +54,10 @@ guacontainer.inspect(function (err, containerdata) {
     // Start Guacd if it exists and it not running then exit the process supervisor will pick it up
     if (containerdata.State.Status != 'running'){
       guacontainer.start(function (err, data) {
-        process.exit();
+        console.log('Guacd exists starting and restarting app via exit for nodemon to pickup');
+        sleep(5000).then(() => {
+          process.exit();
+        });
       });
     }
     // If it is up and running use the IP we got from inspect to fire up the websocket tunnel used by the VDI application
@@ -239,10 +247,6 @@ io.on('connection', function(socket){
         }       
       });
     });
-    // Pull image
-    socket.on('sendlaunchcommand', function(image){
-      launchcontainer(image);
-    });
     // Get Taisun.io stacks from json dump
     socket.on('getstacks', function(page){
       request.get({url:'http://localhost/public/stackstemp/stacks.json'},function(error, response, body){
@@ -259,6 +263,17 @@ io.on('connection', function(socket){
         io.emit('stackurlresults', [name,description,form,url]);
       });
     });
+    // Parse Taisun Stacks Yaml and send form to client
+    socket.on('sendimagename', function(imagename){
+      request.get({url:'http://localhost/public/stackstemp/basetemplate.yml'},function(error, response, body){
+        var yml = yaml.safeLoad(body);
+        var name = yml.name;
+        var description = yml.description;
+        var form = yml.form;
+        form.push({type:'input',format:'text',label:'image',FormName:'Image',placeholder:'',value:imagename});
+        io.emit('stackurlresults', [name,description,form,'http://localhost/public/stackstemp/basetemplate.yml']);
+      });
+    });
     // When user submits stack data launch the stack
     socket.on('launchstack', function(userinput){
       var url = userinput.stackurl;
@@ -267,6 +282,7 @@ io.on('connection', function(socket){
         var yml = yaml.safeLoad(body);
         var compose = yml.compose;
         var composefile = nunjucks.renderString(compose, inputs);
+        console.log(composefile);
         var composecommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -f - up -d'];
         const composeup = spawn('unbuffer', composecommand);
         composeup.stdout.setEncoding('utf8');
@@ -275,6 +291,7 @@ io.on('connection', function(socket){
         });
         composeup.on('close', (code) => {
           socket.emit('stacklaunched','Compose up process exited with code ' + code);
+          emitter.emit('updatepage');
         });
       });
     });
@@ -368,46 +385,6 @@ function deployguac(){
       }
   });
 }
-// Launch the container for a desktop
-function createdesktop(name,socket){
-  // Grab the current running docker container information
-  docker.listContainers(function (err, containers) {
-    if (err){
-      io.emit('error_popup','Could not list containers something is wrong with docker on this host');
-    }
-    else{
-        var desktopoptions ={
-          Image: 'taisun/vdi_debian',
-          Cmd: ["/usr/bin/supervisord"],
-          name: 'taisunvdi_' + name,
-          ENV: [
-            'SCREEN_RESOLUTION=1920x1080'
-          ],
-          HostConfig:{
-            Binds: ['/var/run/docker.sock:/var/run/docker.sock'],
-          }
-        };
-        docker.createContainer(desktopoptions, function (err, container){
-          if (err){
-            console.log(JSON.stringify(err));
-            io.emit('error_popup','Could not launch the desktop for ' + name);
-          }
-          else{
-            container.start(function (err, data){
-              if (err){
-                console.log(JSON.stringify(err));
-                io.emit('error_popup','Could not launch the desktop for ' + name);
-              }
-              else{
-                console.log('Created desktop for ' + name);
-                emitter.emit('updatepage');
-              }
-            });
-          }
-        });
-      }
-  });
-}
 // Destroy a desktop container set
 function destroydesktop(name, auto){
   docker.listContainers({all: true}, function (err, containers) {
@@ -430,41 +407,6 @@ function destroydesktop(name, auto){
         }
       });
     }
-  });
-}
-// Launch A single container
-function launchcontainer(image){
-  // Grab the current running docker container information
-  docker.listContainers(function (err, containers) {
-    if (err){
-      io.emit('error_popup','Could not list containers something is wrong with docker on this host');
-    }
-    else{
-        var containeroptions ={
-          Image: image
-        };
-        docker.createContainer(containeroptions, function (err, container){
-          if (err){
-            console.log(JSON.stringify(err));
-            io.emit('error_popup','Could not pull Guacd container');
-          }
-          else{
-            io.emit('container_update','Created container');
-            container.start(function (err, data){
-              if (err){
-                console.log(JSON.stringify(err));
-                io.emit('error_popup','Could not start container from ' + image);
-              }
-              else{
-                io.emit('container_update','Container started, details below:');
-                container.inspect(function (err, containerdata) {
-                  io.emit('container_finish',JSON.stringify(containerdata));
-                });
-              }
-            });
-          }
-        });
-      }
   });
 }
 

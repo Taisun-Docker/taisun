@@ -1,0 +1,38 @@
+name: Container Launcher
+description: |
+  Taisun Container Launcher
+  ============
+
+form:
+  - type: input
+    format: text
+    label: name
+    FormName: Name
+    placeholder: Unique Name to identify *required
+  - type: advanced
+
+compose: |
+  version: "3"
+  services:
+    {{ name }}:
+      image: {{ image }}
+      container_name: {{ name }}
+      network_mode: bridge
+      {% if command %}
+      command: {{ command }}
+      {% endif %}
+      {% if volumes %}
+      volumes:
+        {% for volume in volumes %}- "{{ volume }}"
+        {% endfor %}
+      {% endif %}
+      {% if ports %}
+      ports:
+        {% for port in ports %}- "{{ port }}"
+        {% endfor %}
+      {% endif %}
+      {% if envars %}
+      environment:
+        {% for envar in envars %}- {{ envar }}
+        {% endfor %}
+      {% endif %}

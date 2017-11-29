@@ -25,11 +25,7 @@ description: |
     
   
 form:
-  - type: input
-    format: text
-    label: tag
-    FormName: Tag
-    placeholder: This field is ignored for now
+  - type: hidden
 
 compose: |
   version: "3"
