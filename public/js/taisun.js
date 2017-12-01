@@ -10,108 +10,146 @@ var socket = io.connect('http://' + host + ':' + port, {});
 // If the page is being loaded for the first time render in the homepage
 $(document).ready(function(){renderhome()}) 
 
-// Whenever the stack list is updated rebuild the displayed table
-socket.on('updatepage', function(containers) {
-  $("#dockercontainers").dataTable().fnDestroy();
-  var containertable = $('#dockercontainers').DataTable( {} );
-  containertable.clear();
-  //Loop through the containers to build the containers table
-  for (var container in containers){
-    var info = containers[container];
-    if ( typeof info.Ports[0] !== 'undefined' && typeof info.Ports[0].PublicPort !== 'undefined' && info.Ports[0].PublicPort ){
-      var ports = info.Ports[0];
-    }
-    else {
-      var ports = {"PublicPort":"null","PrivatePort":"null"};
-    }
-    containertable.row.add( 
-      [info.Names[0], 
-      '<a href="http://' + host + ':' + ports.PublicPort + '" target="_blank">' + ports.PublicPort + '</a> => ' + ports.PrivatePort,
-      info.Image, 
-      info.State + ' ' + info.Status, 
-      new Date( info.Created * 1e3).toISOString().slice(0,19),
-      info.Command] 
-    );
-  }
-  containertable.draw();
-  // Loop through the VDIs deployed to show them on the vdi page
-  $("#desktops").dataTable().fnDestroy();
-  var desktoptable = $('#desktops').DataTable( {} );
-  desktoptable.clear();
-  //Loop through the containers to build the containers table
-  for (var container in containers){
-    var info = containers[container];
-    if (info.Names[0].indexOf("taisunvdi_") != -1 ){
-      desktoptable.row.add( 
-        [info.Names[0].replace('/taisunvdi_',''), 
-        '<a href="/desktop/' + info.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
-        info.Image, 
-        info.State + ' ' + info.Status, 
-        new Date( info.Created * 1e3).toISOString().slice(0,19),
-        info.Command] 
-      );
-    }
-  }
-  desktoptable.draw();
-});
-
-// When the guacd button is pressed tell the server to launch guacd docker container
-$('body').on('click', '.guacdlaunch', function(){
-  socket.emit('launchguac');
-  modalpurge();
-  $('#modaltitle').append('Launching GuacD');
-  $('#modalloading').show();
-});
-// Parse output from the server on status of launching Guacd
-socket.on('modal_update', function(message) {
-  $('#modalconsole').show();
-  $('#modalconsole').append(message + '\
-  ');
-});
-socket.on('modal_finish', function(message) {
-  $('#modalloading').hide();
-  $('#modalconsole').append(message);
-});
-
-
+//// Dashboard Page rendering ////
 function renderhome(){
   $('.nav-item').removeClass('active');
   $('#pagecontent').empty();
-  $('#pageheader').empty();  
-  $('#pagecontent').append('Dashboard Goes here');
-}
-
-//// Containers Page rendering ////
-function rendercontainers(){
-  $('.nav-item').removeClass('active');
-  $('#Containersnav').addClass('active');
-  $('#pagecontent').empty();
   $('#pageheader').empty();
-  $('#pagecontent').append('\
-  <div class="card mb-3">\
-  <div class="card-header">\
-    <i class="fa fa-cubes"></i>\
-    Docker Containers\
-  </div>\
-  <div class="card-body">\
-    <div class="table-responsive">\
-      <table id="dockercontainers" class="table table-bordered" width="100%" cellspacing="0">\
-        <thead>\
-          <tr>\
-            <th>Name</th>\
-            <th>PortMap</th>\
-            <th>Image</th>\
-            <th>Status</th>\
-            <th>Created</th>\
-            <th>Command</th>\
-          </tr>\
-        </thead>\
-      </table>\
+  $('#pagecontent').append('<center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Getting Server Info</h2></center>');
+  socket.emit('getdashinfo');
+}
+socket.on('renderdash', function(response){
+  var containers = response.containers;
+  var images = response.images;
+  var cpustats = response.cpu;
+  var cpupercent = response.CPUpercent;
+  var memstats = response.mem;
+  var usedmem = (memstats.active/memstats.total)*100;
+  var totalmem = parseFloat(memstats.total/1000000000).toFixed(2);
+  var diskbuffer = parseFloat(memstats.buffcache/1000000000).toFixed(2);
+  var stackcount = 0;
+  var vdicount = 0;
+  var devcount = 0;
+  var portainer = 0;
+  var gateway = 0;
+  $(containers).each(function(index,container){
+    var labels = container.Labels;
+    if (labels.stacktype){
+      var stacktype = labels.stacktype;
+      if (stacktype == 'vdi'){
+        vdicount++;
+      }
+      else if (stacktype == 'developer'){
+        devcount++;
+      }
+      else if (stacktype == 'community'){
+        stackcount++;
+      }
+      else if (stacktype == 'portainer'){
+        portainer++;
+      }
+      else if (stacktype == 'gateway'){
+        gateway++;
+      }
+    }
+  }).promise().done(function(){
+    if (gateway == 0){
+      var gatewaystatus = 'Not Running';
+    }else{
+      var gatewaystatus = 'Running';
+    }
+    if (portainer == 0){
+      var portainerstatus = 'Not Running';
+    }else{
+      var portainerstatus = 'Running';
+    }
+    $('#pagecontent').empty();
+    $('#pagecontent').append('\
+    <div class="card mb-3">\
+      <div class="card-header">\
+        <i class="fa fa-server"></i>\
+        System Stats\
+      </div>\
+      <div class="card-body card-columns">\
+        <div class="card mb-3">\
+          <div class="card-header">\
+            <i class="fa fa-microchip"></i>\
+            CPU\
+          </div>\
+          <div class="card-body">\
+          <table class="table table-bordered">\
+            <tr><td>CPU</td><td>' + cpustats.manufacturer + ' ' + cpustats.brand + '</td></tr>\
+            <tr><td>Cores</td><td>' + cpustats.cores + '</td></tr>\
+            <tr><td>Usage</td><td><div class="progress"><div class="progress-bar" role="progressbar" style="width: ' + cpupercent + '%;" aria-valuenow="' + cpupercent + '" aria-valuemin="0" aria-valuemax="100"></div></div></td></tr>\
+          </table>\
+          </div>\
+        </div>\
+        <div class="card mb-3">\
+          <div class="card-header">\
+            <i class="fa fa-microchip"></i>\
+            Memory\
+          </div>\
+          <div class="card-body">\
+          <table class="table table-bordered">\
+            <tr><td>Total Mem</td><td>' + totalmem + 'G</td></tr>\
+            <tr><td>Disk buffer</td><td>' + diskbuffer + 'G</td></tr>\
+            <tr><td>Usage</td><td><div class="progress"><div class="progress-bar" role="progressbar" style="width: ' + usedmem + '%;" aria-valuenow="' + usedmem + '" aria-valuemin="0" aria-valuemax="100"></div></div></td></tr>\
+          </table>\
+          </div>\
+        </div>\
+      </div>\
     </div>\
-  </div>\
-  ');
-  socket.emit('getcontainers');
-} 
+    <div class="card-columns">\
+      <div class="card mb-3" style="cursor:pointer;" onclick="renderstacks()">\
+        <div class="card-header">\
+          <i class="fa fa-cubes"></i>\
+          Taisun Stacks\
+          <span style="float:right;">' + stackcount + '</span>\
+        </div>\
+      </div>\
+      <div class="card mb-3" style="cursor:pointer;" onclick="renderimages()">\
+        <div class="card-header">\
+          <i class="fa fa-hdd-o"></i>\
+          Images\
+          <span style="float:right;">' + images.length + '</span>\
+        </div>\
+      </div>\
+    </div>\
+    <div class="card-columns">\
+      <div class="card mb-3" style="cursor:pointer;" onclick="rendervdi()">\
+        <div class="card-header">\
+          <i class="fa fa-desktop"></i>\
+          VDI Containers\
+          <span style="float:right;">' + vdicount + '</span>\
+        </div>\
+      </div>\
+      <div class="card mb-3" style="cursor:pointer;" onclick="renderdeveloper()">\
+        <div class="card-header">\
+          <i class="fa fa-terminal"></i>\
+          Developer Containers\
+          <span style="float:right;">' + devcount + '</span>\
+        </div>\
+      </div>\
+    </div>\
+    <div class="card-columns">\
+      <div class="card mb-3" style="cursor:pointer;" onclick="renderremote()">\
+        <div class="card-header">\
+          <i class="fa fa-sitemap"></i>\
+          Remote Access Status\
+          <span style="float:right;">' + gatewaystatus + '</span>\
+        </div>\
+      </div>\
+      <div class="card mb-3" style="cursor:pointer;" onclick="renderportainer()">\
+        <div class="card-header">\
+          <i class="fa fa-docker"></i>\
+          Portainer Status\
+          <span style="float:right;">' + portainerstatus + '</span>\
+        </div>\
+      </div>\
+    </div>\
+    ');
+  });
+});
 
 //// VDI Page rendering ////
 function rendervdi (){
@@ -223,9 +261,49 @@ socket.on('rendervdi', function(response){
         </div>\
       </div>\
     </div>\
-    ')
-    socket.emit('getcontainers');
+    ');
+    socket.emit('getvdi');
   }
+});
+// Whenever the stack list is updated rebuild the displayed table
+socket.on('updatevdi', function(containers) {
+  // Loop through the VDIs deployed to show them on the vdi page
+  $("#desktops").dataTable().fnDestroy();
+  var desktoptable = $('#desktops').DataTable( {} );
+  desktoptable.clear();
+  //Loop through the containers to build the containers table
+  for (var container in containers){
+    var info = containers[container];
+    if (info.Names[0].indexOf("taisunvdi_") != -1 ){
+      desktoptable.row.add( 
+        [info.Names[0].replace('/taisunvdi_',''), 
+        '<a href="/desktop/' + info.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+        info.Image, 
+        info.State + ' ' + info.Status, 
+        new Date( info.Created * 1e3).toISOString().slice(0,19),
+        info.Command] 
+      );
+    }
+  }
+  desktoptable.draw();
+});
+
+// When the guacd button is pressed tell the server to launch guacd docker container
+$('body').on('click', '.guacdlaunch', function(){
+  socket.emit('launchguac');
+  modalpurge();
+  $('#modaltitle').append('Launching GuacD');
+  $('#modalloading').show();
+});
+// Parse output from the server on status of launching Guacd
+socket.on('modal_update', function(message) {
+  $('#modalconsole').show();
+  $('#modalconsole').append(message + '\
+  ');
+});
+socket.on('modal_finish', function(message) {
+  $('#modalloading').hide();
+  $('#modalconsole').append(message);
 });
 // VDI destroy modal
 function vdidestroymodal(){
@@ -256,9 +334,9 @@ function vdibuildermodal(){
   ');
 }
 
-function githubmodal(){
+function gitmodal(){
   modalpurge();
-  $('#modaltitle').append('Import Project from github');
+  $('#modaltitle').append('Import Project from Git');
   $('#modalbody').show();
   $('#modalbody').append('\
   Coming Soon\
@@ -287,9 +365,9 @@ function destroydesktop(){
 }
 
 //// Launch Page rendering ////
-function renderlaunch(){
+function renderimages(){
   $('.nav-item').removeClass('active');
-  $('#Launchnav').addClass('active');
+  $('#Imagesnav').addClass('active');
   $('#pagecontent').empty();
   $('#pageheader').empty();
   $('#pageheader').append('\
@@ -319,13 +397,13 @@ function renderlaunch(){
       </div>\
     </div>\
     <div class="col-xl-3 col-sm-6 mb-3">\
-        <div data-toggle="modal" data-target="#modal" class="card text-white bg-info o-hidden h-60" style="cursor:pointer;" onclick="githubmodal()">\
+        <div data-toggle="modal" data-target="#modal" class="card text-white bg-info o-hidden h-60" style="cursor:pointer;" onclick="gitmodal()">\
           <div class="card-body">\
             <div class="card-body-icon">\
-              <i class="fa fa-fw fa-github"></i>\
+              <i class="fa fa-fw fa-git"></i>\
             </div>\
             <div class="mr-5">\
-              From GitHub\
+              From Git\
             </div>\
           </div>\
       </div>\
@@ -334,7 +412,7 @@ function renderlaunch(){
         <div class="card text-white bg-info o-hidden h-60" id="stacks" style="cursor:pointer;" onclick="renderstacks()">\
           <div class="card-body">\
             <div class="card-body-icon">\
-              <i class="fa fa-fw fa-bars"></i>\
+              <i class="fa fa-fw fa-cubes"></i>\
             </div>\
             <div class="mr-5">\
               Taisun Stacks\
@@ -423,23 +501,14 @@ function renderdockerhub(){
     }
   });
 }
-// Dockerhub Page
-function renderstacks(){
-  socket.emit('getstacks', '1');
-  $('#pagecontent').empty();
-  $('#pagecontent').append('\
-  <div class="card mb-3">\
-    <div class="card-header">\
-      <i class="fa fa-bars"></i>\
-      Taisun Stacks\
-    </div>\
-    <div class="card-body" id="taisunstacks">\
-    <center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Fetching available stacks from Taisun.io</h2></center>\
-    </div>\
-  </div>\
-  ');
-}
 
+// Developer Page
+function renderdeveloper(){
+  $('.nav-item').removeClass('active');
+  $('#DeveloperNav').addClass('active');
+  $('#pageheader').empty();
+  $('#pagecontent').empty();
+}
 
 
 //// DockerHub Search ////
@@ -598,6 +667,100 @@ socket.on('container_finish', function(output) {
 });
 
 //// Taisun Stacks Rendering
+// Stacks Page
+function renderstacks(){
+  $('.nav-item').removeClass('active');
+  $('#StacksNav').addClass('active');
+  $('#pageheader').empty();
+  $('#pageheader').append('\
+ <div class="row">\
+    <div class="col-xl-3 col-sm-6 mb-3" id="local" style="cursor:pointer;" onclick="renderstacks()">\
+        <div class="card text-white bg-info o-hidden h-60">\
+          <div class="card-body">\
+            <div class="card-body-icon">\
+              <i class="fa fa-fw fa-play"></i>\
+            </div>\
+            <div class="mr-5">\
+              Running Stacks\
+            </div>\
+          </div>\
+      </div>\
+    </div>\
+    <div class="col-xl-3 col-sm-6 mb-3" id="dockerhub" style="cursor:pointer;" onclick="renderbrowsestacks()">\
+        <div class="card text-white bg-info o-hidden h-60">\
+          <div class="card-body">\
+            <div class="card-body-icon">\
+              <i class="fa fa-fw fa-download"></i>\
+            </div>\
+            <div class="mr-5">\
+              Browse Stacks\
+            </div>\
+          </div>\
+      </div>\
+    </div>\
+    <div class="col-xl-3 col-sm-6 mb-3">\
+        <div data-toggle="modal" data-target="#modal" class="card text-white bg-info o-hidden h-60" style="cursor:pointer;" onclick="comingsoonmodal()">\
+          <div class="card-body">\
+            <div class="card-body-icon">\
+              <i class="fa fa-fw fa-upload"></i>\
+            </div>\
+            <div class="mr-5">\
+              Upload Yaml\
+            </div>\
+          </div>\
+      </div>\
+    </div>\
+    <div class="col-xl-3 col-sm-6 mb-3">\
+        <div class="card text-white bg-info o-hidden h-60" id="stacks" style="cursor:pointer;">\
+          <div class="card-body">\
+            <div class="card-body-icon">\
+              <i class="fa fa-fw fa-cubes"></i>\
+            </div>\
+            <div class="mr-5">\
+              stacks.taisun.io\
+            </div>\
+          </div>\
+      </div>\
+    </div>\
+  </div>\
+  ');
+  $('#pagecontent').empty();
+  $('#pagecontent').append('\
+  <div class="card mb-3">\
+    <div class="card-header">\
+      <i class="fa fa-play"></i>\
+      Running Stacks\
+    </div>\
+    <div class="card-body" id="localstacks">\
+    <center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Fetching running stacks from Taisun</h2></center>\
+    </div>\
+  </div>\
+  ');
+  socket.emit('getstacks', '1');
+}
+// When the server sends us the running stacks render
+socket.on('localstacks', function(data) {
+  $('#localstacks').empty();
+  $('#localstacks').append('<center><h2>No Running Stacks</h2><br><button type="button" style="cursor:pointer;" class="btn btn-primary" onclick="renderbrowsestacks()" >Browse Stacks <i class="fa fa-download"></i></button></center>');
+});
+// When the user clicks to browse remote stack yaml files render and ask the server for the results
+function renderbrowsestacks(){
+  $('#pagecontent').empty();
+  $('#pagecontent').append('\
+  <div class="card mb-3">\
+    <div class="card-header">\
+      <i class="fa fa-bars"></i>\
+      Taisun Stacks\
+    </div>\
+    <div class="card-body" id="taisunstacks">\
+    <center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Fetching available stacks from Taisun.io</h2></center>\
+    </div>\
+  </div>\
+  ');
+  socket.emit('browsestacks', '1');
+}
+
+
 // When the server gives us the stacks parse them
 socket.on('stacksresults', function(data) {
   $('#taisunstacks').empty();

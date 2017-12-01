@@ -35,6 +35,10 @@ compose: |
       container_name: taisun_portainer
       restart: always
       network_mode: bridge
+      labels:
+        - "stackname={{ stackname }}"
+        - "stacktype={{ stacktype }}"
+        - "stackurl={{ stackurl }}"
       command: "--no-auth --host unix:///var/run/docker.sock"
       volumes:
         - "/var/run/docker.sock:/var/run/docker.sock"

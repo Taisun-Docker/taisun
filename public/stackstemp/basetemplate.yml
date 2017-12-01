@@ -18,6 +18,10 @@ compose: |
       image: {{ image }}
       container_name: {{ name }}
       network_mode: bridge
+      labels:
+        - "stackname={{ stackname }}"
+        - "stacktype={{ stacktype }}"
+        - "stackurl={{ stackurl }}"
       {% if command %}
       command: {{ command }}
       {% endif %}

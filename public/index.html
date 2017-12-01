@@ -39,25 +39,18 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav navbar-sidenav">
-          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Containers" id="Containersnav">
-            <a class="nav-link" onclick="rendercontainers()">
-              <i class="fa fa-fw fa-server"></i>
+          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Stacks" id="StacksNav">
+            <a class="nav-link" onclick="renderstacks()">
+              <i class="fa fa-fw fa-cubes"></i>
               <span class="nav-link-text">
-                Containers</span>
+                Stacks</span>
             </a>
           </li>
-          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Portainer" id="Portainernav">
-            <a class="nav-link" onclick="renderportainer()">
-              <i class="fa fa-fw fa-docker"></i>
+          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Images" id="ImagesNav">
+            <a class="nav-link" onclick="renderimages()">
+              <i class="fa fa-fw fa-hdd-o"></i>
               <span class="nav-link-text">
-                Portainer</span>
-            </a>
-          </li>
-          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Launch" id="Launchnav">
-            <a class="nav-link" onclick="renderlaunch()">
-              <i class="fa fa-fw fa-rocket"></i>
-              <span class="nav-link-text">
-                Launch</span>
+                Images</span>
             </a>
           </li>
           <li class="nav-item" data-toggle="tooltip" data-placement="right" title="VDI" id="VDInav">
@@ -67,11 +60,25 @@
                 VDI</span>
             </a>
           </li>
+          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Developer" id="DeveloperNav">
+            <a class="nav-link" onclick="renderdeveloper()">
+              <i class="fa fa-fw fa-terminal"></i>
+              <span class="nav-link-text">
+                Developer</span>
+            </a>
+          </li>
           <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Remote" id="Remotenav">
             <a class="nav-link" onclick="renderremote()">
               <i class="fa fa-fw fa-sitemap"></i>
               <span class="nav-link-text">
                 Remote Access</span>
+            </a>
+          </li>
+          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Portainer" id="Portainernav">
+            <a class="nav-link" onclick="renderportainer()">
+              <i class="fa fa-fw fa-docker"></i>
+              <span class="nav-link-text">
+                Portainer</span>
             </a>
           </li>
         </ul>
@@ -83,6 +90,11 @@
           </li>
         </ul>
         <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="http://taisun.io" target="_blank">
+              <i class="fa fa-fw fa-arrow-up"></i>
+              Update</a>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="http://taisun.io" target="_blank">
               <i class="fa fa-fw fa-question-circle"></i>

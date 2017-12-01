@@ -63,6 +63,10 @@ compose: |
         - EMAIL={{ email }}
       restart: always
       network_mode: bridge
+      labels:
+        - "stackname={{ stackname }}"
+        - "stacktype={{ stacktype }}"
+        - "stackurl={{ stackurl }}"
       cap_add:
         - NET_ADMIN
       volumes:

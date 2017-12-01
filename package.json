@@ -11,7 +11,7 @@
     "url": "git+https://gitlab.com/thelamer/taisun.git"
   },
   "author": "Ryan Kuba",
-  "license": "ISC",
+  "license": "MIT",
   "homepage": "http://taisun.io",
   "dependencies": {
     "crypto": "^1.0.1",
@@ -19,20 +19,16 @@
     "dockerode": "^2.5.2",
     "dockops": "^0.2.1",
     "ejs": "^2.5.7",
-    "events": "^1.1.1",
     "express": "^4.15.3",
-    "express-http-proxy": "^1.0.6",
-    "express-session": "^1.15.3",
-    "express-socket.io-session": "^1.3.2",
     "guacamole-lite": "^0.5.0",
     "http": "0.0.0",
-    "http-proxy": "^1.16.2",
-    "http-proxy-middleware": "^0.17.4",
     "js-yaml": "^3.10.0",
     "nunjucks": "^3.0.1",
     "request": "^2.81.0",
     "socket.io": "^2.0.1",
+    "systeminformation": "^3.33.7",
     "util": "^0.10.3",
+    "uuid": "^3.1.0",
     "xrandr-parse": "^1.0.0"
   }
 }

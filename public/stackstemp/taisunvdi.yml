@@ -40,5 +40,9 @@ compose: |
       image: taisun/vdi_{{ os }}:latest
       container_name: taisunvdi_{{ name }}
       network_mode: bridge
+      labels:
+        - "stackname={{ stackname }}"
+        - "stacktype={{ stacktype }}"
+        - "stackurl={{ stackurl }}"
       {% if dockersock == 'true' %}volumes:
         - "/var/run/docker.sock:/var/run/docker.sock"{% endif %}
