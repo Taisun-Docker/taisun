@@ -1,0 +1,106 @@
+name: Taisun Developer
+description: |
+  Taisun Developer launcher
+  ============
+  
+  This will launch a blank development container that checks out the git URL passed to it below.
+  When launching a VDI type container you can ignore the Dev Interface port value and Language. The base Ubuntu VDI container will have the following environments installed:
+    * Node.JS
+    * Go
+    * Python
+    * Ruby
+    
+  It will also include the following code editors:
+    * Sublime Text
+    * Atom
+    * VSCode
+    * Emacs
+
+  The cloud9 variants are language specific and need a developer port to bind to. Upon launching into the web based IDE you will need to set a username and email, this is simply to enable collaboration with other users.
+  
+  If your application needs access to the Docker API make sure to enable the Docker Socket.
+
+form:
+  - type: input
+    label: name
+    FormName: Name
+    placeholder: Unique Name to identify *required
+  - type: input
+    label: giturl
+    FormName: Git URL
+    placeholder: Public Git URL IE https://gitlab.com/thelamer/taisun.git
+  - type: input
+    label: devport
+    FormName: Dev Interface Port
+    placeholder: Port to use to access the development interface (ignore for VDI)
+  - type: textarea
+    label: ports
+    FormName: Application Ports
+    placeholder: To enter multiple use line breaks (enter) Format <hostport>:<containerport>
+  - type: select
+    label: ide
+    FormName: IDE
+    options:
+      - cloud9
+      - VDI
+  - type: select
+    label: language
+    FormName: Language
+    options:
+      - Node.js
+      - Python
+      - Ruby
+      - Go
+  - type: checkbox
+    label: dockersock
+    FormName: Enable Docker Socket
+
+compose: |
+  {% if ide == 'VDI' %}
+  version: "3"
+  services:
+    taisunvdi_{{ name }}:
+      image: taisun/vdi_ubuntu:dev
+      container_name: taisunvdi_{{ name }}
+      network_mode: bridge
+      {% if ports %}
+      ports:
+        {% for port in ports %}- "{{ port }}"
+        {% endfor %}
+      {% endif %}
+      environment:
+        - "GITURL={{ giturl }}"
+        - "PROJECTNAME={{ name }}"
+      labels:
+        - "stackname={{ stackname }}"
+        - "stacktype={{ stacktype }}"
+        - "stackurl={{ stackurl }}"
+        - "devport=vdi"
+        - "devlanguage={{ language }}"
+        - "ide={{ ide }}"
+      {% if dockersock == 'true' %}volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock"{% endif %}
+  {% elif ide == 'cloud9' %}
+  version: "3"
+  services:
+    {{ name }}:
+      image: taisun/dev_cloud9:{{ language }}
+      container_name: {{ name }}
+      network_mode: bridge
+      ports:
+        - "{{ devport }}:8000"
+        {% for port in ports %}- "{{ port }}"
+        {% endfor %}
+      environment:
+        - "GITURL={{ giturl }}"
+        - "PROJECTNAME={{ name }}"
+      labels:
+        - "stackname={{ stackname }}"
+        - "stacktype={{ stacktype }}"
+        - "stackurl={{ stackurl }}"
+        - "devport={{ devport }}"
+        - "devlanguage={{ language }}"
+        - "ide={{ ide }}"
+      {% if dockersock == 'true' %}volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock"{% endif %}
+  {% endif %}

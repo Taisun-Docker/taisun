@@ -347,6 +347,14 @@ io.on('connection', function(socket){
       }
     });
   });
+  // When devstacks info is requested send to client
+  socket.on('getdev', function(){
+    containerinfo('updatedev');
+  });
+  // When stack destruction is requested initiate
+  socket.on('destroystack', function(name){
+    destroystack(name, 'no');
+  });
   ///////////////////
   //// Functions ////
   ///////////////////
@@ -400,6 +408,32 @@ io.on('connection', function(socket){
                 containerinfo('updatevdi');
               }
             });
+          }
+        });
+      }
+    });
+  }
+  // Destroy a Stack
+  function destroystack(name, auto){
+    docker.listContainers({all: true}, function (err, containers) {
+      if (err){
+        io.emit('error_popup','Could not list containers something is wrong with docker on this host');
+      }
+      else{
+        containers.forEach(function (container){
+          if (container.Labels.stackname){
+            if (container.Labels.stackname == name){
+              docker.getContainer(container.Id).remove({force: true},function (err, data) {
+                if (err){
+                  console.log(JSON.stringify(err));
+                  io.emit('error_popup','Could destroy Stack container for ' + name);
+                }
+                else{
+                  console.log('Destroyed Stack container ' + container.Names[0] + ' for stack ' + name);
+                  containerinfo('updatestacks');
+                }
+              });
+            }
           }
         });
       }

@@ -367,7 +367,7 @@ function destroydesktop(){
 //// Launch Page rendering ////
 function renderimages(){
   $('.nav-item').removeClass('active');
-  $('#Imagesnav').addClass('active');
+  $('#ImagesNav').addClass('active');
   $('#pagecontent').empty();
   $('#pageheader').empty();
   $('#pageheader').append('\
@@ -508,8 +508,106 @@ function renderdeveloper(){
   $('#DeveloperNav').addClass('active');
   $('#pageheader').empty();
   $('#pagecontent').empty();
+  $('#pageheader').append('\
+    <div class="row">\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost/public/stackstemp/taisundeveloper.yml">\
+          <div class="card text-white bg-success o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="fa fa-fw fa-plus-square-o"></i>\
+              </div>\
+              <div class="mr-5">\
+                Launch Developer Container\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="stackdestroymodal()">\
+          <div class="card text-white bg-danger o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="fa fa-fw fa-minus-circle"></i>\
+              </div>\
+              <div class="mr-5">\
+                Destroy Developer Container\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
+    </div>\
+  ');
+  $('#pagecontent').empty();
+  $('#pagecontent').append('\
+  <div class="card mb-3">\
+    <div class="card-header">\
+      <i class="fa fa-play"></i>\
+      Running Developer Containers\
+    </div>\
+    <div class="card-body" id="devstacks">\
+    <center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Fetching developer containers from Taisun</h2></center>\
+    </div>\
+  </div>\
+  ');
+  socket.emit('getdev', '1');
 }
-
+// When the server sends us the container information render the table in
+socket.on('updatedev', function(containers){
+  $('#devstacks').empty();
+  $('#devstacks').append('<table style="width:100%" id="devresults" class="table table-bordered table-hover"><thead><tr><th>Name</th><th>URL</th><th>Language</th><th>IDE</th><th>Status</th><th>Created</th></tr></thead></table>');
+  var devcontainers = [];
+  $(containers).each(function(index,container){
+    var labels = container.Labels;
+    if (labels.stacktype){
+      var stacktype = labels.stacktype;
+      if (stacktype == 'developer'){
+        devcontainers.push(container);
+      }
+    }
+  }).promise().done(function(){
+    // No Dev containers found render launcher
+    if (devcontainers.length == 0){
+      $('#devstacks').empty();
+      $('#devstacks').append('<center><h2>No Running Development Containers</h2><br><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary configurestack" value="http://localhost/public/stackstemp/taisundeveloper.yml">Launch Developer Container <i class="fa fa-plus-square-o"></i></button></center>');
+    }
+    // Found some dev containers
+    else{
+      // Loop through the VDIs deployed to show them on the vdi page
+      $("#devresults").dataTable().fnDestroy();
+      var devtable = $('#devresults').DataTable( {} );
+      devtable.clear();
+      //Loop through the containers to build the developer table
+      $(devcontainers).each(function(index, container) {
+        var labels = container.Labels;
+        // This is a VDI container
+        if (labels.devport == 'vdi'){
+          devtable.row.add( 
+            [labels.stackname, 
+            '<a href="/desktop/' + container.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+            labels.devlanguage,
+            'VDI',
+            container.State + ' ' + container.Status, 
+            new Date( container.Created * 1e3).toISOString().slice(0,19)] 
+          );
+        }
+        else{
+          var host = window.location.hostname;
+          devtable.row.add( 
+            [labels.stackname, 
+            '<a href="http://' + host + ':' + labels.devport + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+            labels.devlanguage,
+            labels.ide,
+            container.State + ' ' + container.Status, 
+            new Date( container.Created * 1e3).toISOString().slice(0,19)] 
+          );          
+        }
+      }).promise().done(devtable.draw());
+    }
+  });
+});
 
 //// DockerHub Search ////
 // When search button is activated send string to server
@@ -781,6 +879,29 @@ socket.on('stacksresults', function(data) {
     }
   }
 });
+// Stack destroy modal
+function stackdestroymodal(){
+  modalpurge();
+  $('#modaltitle').append('Destroy Stack');
+  $('#modalbody').show();
+  $('#modalbody').append('\
+  <div class="form-group row">\
+  <label for="desktop-destroy" class="col-sm-2 control-label">Name</label>\
+    <div class="col-sm-10">\
+    <input type="text" class="form-control" id="stack-destroy" placeholder="Stack Name">\
+    </div>\
+  </div>\
+  ');
+  $('#modalfooter').show();
+  $('#modalfooter').append('\
+  <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>\
+  <button type="button" class="btn btn-success" onclick="destroystack()" data-dismiss="modal">Destroy</button>\
+  ');
+}
+// When the stack destroy form is submitted send the reqest to the server
+function destroystack(){
+  socket.emit('destroystack', $('#stack-destroy').val());
+}
 // When the configure button is clicked send the URL to the server and give the user a spinner
 $('body').on('click', '.configurestack', function(){
   socket.emit('sendstackurl', $(this).attr("value"));
@@ -812,10 +933,9 @@ socket.on('stackurlresults', function(data) {
       <i class="fa fa-pencil"></i>\
       Launch Options\
     </div>\
-    <div class="card-body">' + 
-       formbuilder(data[2]) +
+    <div class="card-body" id="stackform">' +
     '</div>\
-  </div>');
+  </div>').promise().done(formbuilder(data[2]));
   $('#modalfooter').show();
   $('#modalfooter').append('\
   <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel <i class="fa fa-times-circle-o"></i></button>\
@@ -824,53 +944,36 @@ socket.on('stackurlresults', function(data) {
 });
 // Convert the body object we get from the server into a bootstrap form
 function formbuilder(data){
-  var formdata = '';
   // Loop through the form elements and render based on type
-  for (i = 0; i < data.length; i++){
-    if(i !== data.length -1) { 
-      formdata += inputbuild(data[i]);
-    }
-    else {
-      formdata += inputbuild(data[i]);
-      return formdata;
-    }
-  }
-}
-//individual input lines
-function inputbuild(input) {
-  var type = input.type;
-  switch(type){
-    case 'input':
+  $(data).each(function(index,input) {
+    var type = input.type;
+    if (type == 'input'){
       if (input.value){
-      return '\
-        <div class="form-group row">\
-        <label class="col-sm-2 control-label">' + input.FormName + '</label>\
-          <div class="col-sm-10">\
-          <input type="text" data-label="' + input.label + '" class="form-control stackinputdata" value="' + input.value + '" placeholder="' + input.placeholder + '">\
-          </div>\
-        </div>';
-      break;        
+        $('#stackform').append('\
+          <div class="form-group row">\
+          <label class="col-sm-2 control-label">' + input.FormName + '</label>\
+            <div class="col-sm-10">\
+            <input type="text" data-label="' + input.label + '" class="form-control stackinputdata" value="' + input.value + '" placeholder="' + input.placeholder + '">\
+            </div>\
+          </div>');
       }
       else {
-      return '\
-        <div class="form-group row">\
-        <label class="col-sm-2 control-label">' + input.FormName + '</label>\
-          <div class="col-sm-10">\
-          <input type="text" data-label="' + input.label + '" class="form-control stackinputdata" placeholder="' + input.placeholder + '">\
-          </div>\
-        </div>';
-      break;
+        $('#stackform').append('\
+          <div class="form-group row">\
+          <label class="col-sm-2 control-label">' + input.FormName + '</label>\
+            <div class="col-sm-10">\
+            <input type="text" data-label="' + input.label + '" class="form-control stackinputdata" placeholder="' + input.placeholder + '">\
+            </div>\
+          </div>');
       }
-    case 'select':
+    }
+    else if (type == 'select'){
       var options = '';
       var opts = input.options;
-      for (i = 0; i < opts.length; i++){
-        if(i !== opts.length -1) { 
-          options += '<option value="' + opts[i] + '">' + opts[i] + '</option>';
-        }
-        else {
-          options += '<option value="' + opts[i] + '">' + opts[i] + '</option>';
-          return'\
+      $(opts).each(function(index,opt) {
+          options += '<option value="' + opt + '">' + opt + '</option>';
+      }).promise().done(function(){
+          $('#stackform').append('\
           <div class="form-group row">\
             <label class="col-sm-2 control-label">' + input.FormName + '</label>\
               <div class="col-sm-10">\
@@ -878,42 +981,40 @@ function inputbuild(input) {
                 options +
               '</select>\
               </div>\
-           </div>';
-           break;
-        }
-      }
-    case 'checkbox':
-      return '\
+           </div>');
+      });
+    }
+    else if (type == 'checkbox'){
+      $('#stackform').append('\
         <div class="form-group row">\
         <label class="col-sm-2 control-label">' + input.FormName + '</label>\
           <div class="col-sm-10">\
           <input type="checkbox" value="false" data-label="' + input.label + '" class="form-check-input stackinputdata">\
           </div>\
-        </div>';
-      break;
-    case 'textarea':
+        </div>');
+    }
+    else if (type == 'textarea'){
       if (input.value){
-      return '\
-        <div class="form-group row">\
-        <label class="col-sm-2 control-label">' + input.FormName + '</label>\
-          <div class="col-sm-10">\
-          <textarea data-label="' + input.label + '" class="form-control stackinputdata" value="' + input.value + '" placeholder="' + input.placeholder + '" rows="3"></textarea>\
-          </div>\
-        </div>';
-      break;        
+        $('#stackform').append('\
+          <div class="form-group row">\
+          <label class="col-sm-2 control-label">' + input.FormName + '</label>\
+            <div class="col-sm-10">\
+            <textarea data-label="' + input.label + '" class="form-control stackinputdata" value="' + input.value + '" placeholder="' + input.placeholder + '" rows="3"></textarea>\
+            </div>\
+          </div>');
       }
       else {
-      return '\
-        <div class="form-group row">\
-        <label class="col-sm-2 control-label">' + input.FormName + '</label>\
-          <div class="col-sm-10">\
-          <textarea type="text" data-label="' + input.label + '" class="form-control stackinputdata" placeholder="' + input.placeholder + '" rows="3"></textarea>\
-          </div>\
-        </div>';
-      break;
+        $('#stackform').append('\
+          <div class="form-group row">\
+          <label class="col-sm-2 control-label">' + input.FormName + '</label>\
+            <div class="col-sm-10">\
+            <textarea type="text" data-label="' + input.label + '" class="form-control stackinputdata" placeholder="' + input.placeholder + '" rows="3"></textarea>\
+            </div>\
+          </div>');
       }
-    case 'advanced':
-      return '\
+    }
+    else if (type == 'advanced'){
+      $('#stackform').append('\
         <div class="form-group row">\
         <label class="col-sm-2 control-label">Command</label>\
           <div class="col-sm-10">\
@@ -937,15 +1038,16 @@ function inputbuild(input) {
           <div class="col-sm-10">\
           <textarea data-label="envars" class="form-control stackinputdata" rows="3" placeholder="To enter multiple use line breaks (enter) Format MYENVVALUE=SOMEVALUE"></textarea>\
           </div>\
-        </div>';
-      break;
+        </div>');
+    }
     // If hidden return nothing
-    case 'hidden':
-      break;
-    // if no matches return blank  
-    default:
-      return '';
-  }
+    else if (type == 'hidden'){
+      $('#stackform').append('NA');
+    }
+    // if no matches do nothing for now
+    else{
+    }
+  });
 }
 // Send the form data to the server
 $('body').on('click', '#createstack', function(){
