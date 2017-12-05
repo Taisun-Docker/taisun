@@ -21,6 +21,7 @@ var dockops = require('dockops');
 var dockerops = dockops.createDocker();
 var images = new dockops.Images(dockerops);
 var xparse = require('xrandr-parse');
+var fs = require('fs');
 let dockerHubAPI = require('docker-hub-api');
 dockerHubAPI.setCacheOptions({enabled: false});
 // Sleep Helper
@@ -355,6 +356,17 @@ io.on('connection', function(socket){
   socket.on('destroystack', function(name){
     destroystack(name, 'no');
   });
+  // When Upgrade is requested launch upgrade helper
+  socket.on('upgradetaisun', function(){
+    upgradetaisun();
+  });
+  // When version is requested send
+  socket.on('getversion', function(){
+    fs.readFile('version', 'utf8', function (err, version) {
+      var taisunversion = version;
+      io.sockets.in(socket.id).emit('sendversion', taisunversion);
+    });
+  });  
   ///////////////////
   //// Functions ////
   ///////////////////
@@ -393,7 +405,7 @@ io.on('connection', function(socket){
   function destroydesktop(name, auto){
     docker.listContainers({all: true}, function (err, containers) {
       if (err){
-        io.emit('error_popup','Could not list containers something is wrong with docker on this host');
+        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
       }
       else{
         containers.forEach(function (container){
@@ -401,7 +413,7 @@ io.on('connection', function(socket){
             docker.getContainer(container.Id).remove({force: true},function (err, data) {
               if (err){
                 console.log(JSON.stringify(err));
-                io.emit('error_popup','Could destroy desktop container for ' + name);
+                io.sockets.in(socket.id).emit('error_popup','Could destroy desktop container for ' + name);
               }
               else{
                 console.log('Destroyed Desktop container for ' + name);
@@ -417,7 +429,7 @@ io.on('connection', function(socket){
   function destroystack(name, auto){
     docker.listContainers({all: true}, function (err, containers) {
       if (err){
-        io.emit('error_popup','Could not list containers something is wrong with docker on this host');
+        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
       }
       else{
         containers.forEach(function (container){
@@ -426,7 +438,7 @@ io.on('connection', function(socket){
               docker.getContainer(container.Id).remove({force: true},function (err, data) {
                 if (err){
                   console.log(JSON.stringify(err));
-                  io.emit('error_popup','Could destroy Stack container for ' + name);
+                  io.sockets.in(socket.id).emit('error_popup','Could destroy Stack container for ' + name);
                 }
                 else{
                   console.log('Destroyed Stack container ' + container.Names[0] + ' for stack ' + name);
@@ -444,7 +456,7 @@ io.on('connection', function(socket){
     // Grab the current running docker container information
     docker.listContainers(function (err, containers) {
       if (err){
-        io.emit('error_popup','Could not list containers something is wrong with docker on this host');
+        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
       }
       else{
           var guacoptions ={
@@ -454,17 +466,17 @@ io.on('connection', function(socket){
           docker.createContainer(guacoptions, function (err, container){
             if (err){
               console.log(JSON.stringify(err));
-              io.emit('error_popup','Could not pull Guacd container');
+              io.sockets.in(socket.id).emit('error_popup','Could not pull Guacd container');
             }
             else{
-              io.emit('modal_update','Downloaded image and created Guacd container');
+              io.sockets.in(socket.id).emit('modal_update','Downloaded image and created Guacd container');
               container.start(function (err, data){
                 if (err){
                   console.log(JSON.stringify(err));
-                  io.emit('error_popup','Could not start Guacd');
+                  io.sockets.in(socket.id).emit('error_popup','Could not start Guacd');
                 }
                 else{
-                  io.emit('modal_finish','Guacd launched , Restarting server Please refresh');
+                  io.sockets.in(socket.id).emit('modal_finish','Guacd launched , Restarting server Please refresh');
                   // Exit the application supervisor will restart
                   process.exit();
                 }
@@ -472,6 +484,42 @@ io.on('connection', function(socket){
             }
           });
         }
+    });
+  }
+  // Launch Upgrade container
+  function upgradetaisun(){
+    // Check if the upgrade image exists on this server
+    images.list(function (err, res) {
+      if (JSON.stringify(res).indexOf('taisun/updater:latest') > -1 ){
+        runupgrade();
+      }
+      else {
+        docker.pull('taisun/updater:latest', function(err, stream) {
+          stream.pipe(process.stdout);
+          stream.once('end', runupgrade);
+        });
+      }
+    });
+  }
+  function runupgrade(){
+    // Grab the current running docker container information
+    docker.listContainers(function (err, containers) {
+      if (err){
+        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
+      }
+      else{
+        docker.run('taisun/updater:latest', ['--oneshot', 'taisun'], process.stdout, {
+            HostConfig: {
+                Binds: ["/var/run/docker.sock:/var/run/docker.sock"],
+                AutoRemove: true
+            }
+        }, {},function (err, data, container) {
+            if(err)
+                console.log("Error: ", err);
+            else
+                console.log(data.StatusCode);
+        });
+      }
     });
   }
 });

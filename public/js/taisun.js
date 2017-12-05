@@ -1211,6 +1211,33 @@ function renderportainerstart() {
   ');
 }
 
+// Taisun Update Modal
+$('body').on('click', '.updatetaisun', function(){
+  modalpurge();
+  $('#modaltitle').append('Taisun Update');
+  $('#modalloading').show();
+  socket.emit('getversion');
+});
+socket.on('sendversion', function(version){
+  $('#modalloading').hide();
+  $('#modalbody').show();
+  $('#modalbody').append('<center>\
+          <h2>This will replace the Taisun Container if a new version is available</h2>\
+          <br>\
+          <h2>Current Version: <a href="https://gitlab.com/thelamer/taisun/commit/' + version + '" target="_blank">' + version + '</a></h2>\
+          <br>\
+          <button type="button" class="btn btn-lg btn-primary taisunupdate" style="cursor:pointer;">Update</button>\
+        </center>\
+        ');
+});
+// Taisun Update Modal
+$('body').on('click', '.taisunupdate', function(){
+  $('#modalbody').empty();
+  $('#modalloading').show();
+  setTimeout(location.reload.bind(location), 10000);
+  socket.emit('upgradetaisun');
+});
+
 //// Render the portainer page ////
 function renderportainerrunning(){
   $('#pagecontent').empty();
