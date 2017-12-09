@@ -845,6 +845,14 @@ socket.on('localstacks', function(data) {
 function renderbrowsestacks(){
   $('#pagecontent').empty();
   $('#pagecontent').append('\
+  <form class="form-inline mb-3" onsubmit="return false;">\
+    <div class="input-group">\
+      <input type="text" class="form-control" placeholder="Search" id="stacksearch">\
+      <div class="input-group-btn">\
+        <button onclick="stacksearch(1)" type="button" class="btn btn-default"><i class="fa fa-search"></i></button>\
+      </div>\
+    </div>\
+  </form>\
   <div class="card mb-3">\
     <div class="card-header">\
       <i class="fa fa-bars"></i>\
@@ -856,6 +864,11 @@ function renderbrowsestacks(){
   </div>\
   ');
   socket.emit('browsestacks', '1');
+  document.getElementById("stacksearch").addEventListener("keydown", function (e) {
+    if (e.keyCode === 13) { 
+      stacksearch(1);
+    }
+  });
 }
 
 
@@ -869,16 +882,41 @@ socket.on('stacksresults', function(data) {
   else {
     // Create table for taisun results
     $('#taisunstacks').append('<table style="width:100%" id="stackstable" class="table table-bordered table-hover"></table>');
-    $('#stackstable').append('<thead><tr><th></th><th>Name</th><th>Description</th><th></th></tr></thead>');
+    $('#stackstable').append('<thead><tr><th></th><th>Name</th><th>Description</th><th>Downloads</th><th></th></tr></thead>');
     for (i = 0; i < data.stacktemplates.length; i++){
       var name = data.stacktemplates[i].name;
       var description = data.stacktemplates[i].description;
       var iconurl = data.stacktemplates[i].icon;
       var dataurl = data.stacktemplates[i].stackdata;
-      $('#stackstable').append('<tr height="130"><td><center><img src="' + iconurl + '"></center></td><td>' + name + '</td><td>' + description + '</td><td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td></tr>')
+      var downloads = data.stacktemplates[i].downloads;
+      $('#stackstable').append('<tr height="130"><td><center><img src="' + iconurl + '"></center></td><td>' + name + '</td><td>' + description + '</td><td>' + downloads + '</td><td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td></tr>')
+    }
+    // Pagination logic show +2 and -2 pages at the bottom of the table
+    $('#taisunstacks').append('<ul id="stackpages" class="pagination"></ul>');
+    for (i = -2; i < 3; i++){
+      var pagenumber = parseInt(data.page.page) + i;
+      // If negative page number do not display 
+      if ( pagenumber <= 0){
+      }
+      // If current page highlight current
+      else if ( pagenumber == data.page.page){
+        $('#stackpages').append('<li class="page-item active"><a class="page-link" onclick="stacksearch(' + pagenumber + ')">' + pagenumber + '</a></li>');
+      }
+      // If not current page
+      else if (parseInt(data.page.num_pages) - pagenumber >= 0){
+        $('#stackpages').append('<li class="page-item"><a class="page-link" onclick="stacksearch(' + pagenumber + ')">' + pagenumber + '</a></li>');
+      }
     }
   }
 });
+// When stack search button is activated send string to server
+function stacksearch(page){
+  $('#taisunstacks').empty();
+  // Set the content to a spinner to signify loading
+  $('#taisunstacks').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
+  socket.emit('searchstacks', $('#stacksearch').val(), page);
+}
+
 // Stack destroy modal
 function stackdestroymodal(){
   modalpurge();
