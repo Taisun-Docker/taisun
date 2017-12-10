@@ -22,6 +22,7 @@ var dockerops = dockops.createDocker();
 var images = new dockops.Images(dockerops);
 var xparse = require('xrandr-parse');
 var fs = require('fs');
+var path = require('path');
 let dockerHubAPI = require('docker-hub-api');
 dockerHubAPI.setCacheOptions({enabled: false});
 // Sleep Helper
@@ -219,8 +220,7 @@ io.on('connection', function(socket){
   });
   // Get Taisun.io stacks running locally
   socket.on('getstacks', function(){
-    // Just send an empty response for now
-    io.sockets.in(socket.id).emit('localstacks','no');
+    containerinfo('localstacks');
   });
   // Get remote list of stack definition files from stacks.taisun.io
   socket.on('browsestacks', function(page){
@@ -244,16 +244,31 @@ io.on('connection', function(socket){
       io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,url]);
     });
   });
-  // Parse Taisun Stacks Yaml and send form to client
+  // Parse Yaml for single container and send to user
   socket.on('sendimagename', function(imagename){
-    request.get({url:'http://localhost/public/stackstemp/basetemplate.yml'},function(error, response, body){
+    request.get({url:'http://localhost/public/taisuntemplates/basetemplate.yml'},function(error, response, body){
       var yml = yaml.safeLoad(body);
       var name = yml.name;
       var description = yml.description;
       var form = yml.form;
       form.push({type:'input',format:'text',label:'image',FormName:'Image',placeholder:'',value:imagename});
-      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost/public/stackstemp/basetemplate.yml']);
+      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost/public/taisuntemplates/basetemplate.yml']);
     });
+  });
+  // Get custom Yaml from user and create a temp file for using the standard workflow
+  socket.on('sendyaml', function(code){
+    var guid = uuidv4().substring(0,12);
+    var file = path.join(__dirname, 'public/stackstemp/', guid + '.yml');
+    fs.writeFile(file, code, function(err) {
+      if(err) {
+        return console.log(err);
+      }
+      var yml = yaml.safeLoad(code);
+      var name = yml.name;
+      var description = yml.description;
+      var form = yml.form;
+      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost/public/stackstemp/' + guid + '.yml']);
+    }); 
   });
   // When user submits stack data launch the stack
   socket.on('launchstack', function(userinput){

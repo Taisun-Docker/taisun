@@ -8,7 +8,7 @@ var port = window.location.port;
 var converter = new showdown.Converter({parseImgDimensions: true});
 var socket = io.connect('http://' + host + ':' + port, {});
 // If the page is being loaded for the first time render in the homepage
-$(document).ready(function(){renderhome()}) 
+$(document).ready(function(){renderhome()})
 
 //// Dashboard Page rendering ////
 function renderhome(){
@@ -181,7 +181,7 @@ socket.on('rendervdi', function(response){
     $('#pageheader').append('\
     <div class="row">\
       <div class="col-xl-3 col-sm-6 mb-3">\
-        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost/public/stackstemp/taisunvdi.yml">\
+        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost/public/taisuntemplates/taisunvdi.yml">\
           <div class="card text-white bg-success o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
@@ -511,7 +511,7 @@ function renderdeveloper(){
   $('#pageheader').append('\
     <div class="row">\
       <div class="col-xl-3 col-sm-6 mb-3">\
-        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost/public/stackstemp/taisundeveloper.yml">\
+        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost/public/taisuntemplates/taisundeveloper.yml">\
           <div class="card text-white bg-success o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
@@ -571,7 +571,7 @@ socket.on('updatedev', function(containers){
     // No Dev containers found render launcher
     if (devcontainers.length == 0){
       $('#devstacks').empty();
-      $('#devstacks').append('<center><h2>No Running Development Containers</h2><br><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary configurestack" value="http://localhost/public/stackstemp/taisundeveloper.yml">Launch Developer Container <i class="fa fa-plus-square-o"></i></button></center>');
+      $('#devstacks').append('<center><h2>No Running Development Containers</h2><br><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary configurestack" value="http://localhost/public/taisuntemplates/taisundeveloper.yml">Launch Developer Container <i class="fa fa-plus-square-o"></i></button></center>');
     }
     // Found some dev containers
     else{
@@ -797,7 +797,7 @@ function renderstacks(){
       </div>\
     </div>\
     <div class="col-xl-3 col-sm-6 mb-3">\
-        <div data-toggle="modal" data-target="#modal" class="card text-white bg-info o-hidden h-60" style="cursor:pointer;" onclick="comingsoonmodal()">\
+        <div data-toggle="modal" data-target="#modal" class="card text-white bg-info o-hidden h-60" style="cursor:pointer;" onclick="yamluploadmodal()">\
           <div class="card-body">\
             <div class="card-body-icon">\
               <i class="fa fa-fw fa-upload"></i>\
@@ -809,7 +809,7 @@ function renderstacks(){
       </div>\
     </div>\
     <div class="col-xl-3 col-sm-6 mb-3">\
-        <div class="card text-white bg-info o-hidden h-60" id="stacks" style="cursor:pointer;">\
+        <div class="card text-white bg-info o-hidden h-60" onclick="window.open(\'https://stacks.taisun.io\');" style="cursor:pointer;">\
           <div class="card-body">\
             <div class="card-body-icon">\
               <i class="fa fa-fw fa-cubes"></i>\
@@ -837,9 +837,45 @@ function renderstacks(){
   socket.emit('getstacks', '1');
 }
 // When the server sends us the running stacks render
-socket.on('localstacks', function(data) {
+socket.on('localstacks', function(containers) {
   $('#localstacks').empty();
-  $('#localstacks').append('<center><h2>No Running Stacks</h2><br><button type="button" style="cursor:pointer;" class="btn btn-primary" onclick="renderbrowsestacks()" >Browse Stacks <i class="fa fa-download"></i></button></center>');
+  $('#localstacks').append('<table style="width:100%" id="stackresults" class="table table-bordered table-hover"><thead><tr><th>Name</th><th>URL</th><th>Status</th><th>Created</th></tr></thead></table>');
+  var stackcontainers = [];
+  $(containers).each(function(index,container){
+    var labels = container.Labels;
+    if (labels.stacktype){
+      var stacktype = labels.stacktype;
+      if (stacktype == 'community'){
+        if (labels.appport){
+          stackcontainers.push(container);
+        }
+      }
+    }
+  }).promise().done(function(){
+    // No Stack containers found with apport defined
+    if (stackcontainers.length == 0){
+      $('#localstacks').empty();
+      $('#localstacks').append('<center><h2>No Running Stacks</h2><br><button type="button" style="cursor:pointer;" class="btn btn-primary" onclick="renderbrowsestacks()" >Browse Stacks <i class="fa fa-download"></i></button></center>');
+    }
+    // Found some stack containers
+    else{
+      // Loop through the stacks to render them
+      $("#stackresults").dataTable().fnDestroy();
+      var stacktable = $('#stackresults').DataTable( {} );
+      stacktable.clear();
+      //Loop through the containers to build the developer table
+      $(stackcontainers).each(function(index, container) {
+        var labels = container.Labels;
+        var host = window.location.hostname;
+        stacktable.row.add( 
+          [labels.stackname, 
+          '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+          container.State + ' ' + container.Status, 
+          new Date( container.Created * 1e3).toISOString().slice(0,19)] 
+        );
+      }).promise().done(stacktable.draw());
+    }
+  });
 });
 // When the user clicks to browse remote stack yaml files render and ask the server for the results
 function renderbrowsestacks(){
@@ -957,7 +993,7 @@ $('body').on('click', '.configuregeneric', function(){
 
 // When the server sends us the stack data render in the configure modal
 socket.on('stackurlresults', function(data) {
-  $('#modalloading').hide();
+  modalpurge();
   var name = data[0];
   var markdown = data[1];
   var url = data[3];
@@ -1133,6 +1169,37 @@ socket.on('stacklaunched', function(data) {
   ');
 });
 
+// Upload Yaml Modal
+function yamluploadmodal(){
+  modalpurge();
+  $('#modaltitle').append('Custom YAML');
+  $('#modalbody').show();
+  $('#modalbody').append('\
+    <p>Please see documentation <a href="https://gitlab.com/thelamer/taisun/wikis/Development/Templates" target="_blank">here</a> for writing Stack Templates</p>\
+    <div id="editor" style="height: 500px; width: 100%"></div>\
+  ');
+  // Ace editor
+  var editor = ace.edit("editor");
+  editor.setTheme("ace/theme/chrome");
+  editor.session.setMode("ace/mode/yaml");
+  editor.session.setOptions({
+      tabSize: 2
+  });  
+  $('#modalfooter').show();
+  $('#modalfooter').append('\
+  <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>\
+  <button type="button" class="btn btn-success" onclick="uploadyaml()">Upload</button>\
+  ');
+}
+// Send custom yaml to application
+function uploadyaml(){
+  var editor = ace.edit("editor");
+  var code = editor.getValue();
+  modalpurge()
+  $('#modalloading').show();
+  socket.emit('sendyaml',code);
+}
+
 //// Render the remote access pages ////
 function renderremote(){
   $('.nav-item').removeClass('active');
@@ -1163,7 +1230,7 @@ function renderremotestart() {
       <center>\
         <h2>You will need a DNS endpoint that points to your IP to continue <a href="https://api.taisun.io/prod/genurl" target="_blank">Click Here</a> to generate one</h2>\
         <br>\
-        <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost/public/stackstemp/taisungateway.yml">I have an Endpoint</button>\
+        <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost/public/taisuntemplates/taisungateway.yml">I have an Endpoint</button>\
       </center>\
     </div>\
   </div>\
@@ -1242,7 +1309,7 @@ function renderportainerstart() {
       <center>\
         <h2>Portainer is a great web based management interface for docker.<br>It has more polished features than Taisun for basic container management <a href="https://portainer.io/" target="_blank">Portainer.io</a></h2>\
         <br>\
-        <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost/public/stackstemp/taisunportainer.yml">Launch Portainer</button>\
+        <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost/public/taisuntemplates/taisunportainer.yml">Launch Portainer</button>\
       </center>\
     </div>\
   </div>\
