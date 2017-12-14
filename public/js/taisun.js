@@ -918,14 +918,15 @@ socket.on('stacksresults', function(data) {
   else {
     // Create table for taisun results
     $('#taisunstacks').append('<table style="width:100%" id="stackstable" class="table table-bordered table-hover"></table>');
-    $('#stackstable').append('<thead><tr><th></th><th>Name</th><th>Description</th><th>Downloads</th><th></th></tr></thead>');
+    $('#stackstable').append('<thead><tr><th></th><th>Name</th><th>User</th><th>Description</th><th>Downloads</th><th></th></tr></thead>');
     for (i = 0; i < data.stacktemplates.length; i++){
       var name = data.stacktemplates[i].name;
       var description = data.stacktemplates[i].description;
       var iconurl = data.stacktemplates[i].icon;
       var dataurl = data.stacktemplates[i].stackdata;
       var downloads = data.stacktemplates[i].downloads;
-      $('#stackstable').append('<tr height="130"><td><center><img src="' + iconurl + '"></center></td><td>' + name + '</td><td>' + description + '</td><td>' + downloads + '</td><td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td></tr>')
+      var user = data.stacktemplates[i].user;
+      $('#stackstable').append('<tr height="130"><td><center><img src="' + iconurl + '"></center></td><td>' + name + '</td><td><a href="https://github.com/' + user + '" target="_blank">' + user + '</a></td><td>' + description + '</td><td>' + downloads + '</td><td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td></tr>')
     }
     // Pagination logic show +2 and -2 pages at the bottom of the table
     $('#taisunstacks').append('<ul id="stackpages" class="pagination"></ul>');
