@@ -305,7 +305,7 @@ io.on('connection', function(socket){
       var yml = yaml.safeLoad(body);
       var compose = yml.compose;
       var composefile = nunjucks.renderString(compose, inputs);
-      var composecommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -f - up -d'];
+      var composecommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -p '+ inputs.stackname+' -f - up -d'];
       const composeup = spawn('unbuffer', composecommand);
       composeup.stdout.setEncoding('utf8');
       composeup.stdout.on('data', (data) => {
