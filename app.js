@@ -422,30 +422,6 @@ io.on('connection', function(socket){
       }
     });
   }
-  // Destroy a desktop container set
-  function destroydesktop(name, auto){
-    docker.listContainers({all: true}, function (err, containers) {
-      if (err){
-        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
-      }
-      else{
-        containers.forEach(function (container){
-          if (container.Names[0] == '/taisunvdi_' + name){
-            docker.getContainer(container.Id).remove({force: true},function (err, data) {
-              if (err){
-                console.log(JSON.stringify(err));
-                io.sockets.in(socket.id).emit('error_popup','Could destroy desktop container for ' + name);
-              }
-              else{
-                console.log('Destroyed Desktop container for ' + name);
-                containerinfo('updatevdi');
-              }
-            });
-          }
-        });
-      }
-    });
-  }
   // Destroy a Stack
   function destroystack(name, auto){
     docker.listContainers({all: true}, function (err, containers) {

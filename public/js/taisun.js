@@ -195,7 +195,7 @@ socket.on('rendervdi', function(response){
         </div>\
       </div>\
       <div class="col-xl-3 col-sm-6 mb-3">\
-        <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="vdidestroymodal()">\
+        <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="stackdestroymodal()">\
           <div class="card text-white bg-danger o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
@@ -267,6 +267,9 @@ socket.on('rendervdi', function(response){
 });
 // Whenever the stack list is updated rebuild the displayed table
 socket.on('updatevdi', function(containers) {
+  updatevdi(containers);
+});
+function updatevdi(containers){
   // Loop through the VDIs deployed to show them on the vdi page
   $("#desktops").dataTable().fnDestroy();
   var desktoptable = $('#desktops').DataTable( {} );
@@ -286,7 +289,7 @@ socket.on('updatevdi', function(containers) {
     }
   }
   desktoptable.draw();
-});
+}
 
 // When the guacd button is pressed tell the server to launch guacd docker container
 $('body').on('click', '.guacdlaunch', function(){
@@ -305,25 +308,6 @@ socket.on('modal_finish', function(message) {
   $('#modalloading').hide();
   $('#modalconsole').append(message);
 });
-// VDI destroy modal
-function vdidestroymodal(){
-  modalpurge();
-  $('#modaltitle').append('Destroy Desktop');
-  $('#modalbody').show();
-  $('#modalbody').append('\
-  <div class="form-group row">\
-  <label for="desktop-destroy" class="col-sm-2 control-label">Name</label>\
-    <div class="col-sm-10">\
-    <input type="text" class="form-control" id="desktop-destroy" placeholder="Desktop Name">\
-    </div>\
-  </div>\
-  ');
-  $('#modalfooter').show();
-  $('#modalfooter').append('\
-  <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>\
-  <button type="button" class="btn btn-success" onclick="destroydesktop()" data-dismiss="modal">Destroy</button>\
-  ');
-}
 // VDI Builder modal
 function vdibuildermodal(){
   modalpurge();
@@ -358,10 +342,6 @@ socket.on('guacinfo', function (data){
 // When the desktop form is submitted send the reqest to the server
 function createdesktop(){
   socket.emit('createdesktop', $('#desktopname').val(),$('#socket').val());
-}
-// When the destroy desktop form is submitted send the reqest to the server
-function destroydesktop(){
-  socket.emit('destroydesktop', $('#desktop-destroy').val());
 }
 
 //// Launch Page rendering ////
@@ -556,6 +536,9 @@ function renderdeveloper(){
 }
 // When the server sends us the container information render the table in
 socket.on('updatedev', function(containers){
+  updatedev(containers);
+});
+function updatedev(containers){
   $('#devstacks').empty();
   $('#devstacks').append('<table style="width:100%" id="devresults" class="table table-bordered table-hover"><thead><tr><th>Name</th><th>URL</th><th>Language</th><th>IDE</th><th>Status</th><th>Created</th></tr></thead></table>');
   var devcontainers = [];
@@ -607,7 +590,7 @@ socket.on('updatedev', function(containers){
       }).promise().done(devtable.draw());
     }
   });
-});
+}
 
 //// DockerHub Search ////
 // When search button is activated send string to server
@@ -838,8 +821,38 @@ function renderstacks(){
 }
 // When the server sends us the running stacks render
 socket.on('localstacks', function(containers) {
+  updatelocalstacks(containers);
+});
+function updatelocalstacks(containers){
   $('#localstacks').empty();
-  $('#localstacks').append('<table style="width:100%" id="stackresults" class="table table-bordered table-hover"><thead><tr><th>Name</th><th>URL</th><th>Status</th><th>Created</th></tr></thead></table>');
+  $('#localstacks').append('\
+  <table style="width:100%" id="stackresults" class="table table-bordered table-hover">\
+    <thead>\
+      <tr>\
+        <th>Name</th>\
+        <th>URL</th>\
+        <th>Status</th>\
+        <th>Created</th>\
+      </tr>\
+    </thead>\
+  </table><br>\
+  <div class="row">\
+    <div class="col-xl-3 col-sm-6 mb-3">\
+      <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="stackdestroymodal()">\
+        <div class="card text-white bg-danger o-hidden h-60">\
+          <div class="card-body">\
+            <div class="card-body-icon">\
+              <i class="fa fa-fw fa-minus-circle"></i>\
+            </div>\
+            <div class="mr-5">\
+              Destroy Stack\
+            </div>\
+          </div>\
+        </a>\
+      </div>\
+    </div>\
+  </div>\
+  ');
   var stackcontainers = [];
   $(containers).each(function(index,container){
     var labels = container.Labels;
@@ -876,7 +889,7 @@ socket.on('localstacks', function(containers) {
       }).promise().done(stacktable.draw());
     }
   });
-});
+}
 // When the user clicks to browse remote stack yaml files render and ask the server for the results
 function renderbrowsestacks(){
   $('#pagecontent').empty();
@@ -1350,6 +1363,20 @@ function renderportainerrunning(){
   $('#pageheader').empty(); 
   $('#pagecontent').append('<iframe src="http://' + host + ':9000" frameborder="0"style="position: relative; height: calc(100vh - 95px); width: 100%;"></iframe>')
 }
+
+//// Page updating ////
+// When the server sends data call update funtions with it based on the dom elements present
+socket.on('updatestacks', function(containers) {
+  if ($('#desktops').length > 0) {
+    updatevdi(containers);
+  }
+  if ($('#devstacks').length > 0) {
+    updatedev(containers);
+  }
+  if ($('#localstacks').length > 0) {
+    updatelocalstacks(containers);
+  }
+});
 
 // Purge the modal of data
 function modalpurge(){
