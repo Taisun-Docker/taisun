@@ -3,7 +3,7 @@
 http://taisun.io
 
 
-Taisun is a web based interface for a Docker enabled device with an emphasis on providing a web based interface for managing a single server.
+Taisun is an application for a Docker enabled device with an emphasis on providing a web based interface for managing a single server.
 
 Taisun allows you to: 
 
@@ -48,19 +48,23 @@ http://localhost:8000
 
 This can be used for making custom modifications of the project and commiting pull requests. 
 
-TODO method for a pull request. 
+## Documentation:
 
-## Usage
+[Installation](https://gitlab.com/thelamer/taisun/wikis/Installation)
+  - [Linux](https://gitlab.com/thelamer/taisun/wikis/Installation/Linux)
+  - [Windows](https://gitlab.com/thelamer/taisun/wikis/Installation/Windows)
+  - [Synology DSM](https://gitlab.com/thelamer/taisun/wikis/Installation/Synology)
 
-WIP
+[Usage](https://gitlab.com/thelamer/taisun/wikis/Usage)
+  - [Stack Management](https://gitlab.com/thelamer/taisun/wikis/Usage/Stacks)
+  - [Image Management](https://gitlab.com/thelamer/taisun/wikis/Usage/Images)
+  - [Virtual Desktops](https://gitlab.com/thelamer/taisun/wikis/Usage/VDI)
+  - [Remote Access](https://gitlab.com/thelamer/taisun/wikis/Usage/Gateway)
 
-## Features Todos
-
-  - Search and deploy images from dockerhub
-  - Deploy images from your local images on disk
-  - Import an existing Docker project from a public/private git repo
-  - Build shell containers for frameworks like NodeJS, Python, ETC. Give the user the ability to choose an IDE to use along with a volume linked VDI. 
-
+[Development](https://gitlab.com/thelamer/taisun/wikis/Development)
+  - [Create Stack Templates](https://gitlab.com/thelamer/taisun/wikis/Development/Templates)
+  - [Taisun Development](https://gitlab.com/thelamer/taisun/wikis/Development/Taisun)
+  - [Development Containers](https://gitlab.com/thelamer/taisun/wikis/Development/YourApp)
 
 ##### License:
-MIT
+WTFPL

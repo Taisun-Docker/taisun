@@ -316,6 +316,12 @@ io.on('connection', function(socket){
       composeup.on('close', (code) => {
         io.sockets.in(socket.id).emit('stacklaunched','Compose up process exited with code ' + code);
         containerinfo('updatestacks');
+        if (stacktype == 'community'){
+          var guid = templatename.replace('.yml','');
+          request.get({url:'https://api.taisun.io/stacks/download?guid=' + guid},function(error, response, body){
+            console.log('updated download count for stack ' + guid);
+          });
+        }
       });
     });
   });

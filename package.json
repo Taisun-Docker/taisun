@@ -11,7 +11,7 @@
     "url": "git+https://gitlab.com/thelamer/taisun.git"
   },
   "author": "Ryan Kuba",
-  "license": "MIT",
+  "license": "WTFPL",
   "homepage": "http://taisun.io",
   "dependencies": {
     "ansi_up": "^2.0.2",
