@@ -70,7 +70,7 @@ socket.on('renderdash', function(response){
         <i class="fa fa-server"></i>\
         System Stats\
       </div>\
-      <div class="card-body card-columns">\
+      <div class="card-body card-deck">\
         <div class="card mb-3">\
           <div class="card-header">\
             <i class="fa fa-microchip"></i>\
@@ -99,7 +99,7 @@ socket.on('renderdash', function(response){
         </div>\
       </div>\
     </div>\
-    <div class="card-columns">\
+    <div class="card-deck">\
       <div class="card mb-3" style="cursor:pointer;" onclick="renderstacks()">\
         <div class="card-header">\
           <i class="fa fa-cubes"></i>\
@@ -115,7 +115,7 @@ socket.on('renderdash', function(response){
         </div>\
       </div>\
     </div>\
-    <div class="card-columns">\
+    <div class="card-deck">\
       <div class="card mb-3" style="cursor:pointer;" onclick="rendervdi()">\
         <div class="card-header">\
           <i class="fa fa-desktop"></i>\
@@ -131,7 +131,7 @@ socket.on('renderdash', function(response){
         </div>\
       </div>\
     </div>\
-    <div class="card-columns">\
+    <div class="card-deck">\
       <div class="card mb-3" style="cursor:pointer;" onclick="renderremote()">\
         <div class="card-header">\
           <i class="fa fa-sitemap"></i>\
@@ -301,12 +301,12 @@ $('body').on('click', '.guacdlaunch', function(){
 // Parse output from the server on status of launching Guacd
 socket.on('modal_update', function(message) {
   $('#modalconsole').show();
-  $('#modalconsole').append(message + '\
-  ');
+  $('#modalconsole').append('<div>' + message + '</div>');
 });
 socket.on('modal_finish', function(message) {
   $('#modalloading').hide();
-  $('#modalconsole').append(message);
+  setTimeout(location.reload.bind(location), 5000);
+  $('#modalconsole').append('<div>' + message + '</div>');
 });
 // VDI Builder modal
 function vdibuildermodal(){
@@ -713,38 +713,42 @@ $('body').on('click', '.pullimage', function(){
 });
 // Show console output for pull
 socket.on('sendpullstart', function(output) {
+  $('#modalbody').show();
+  $('#modalbody').append('<div>' + output + '</div>');
   $('#modalconsole').show();
-  $('#modalconsole').append(output)
 });
 socket.on('sendpulloutput', function(output) {
-  $('#modalconsole').append(output);
+  var status = output.status;
+  if (output.hasOwnProperty("id")){
+    var uuid = output.id;
+    // If the Div exists we are going to be updating it
+    if ($('#' + uuid).length > 0) {
+      if (output.hasOwnProperty("progress")){
+        var progress = output.progress;
+        $('#' + uuid).empty();
+        $('#' + uuid).append(uuid + ' : ' + status + ' ' +  progress);
+      }
+      else{
+        $('#' + uuid).empty();
+        $('#' + uuid).append(uuid + ' : ' + status);        
+      }
+    }
+    // Div does not exist create it and put the data in it
+    else{
+      $('#modalconsole').append('<div id="' + uuid + '">' + uuid + ' : ' + status + '</div>');
+    }
+  }
+  else{
+    $('#modalconsole').append('<div>' + status + '</div>');
+  }
 });
 socket.on('sendpulloutputdone', function(output) {
   $('#modalloading').hide();
-  $('#modalconsole').append(output);
+  $('#modalbody').append('<div>' + output + '</div>');
   $('#modalfooter').show();
   $('#modalfooter').append('\
   <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
   ');  
-});
-// Launch a single container (just console for now)
-$('body').on('click', '.launchcontainer', function(){
-  socket.emit('sendlaunchcommand', $(this).attr("value"));
-  modalpurge();
-  $('#modaltitle').append('Launching ' + $(this).attr("value"));
-  $('#modalloading').show();
-  $('#modalconsole').show();
-});
-socket.on('container_update', function(output) {
-  $('#modalconsole').append(output);
-});
-socket.on('container_finish', function(output) {
-  $('#modalloading').hide();
-  $('#modalconsole').append(output);
-  $('#modalfooter').show();
-  $('#modalfooter').append('\
-  <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
-  ');
 });
 
 //// Taisun Stacks Rendering
@@ -1171,12 +1175,28 @@ $('body').on('click', '#createstack', function(){
 });
 // Show output from launch command
 socket.on('stackupdate', function(data) {
-  $('#modalconsole').append(data);
+  // If this data has a docker guid in front of it then assign it to a div for updating
+  if (data.split(':')[0].length == 12){
+    var uuid = data.split(':')[0].toString();
+    // If div allready exists then just update it
+    if ($('#' + uuid).length > 0) {
+      $('#' + uuid).empty();
+      $('#' + uuid).append(data);
+    }
+    // Div does not exist create it and put the data in it
+    else{
+      $('#modalconsole').append('<div id="' + uuid + '">' + data + '</div>');
+    }
+  }
+  else{
+    $('#modalconsole').append('<div>' + data + '</div>');
+  }
 });
 // On finish remove spinner and add close button
 socket.on('stacklaunched', function(data) {
   $('#modalloading').hide();
-  $('#modalconsole').append(data);
+  $('#modalbody').show();
+  $('#modalbody').append(data);
   $('#modalfooter').show();
   $('#modalfooter').append('\
   <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
@@ -1264,7 +1284,6 @@ function rendergateway(data) {
         <p> A chrome extension for using the web proxy can be found <a href="https://chrome.google.com/webstore/detail/taisun-connect/cfikmlkjcnlbabkghfcnakfcbgnokkpd" target="_blank">here</a></p><br>\
         <table id="gatewaytable" class="table table-bordered">\
           <tr><td>State</td><td>' + envars.State.Status + '</td></tr>\
-          <tr><th>Env Variable</th><th>Value</th></tr>\
         </table>\
     </div>\
   </div>\
@@ -1285,7 +1304,7 @@ function rendergateway(data) {
       if (key == 'SQUIDPASS'){
         $('#gatewaytable').append('<tr><td>' + key + '</td><td>***********</td></tr>');
       }
-      else {
+      else if (key == 'DNSKEY' || key == 'SERVERIP' || key == 'SQUIDUSER' || key == 'EMAIL' ){
         $('#gatewaytable').append('<tr><td>' + key + '</td><td>' + value + '</td></tr>');
       }
     }

@@ -5,6 +5,8 @@
 const uuidv4 = require('uuid/v4');
 const { spawn } = require('child_process');
 const si = require('systeminformation');
+var AU = require('ansi_up');
+var ansi_up = new AU.default;
 var nunjucks = require('nunjucks');
 var yaml = require('js-yaml');
 var request = require('request');
@@ -210,7 +212,7 @@ io.on('connection', function(socket){
     docker.pull(image, function(err, stream) {
       docker.modem.followProgress(stream, onFinished, onProgress);
       function onProgress(event) {
-        io.sockets.in(socket.id).emit('sendpulloutput', JSON.stringify(event));
+        io.sockets.in(socket.id).emit('sendpulloutput', event);
       }
       function onFinished(err, output) {
         io.sockets.in(socket.id).emit('sendpulloutputdone', 'Finished Pull process for ' + image);
@@ -309,10 +311,10 @@ io.on('connection', function(socket){
       const composeup = spawn('unbuffer', composecommand);
       composeup.stdout.setEncoding('utf8');
       composeup.stdout.on('data', (data) => {
-        socket.emit('stackupdate',data);
+        io.sockets.in(socket.id).emit('stackupdate',ansi_up.ansi_to_html(data).trim());
       });
       composeup.on('close', (code) => {
-        socket.emit('stacklaunched','Compose up process exited with code ' + code);
+        io.sockets.in(socket.id).emit('stacklaunched','Compose up process exited with code ' + code);
         containerinfo('updatestacks');
       });
     });
@@ -473,7 +475,7 @@ io.on('connection', function(socket){
                   io.sockets.in(socket.id).emit('error_popup','Could not start Guacd');
                 }
                 else{
-                  io.sockets.in(socket.id).emit('modal_finish','Guacd launched , Restarting server Please refresh');
+                  io.sockets.in(socket.id).emit('modal_finish','Guacd launched , Restarting page will refresh in 5 seconds');
                   // Exit the application supervisor will restart
                   process.exit();
                 }
