@@ -834,7 +834,8 @@ function updatelocalstacks(containers){
     <thead>\
       <tr>\
         <th>Name</th>\
-        <th>URL</th>\
+        <th>App Launch</th>\
+        <th>Source</th>\
         <th>Status</th>\
         <th>Created</th>\
       </tr>\
@@ -887,6 +888,7 @@ function updatelocalstacks(containers){
         stacktable.row.add( 
           [labels.stackname, 
           '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+          '<a href="' + labels.stackurl  + '" target="_blank" class="btn btn-sm btn-primary">Source Template</a>',
           container.State + ' ' + container.Status, 
           new Date( container.Created * 1e3).toISOString().slice(0,19)] 
         );

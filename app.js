@@ -49,6 +49,7 @@ guacontainer.inspect(function (err, containerdata) {
   // For first time users or people that do not care about VDI
   if (containerdata == null){
     console.log('Guacd does not exist on this server will not start websocket tunnel');
+    startstacks();
   }
   else {
     // Start Guacd if it exists and it not running then exit the process supervisor will pick it up
@@ -63,6 +64,7 @@ guacontainer.inspect(function (err, containerdata) {
     // If it is up and running use the IP we got from inspect to fire up the websocket tunnel used by the VDI application
     else {
       const guacServer = new GuacamoleLite({server: http,path:'/guaclite'},{host:containerdata.NetworkSettings.IPAddress,port:4822},clientOptions);
+      startstacks();
     }
   }
 });
@@ -78,6 +80,28 @@ const encrypt = (value) => {
   };
   return new Buffer(JSON.stringify(data)).toString('base64');
 };
+
+// Start all Taisun Stack containers
+function startstacks(){
+  docker.listContainers({all: true}, function (err, containers) {
+    if (err){
+      console.log(err);
+    }
+    else{
+      containers.forEach(function(container){
+        // If the container has a stackname label assume it is a taisun container
+        if (container.Labels.stackname){
+          // If the container is not running 
+          if (container.State != 'running'){
+            var contostart = docker.getContainer(container.Id);
+            contostart.start();
+            console.log('Started ' + container.Names[0] + ' time=' + (new Date).getTime());
+          }
+        }
+      });
+    }
+  });
+}
 
 ////// PATHS //////
 //// Main ////
