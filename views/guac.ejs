@@ -1,171 +1,76 @@
 <html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Taisun VDI">
+    <meta name="author" content="Ryan Kuba">
+    <title>Taisun VDI</title>
+    <link href="/public/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/public/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="/public/css/vdi.css" rel="stylesheet" type="text/css">
+    <link rel="apple-touch-icon" sizes="57x57" href="/public/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/public/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/public/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/public/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/public/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/public/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/public/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/public/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/public/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/public/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/public/favicon/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/public/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+  </head>
   <body>
-    <style>
-      /* Navigation Menu - Background */
-      .sidebar {
-        width: 100%;
-        height: 100%;
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 0;
-      }
-      .site-wrap {
-        min-height: 100%;
-        min-width: 100%;
-        background-color: white;
-        position: relative;
-        top: 0;
-        bottom: 100%;
-        left: 0;
-        z-index: 1;
-      }
-      .nav-trigger {
-        /* critical styles - hide the checkbox input */
-        position: absolute;
-        clip: rect(0, 0, 0, 0);
-      }
-      label[for="nav-trigger"] {
-        /* critical positioning styles */
-        position: fixed;
-        left: 0; top: 50%;
-        z-index: 2;
-        height: 30px;
-        width: 8px;
-        cursor: pointer;
-        background: #1e5799;
-        background-size: contain;
-      }
-      .nav-trigger + label, .site-wrap {
-        transition: left 0.2s;
-      }
-      .nav-trigger:checked + label {
-        left: 200px;
-      }
-      .nav-trigger:checked ~ .site-wrap {
-        left: 200px;
-        box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
-      }
-      body {
-        overflow-x: hidden;
-      }
-      h1, h3, p {
-        max-width: 600px;
-        margin: 0 auto 1em;
-      }
-      code {
-          padding: 2px;
-          background: #ddd;
-      }
-      *,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
-      html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }
-  </style>
-    <!-- Guacamole -->
-    <script type="text/javascript" src="/public/js/guac.min.js"></script>
-    <!-- Vendor -->
-    <script type="text/javascript" src="/public/vendor/jquery/jquery.min.js"></script>
-    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
-    <!-- Client side -->
-    <script type="text/javascript" src="/public/js/desktop.js"></script>
-    
     <!-- SideBar -->
-    <div class="sidebar" style="cursor:initial;" style="width:200px;">
-      Taisun Desktop Admin<br>
+    <div class="sidebar" style="cursor:initial;">
+      <!-- On Screen Keyboard Launcher -->
+      <center><button type="button" style="cursor:pointer;" class="btn btn-secondary" data-toggle="modal" data-target="#Keyboard" onclick="poposk()">Touch <i class="fa fa-keyboard-o"></i></button></center>
       <!-- Clipboard -->
-      Client:<br>
-      <textarea id="clipboard" class="stopcapture" rows="10"></textarea><br>
-      Host:<br>
-      <textarea id="clipboardinput" class="stopcapture" rows="10"></textarea><br>
+      ClipBoard:<br>
+      <textarea id="clipboard" class="stopcapture form-control" rows="7"></textarea>
       <!-- Resolution Management -->
-      Browser Window: <br><input id="currentsize" readonly="readonly" class="stopcapture"><br>
-      Resize Desktop: <br>
-      <input list="resolutions" name="resolutions" class="stopcapture" id="resform">
-      <datalist id="resolutions">
-      </datalist>
+      Browser Size:<br>
+      <input id="currentsize" readonly="readonly" class="form-control stopcapture">
+      Resize Desktop:<br>
+      <input  list="resolutions" name="resolutions" class="form-control stopcapture" id="resform" placeholder="enter new resolution">
+      <datalist id="resolutions"></datalist>
     </div>
+    <!--On Screen Keyboard Modal-->
+    <div id="Keyboard" data-backdrop="false" class="modal fade taisunosk" tabindex="-1" style="cursor:initial;">
+      <div class="modal-dialog" style="opacity:0.5;max-width:100%!important;">
+        <div class="modal-content">
+          <div class="modal-body">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div id="osk"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Fake checkbox to show/hide the sidebar -->
     <input type="checkbox" id="nav-trigger" class="nav-trigger" />
-    <label for="nav-trigger"></label>
+    <label id="sidebaricon" for="nav-trigger"><i class="fa fa-arrow-right"></i></label>
     <!-- Display -->
     <div class="site-wrap" onmouseover="this.focus();" tabindex="0" style="outline:none;">
       <div id="display" style="width:100%;height:100vh;overflow:hidden;position:absolute;left:0;top:0;"></div>
     </div>
-    <!-- Init -->
-    <script type="text/javascript"> /* <![CDATA[ */
-      // Hide Cursor
-      document.body.style.cursor = 'none';
-      // Get hostname and port
-      var host = window.location.hostname;
-      var port = window.location.port;
-      // Get display div from document
-      var display = document.getElementById("display");
-      // Instantiate client, using an HTTP tunnel for communications.
-      var guac = new Guacamole.Client(
-        new Guacamole.WebSocketTunnel("ws://" + host + ":" + port + "/guaclite?token=<%- token -%>")
-      );
-      // Show current client clipboard
-      guac.onclipboard = function clientClipboardReceived(stream, mimetype) {
-        var reader;
-        // If the received data is text, read it as a simple string (ignore blob data)
-        if (/^text\//.exec(mimetype)) {
-          reader = new Guacamole.StringReader(stream);
-          // Assemble received data into a single string
-          var data = '';
-          reader.ontext = function textReceived(text) {
-            $('#clipboard').val(text);
-          };
-        }
-      };
-      // Grab user input to set client clipboard
-      $('#clipboardinput').on('input', function() { 
-        guac.setClipboard($(this).val());
-      });
-      // Add client to display div
-      display.appendChild(guac.getDisplay().getElement());
-      // Error handler
-      guac.onerror = function(error) {
-        alert(error);
-      };
-      // Connect
-      guac.connect();
-      // Disconnect on close
-      window.onunload = function() {
-        guac.disconnect();
-      }
-      // Mouse
-      var mouse = new Guacamole.Mouse(guac.getDisplay().getElement());
-      mouse.onmousedown = 
-      mouse.onmouseup   =
-      mouse.onmousemove = function(mouseState) {
-        guac.sendMouseState(mouseState);
-      };
-      // Keyboard
-      var keyboard = new Guacamole.Keyboard(document);
-      keyboard.onkeydown = function (keysym) {
-        guac.sendKeyEvent(1, keysym);
-      };
-      keyboard.onkeyup = function (keysym) {
-        guac.sendKeyEvent(0, keysym);
-      };
-      // Disable keyboard events if our sidebar inputs are used
-      $(".stopcapture").click(function(e) {
-        keyboard.onkeydown = null;
-        keyboard.onkeyup = null;
-      }).on("blur", function(e) {
-        keyboard.onkeydown = function(keysym) {
-          guac.sendKeyEvent(1, keysym);
-        };
-        keyboard.onkeyup = function(keysym) {
-          guac.sendKeyEvent(0, keysym);
-        };
-      });
-      // Desktop Resolution management
-      window.onresize = displayWindowSize;
-      window.onload = displayWindowSize;
-      function displayWindowSize() {
-        $('#currentsize').val($(window).width() + 'x' + $(window).height());
-      };
-    /* ]]> */ </script>
+    <!-- Storage for encoded connection string -->
+    <input type="hidden" id="connectionstring" value="<%- token -%>" />
+    <!-- Guacamole -->
+    <script type="text/javascript" src="/public/vendor/guac/js/guac.min.js"></script>
+    <!-- Helpers -->
+    <script type="text/javascript" src="/public/vendor/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/public/vendor/popper/popper.min.js"></script>
+    <script type="text/javascript" src="/public/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/public/vendor/shortcut/js/shortcut.js"></script>
+    <!-- Client side -->
+    <script type="text/javascript" src="/public/js/desktop.js"></script>
   </body>
 </html>

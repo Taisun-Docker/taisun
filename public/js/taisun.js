@@ -1278,7 +1278,7 @@ function rendergateway(data) {
   <div class="card mb-3">\
     <div class="card-header">\
       <i class="fa fa-sitemap"></i>\
-      Taisun Gateway Status\
+      HTTPS Proxy\
     </div>\
     <div class="card-body">\
         <p> A chrome extension for using the web proxy can be found <a href="https://chrome.google.com/webstore/detail/taisun-connect/cfikmlkjcnlbabkghfcnakfcbgnokkpd" target="_blank">here</a></p><br>\
@@ -1290,10 +1290,10 @@ function rendergateway(data) {
   <div class="card mb-3">\
     <div class="card-header">\
       <i class="fa fa-file-code-o"></i>\
-      OpenVPN Client File\
+      OpenVPN Client File<button type="button" class="btn btn-sm btn-primary float-right" style="cursor:pointer;" onClick="downloadovpn()">Download <i class="fa fa-download"></i></button>\
     </div>\
     <div class="card-body">\
-    <pre>' + clientconfig + '<pre>\
+    <pre id="vpnconfig">' + clientconfig + '<pre>\
     </div>\
   </div>\
   ').promise().done(function(){
@@ -1309,6 +1309,13 @@ function rendergateway(data) {
       }
     }
   });
+}
+
+// Send the contents of the client config to the user
+function downloadovpn(){
+  var text = $("#vpnconfig").text();
+  var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+  saveAs(blob, 'client.ovpn');
 }
 
 
