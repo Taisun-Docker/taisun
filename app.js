@@ -231,15 +231,15 @@ io.on('connection', function(socket){
   });
   // Pull image
   socket.on('sendpullcommand', function(image){
-    io.sockets.in(socket.id).emit('sendpullstart', 'Starting Pull process for ' + image);
+    io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Starting Pull process for ' + image);
     console.log('Pulling ' + image);
     docker.pull(image, function(err, stream) {
       docker.modem.followProgress(stream, onFinished, onProgress);
       function onProgress(event) {
-        io.sockets.in(socket.id).emit('sendpulloutput', event);
+        io.sockets.in(socket.id).emit('senddockerodeout', event);
       }
       function onFinished(err, output) {
-        io.sockets.in(socket.id).emit('sendpulloutputdone', 'Finished Pull process for ' + image);
+        io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Finished Pull process for ' + image);
         console.log('Finished Pulling ' + image);
       }       
     });
@@ -335,10 +335,10 @@ io.on('connection', function(socket){
       const composeup = spawn('unbuffer', composecommand);
       composeup.stdout.setEncoding('utf8');
       composeup.stdout.on('data', (data) => {
-        io.sockets.in(socket.id).emit('stackupdate',ansi_up.ansi_to_html(data).trim());
+        io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
       });
       composeup.on('close', (code) => {
-        io.sockets.in(socket.id).emit('stacklaunched','Compose up process exited with code ' + code);
+        io.sockets.in(socket.id).emit('sendconsoleoutdone','Compose up process exited with code ' + code);
         containerinfo('updatestacks');
         if (stacktype == 'community'){
           var guid = templatename.replace('.yml','');
@@ -419,7 +419,11 @@ io.on('connection', function(socket){
       var taisunversion = version;
       io.sockets.in(socket.id).emit('sendversion', taisunversion);
     });
-  });  
+  });
+  // When Stack Upgrade is requested execute
+  socket.on('upgradestack', function(stackname){
+    upgradestack(stackname);
+  });
   ///////////////////
   //// Functions ////
   ///////////////////
@@ -547,6 +551,62 @@ io.on('connection', function(socket){
                 console.log("Error: ", err);
             else
                 console.log(data.StatusCode);
+        });
+      }
+    });
+  }
+  // Launch Upgrade container
+  function upgradestack(stackname){
+    // Check if the upgrade image exists on this server
+    images.list(function (err, res) {
+      if (JSON.stringify(res).indexOf('taisun/updater:latest') > -1 ){
+        stackupgrade(stackname);
+      }
+      else {
+        io.sockets.in(socket.id).emit('senddockerodeoutstart','Need to pull the updater image');
+        docker.pull('taisun/updater:latest', function(err, stream) {
+         docker.modem.followProgress(stream, onFinished, onProgress);
+          function onProgress(event) {
+            io.sockets.in(socket.id).emit('senddockerodeout', event);
+          }
+          function onFinished(err) {
+            io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Finished Pull process for updater');
+            stackupgrade(stackname);
+            console.log('Finished Pulling updater');
+          }
+        });
+      }
+    });
+  }
+  function stackupgrade(stackname){
+    // Grab the current running docker container information
+    docker.listContainers(function (err, containers) {
+      if (err){
+        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
+      }
+      else{
+        containers.forEach(function(container){
+          // If the container has the stackname passed
+          if (container.Labels.stackname == stackname){
+            io.sockets.in(socket.id).emit('senddockerodeoutstart','Started upgrade run for ' + container.Names[0]);
+            docker.run('taisun/updater:latest', ['--oneshot', container.Names[0]], process.stdout,{
+                HostConfig: {
+                    Binds: ["/var/run/docker.sock:/var/run/docker.sock"],
+                    AutoRemove: true
+                }
+            },function (err, data, container) {
+                if(err)
+                    console.log("Error: "+ err);
+              }).on('stream', function (stream) {
+                stream.setEncoding('utf8');
+                stream.on('data', (data) => {
+                  io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
+                });
+                stream.on('end', function(){
+                  io.sockets.in(socket.id).emit('sendconsoleoutdone','Finished upgrade run for ' + container.Names[0]);
+                });
+              });
+          }
         });
       }
     });

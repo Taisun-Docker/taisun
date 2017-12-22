@@ -708,16 +708,15 @@ socket.on('sendtagsinfo', function(arr) {
 $('body').on('click', '.pullimage', function(){
   socket.emit('sendpullcommand', $(this).attr("value"));
   modalpurge();
-  $('#modaltitle').append('Pulling ' + $(this).attr("value"));
   $('#modalloading').show();
 });
-// Show console output for pull
-socket.on('sendpullstart', function(output) {
+// Show console output Docker commands from dockerode
+socket.on('senddockerodeoutstart', function(output) {
   $('#modalbody').show();
-  $('#modalbody').append('<div>' + output + '</div>');
+  $('#modalbody').append('<div><i class="fa fa-check"></i> ' + output + '</div>');
   $('#modalconsole').show();
 });
-socket.on('sendpulloutput', function(output) {
+socket.on('senddockerodeout', function(output) {
   var status = output.status;
   if (output.hasOwnProperty("id")){
     var uuid = output.id;
@@ -742,9 +741,9 @@ socket.on('sendpulloutput', function(output) {
     $('#modalconsole').append('<div>' + status + '</div>');
   }
 });
-socket.on('sendpulloutputdone', function(output) {
+socket.on('senddockerodeoutdone', function(output) {
   $('#modalloading').hide();
-  $('#modalbody').append('<div>' + output + '</div>');
+  $('#modalbody').append('<div><i class="fa fa-check"></i> ' + output + '</div>');
   $('#modalfooter').show();
   $('#modalfooter').append('\
   <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
@@ -838,6 +837,7 @@ function updatelocalstacks(containers){
         <th>Source</th>\
         <th>Status</th>\
         <th>Created</th>\
+        <th>Upgrade</th>\
       </tr>\
     </thead>\
   </table><br>\
@@ -890,12 +890,22 @@ function updatelocalstacks(containers){
           '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
           '<a href="' + labels.stackurl  + '" target="_blank" class="btn btn-sm btn-primary">Source Template</a>',
           container.State + ' ' + container.Status, 
-          new Date( container.Created * 1e3).toISOString().slice(0,19)] 
+          new Date( container.Created * 1e3).toISOString().slice(0,19),
+          '<button type="button" style="cursor:pointer;" class="btn btn-success stackupgradebutton" data-toggle="modal" data-target="#modal" value="' + labels.stackname + '">Upgrade <i class="fa fa-arrow-up"></i></button>']
         );
       }).promise().done(stacktable.draw());
     }
   });
 }
+
+// When the upgrade button is clicked send to server
+$('body').on('click', '.stackupgradebutton', function(){
+  modalpurge();
+  $('#modalloading').show();
+  $('#modalconsole').show();
+  socket.emit('upgradestack',$(this).attr("value"));
+});
+
 // When the user clicks to browse remote stack yaml files render and ask the server for the results
 function renderbrowsestacks(){
   $('#pagecontent').empty();
@@ -965,6 +975,7 @@ socket.on('stacksresults', function(data) {
     }
   }
 });
+
 // When stack search button is activated send string to server
 function stacksearch(page){
   $('#taisunstacks').empty();
@@ -1175,8 +1186,8 @@ $('body').on('click', '#createstack', function(){
     $('#modalconsole').show();
   });
 });
-// Show output from launch command
-socket.on('stackupdate', function(data) {
+// Show console output
+socket.on('sendconsoleout', function(data) {
   // If this data has a docker guid in front of it then assign it to a div for updating
   if (data.split(':')[0].length == 12){
     var uuid = data.split(':')[0].toString();
@@ -1194,11 +1205,11 @@ socket.on('stackupdate', function(data) {
     $('#modalconsole').append('<div>' + data + '</div>');
   }
 });
-// On finish remove spinner and add close button
-socket.on('stacklaunched', function(data) {
+// On console finish remove spinner and show close
+socket.on('sendconsoleoutdone', function(data) {
   $('#modalloading').hide();
   $('#modalbody').show();
-  $('#modalbody').append(data);
+  $('#modalbody').append('<div><i class="fa fa-check"></i> ' + data + '</div>');
   $('#modalfooter').show();
   $('#modalfooter').append('\
   <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
@@ -1380,8 +1391,9 @@ socket.on('sendversion', function(version){
 // Taisun Update Modal
 $('body').on('click', '.taisunupdate', function(){
   $('#modalbody').empty();
+  $('#modalbody').append('Running upgrade in the background using an external container, no further output will be displayed and the page will refresh in 20 seconds');
   $('#modalloading').show();
-  setTimeout(location.reload.bind(location), 10000);
+  setTimeout(location.reload.bind(location), 20000);
   socket.emit('upgradetaisun');
 });
 
