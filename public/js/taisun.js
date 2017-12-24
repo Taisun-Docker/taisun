@@ -317,15 +317,55 @@ function vdibuildermodal(){
   Coming Soon\
   ');
 }
-
+// Form to build a container from git repo
 function gitmodal(){
   modalpurge();
   $('#modaltitle').append('Import Project from Git');
   $('#modalbody').show();
   $('#modalbody').append('\
-  Coming Soon\
+  <div class="form-group row">\
+  <label for="desktop-destroy" class="col-sm-2 control-label">Repo</label>\
+    <div class="col-sm-10">\
+    <input type="text" class="form-control" id="build-repo" placeholder="IE: https://gitlab.com/thelamer/taisun.git">\
+    </div>\
+  </div>\
+  <div class="form-group row">\
+  <label for="desktop-destroy" class="col-sm-2 control-label">Path to Dockerfile</label>\
+    <div class="col-sm-10">\
+    <input type="text" class="form-control" id="build-path" placeholder="Relative path IE: docker/, leave empty for root">\
+    </div>\
+  </div>\
+  <div class="form-group row">\
+  <label for="desktop-destroy" class="col-sm-2 control-label">Checkout</label>\
+    <div class="col-sm-10">\
+    <input type="text" class="form-control" id="build-checkout" placeholder="Branch or Tag, leave empty for master">\
+    </div>\
+  </div>\
+  <div class="form-group row">\
+  <label for="desktop-destroy" class="col-sm-2 control-label">Image Tag</label>\
+    <div class="col-sm-10">\
+    <input type="text" class="form-control" id="build-tag" placeholder="IE: mycontainer:mytag">\
+    </div>\
+  </div>\
+  ');
+  $('#modalfooter').show();
+  $('#modalfooter').append('\
+  <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>\
+  <button type="button" class="btn btn-success" onclick="buildfromgit()">Build</button>\
   ');
 }
+// Send git build context to server
+function buildfromgit(){
+  var repo = $('#build-repo').val();
+  var path = $('#build-path').val();
+  var checkout = $('#build-checkout').val();
+  var tag = $('#build-tag').val();
+  socket.emit('builddockergit', [repo,path,checkout,tag]);
+  modalpurge();
+  $('#modaltitle').append('Building ' + repo);
+  $('#modalloading').show();
+}
+
 // Guacstatus modal
 function guacstatusmodal(){
   modalpurge();
@@ -336,7 +376,11 @@ function guacstatusmodal(){
 socket.on('guacinfo', function (data){
   $('#modalloading').hide();
   $('#modalconsole').show();
-  $('#modalconsole').append(JSON.stringify(data));
+  $('#modalconsole').append('\
+    <div> State: '+ data.State.Status + '</div>\
+    <div> Created: '+ data.Created + '</div>\
+    <div> Command: '+ data.Config.Cmd[0] + '</div>\
+  ');
 });
 
 // When the desktop form is submitted send the reqest to the server
@@ -715,31 +759,41 @@ socket.on('senddockerodeoutstart', function(output) {
   $('#modalbody').show();
   $('#modalbody').append('<div><i class="fa fa-check"></i> ' + output + '</div>');
   $('#modalconsole').show();
+  $('#modalconsole').height('60vh');
 });
 socket.on('senddockerodeout', function(output) {
+  var stream = output.stream;
   var status = output.status;
-  if (output.hasOwnProperty("id")){
-    var uuid = output.id;
-    // If the Div exists we are going to be updating it
-    if ($('#' + uuid).length > 0) {
-      if (output.hasOwnProperty("progress")){
-        var progress = output.progress;
-        $('#' + uuid).empty();
-        $('#' + uuid).append(uuid + ' : ' + status + ' ' +  progress);
-      }
-      else{
-        $('#' + uuid).empty();
-        $('#' + uuid).append(uuid + ' : ' + status);        
-      }
-    }
-    // Div does not exist create it and put the data in it
-    else{
-      $('#modalconsole').append('<div id="' + uuid + '">' + uuid + ' : ' + status + '</div>');
-    }
+  if (stream){
+    $('#modalconsole').append('<div>' + stream + '</div>');
   }
   else{
-    $('#modalconsole').append('<div>' + status + '</div>');
+    if (output.hasOwnProperty("id")){
+      var uuid = output.id;
+      // If the Div exists we are going to be updating it
+      if ($('#' + uuid).length > 0) {
+        if (output.hasOwnProperty("progress")){
+          var progress = output.progress;
+          $('#' + uuid).empty();
+          $('#' + uuid).append(uuid + ' : ' + status + ' ' +  progress);
+        }
+        else{
+          $('#' + uuid).empty();
+          $('#' + uuid).append(uuid + ' : ' + status);        
+        }
+      }
+      // Div does not exist create it and put the data in it
+      else{
+        $('#modalconsole').append('<div id="' + uuid + '">' + uuid + ' : ' + status + '</div>');
+      }
+    }
+    else{
+      $('#modalconsole').append('<div>' + status + '</div>');
+    }
   }
+  // Scroll to the bottom of the console output
+  var toscroll = $("#modalconsole").get(0);
+  toscroll.scrollTop = toscroll.scrollHeight;
 });
 socket.on('senddockerodeoutdone', function(output) {
   $('#modalloading').hide();
@@ -888,7 +942,7 @@ function updatelocalstacks(containers){
         stacktable.row.add( 
           [labels.stackname, 
           '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
-          '<a href="' + labels.stackurl  + '" target="_blank" class="btn btn-sm btn-primary">Source Template</a>',
+          '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary configurestack" value="' + labels.stackurl + '">Source Template</button>',
           container.State + ' ' + container.Status, 
           new Date( container.Created * 1e3).toISOString().slice(0,19),
           '<button type="button" style="cursor:pointer;" class="btn btn-success stackupgradebutton" data-toggle="modal" data-target="#modal" value="' + labels.stackname + '">Upgrade <i class="fa fa-arrow-up"></i></button>']
@@ -1184,6 +1238,7 @@ $('body').on('click', '#createstack', function(){
     $('#modalloading').show();
     $('#modaltitle').append('Launching ' + url);
     $('#modalconsole').show();
+    $('#modalconsole').height('60vh');
   });
 });
 // Show console output
@@ -1204,6 +1259,9 @@ socket.on('sendconsoleout', function(data) {
   else{
     $('#modalconsole').append('<div>' + data + '</div>');
   }
+  // Scroll to the bottom of the console output
+  var toscroll = $("#modalconsole").get(0);
+  toscroll.scrollTop = toscroll.scrollHeight;
 });
 // On console finish remove spinner and show close
 socket.on('sendconsoleoutdone', function(data) {

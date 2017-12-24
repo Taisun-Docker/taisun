@@ -5,6 +5,9 @@
 const uuidv4 = require('uuid/v4');
 const { spawn } = require('child_process');
 const si = require('systeminformation');
+var gitClone = require('git-clone');
+var rmdir = require('rmdir');
+var tar = require('tar-fs');
 var AU = require('ansi_up');
 var ansi_up = new AU.default;
 var nunjucks = require('nunjucks');
@@ -424,6 +427,14 @@ io.on('connection', function(socket){
   socket.on('upgradestack', function(stackname){
     upgradestack(stackname);
   });
+  // When build from git is requested execute
+  socket.on('builddockergit', function(formdata){
+    var repo = formdata[0];
+    var path = formdata[1];
+    var checkout = formdata[2];
+    var tag = formdata[3];
+    builddockergit(repo,path,checkout,tag);
+  });  
   ///////////////////
   //// Functions ////
   ///////////////////
@@ -609,6 +620,47 @@ io.on('connection', function(socket){
           }
         });
       }
+    });
+  }
+  function builddockergit(repo,path,checkout,tag){
+    var tempfolder = '/tmp/' + uuidv4(); + '/';
+    if (checkout == ''){
+      var checkout = 'master';
+    }
+    io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Starting git clone process for ' + repo);
+    gitClone(repo, tempfolder, {
+    	checkout: checkout },
+    	function(err) {
+    	  if (err){
+    	    io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Error unable to checkout ' + repo);
+    	    console.log(err);
+    	    rmdir(tempfolder);
+    	  }
+    	  else{
+    	    io.sockets.in(socket.id).emit('senddockerodeoutstart', repo + ' checked out');
+          var tarStream = tar.pack(tempfolder + path);
+          docker.buildImage(tarStream, {
+            t: tag
+          }, function(error, output) {
+            if (error) {
+              io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Error executing build');
+              console.error(error);
+              rmdir(tempfolder);
+            }
+            else{
+              io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Building ' + tag);
+              docker.modem.followProgress(output, onFinished, onProgress);
+              function onProgress(event) {
+                io.sockets.in(socket.id).emit('senddockerodeout', event);
+              }
+              function onFinished(err, output) {
+                io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Finished Build process for ' + repo + ' at ' + checkout);
+                console.log('Finished building ' + repo + ' at ' + checkout);
+                rmdir(tempfolder);
+              }
+            }
+          });
+    	  }
     });
   }
 });
