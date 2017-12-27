@@ -804,6 +804,20 @@ socket.on('senddockerodeoutdone', function(output) {
   ');  
 });
 
+// Show Basic output in modal
+socket.on('sendmodalstart', function(output) {
+  $('#modalbody').show();
+  $('#modalbody').append('<div><i class="fa fa-check"></i> ' + output + '</div>');
+});
+socket.on('sendmodalend', function(output) {
+  $('#modalloading').hide();
+  $('#modalbody').append('<div><i class="fa fa-check"></i> ' + output + '</div>');
+  $('#modalfooter').show();
+  $('#modalfooter').append('\
+  <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
+  ');  
+});
+
 //// Taisun Stacks Rendering
 // Stacks Page
 function renderstacks(){
@@ -890,6 +904,7 @@ function updatelocalstacks(containers){
         <th>App Launch</th>\
         <th>Source</th>\
         <th>Status</th>\
+        <th>Manage</th>\
         <th>Created</th>\
         <th>Upgrade</th>\
       </tr>\
@@ -939,11 +954,18 @@ function updatelocalstacks(containers){
       $(stackcontainers).each(function(index, container) {
         var labels = container.Labels;
         var host = window.location.hostname;
+        if (container.State == 'running'){
+          var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackrestartbutton" value="' + labels.stackname + '">Restart <i class="fa fa-fw fa-refresh"></i></button>' + '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-danger stackstopbutton" value="' + labels.stackname + '">Stop <i class="fa fa-fw fa-stop"></i></button>';
+        }
+        else{
+          var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackstartbutton" value="' + labels.stackname + '">Start <i class="fa fa-fw fa-play"></i></button>';
+        }
         stacktable.row.add( 
           [labels.stackname, 
           '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
           '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary configurestack" value="' + labels.stackurl + '">Source Template</button>',
-          container.State + ' ' + container.Status, 
+          container.State + ' ' + container.Status,
+          management,
           new Date( container.Created * 1e3).toISOString().slice(0,19),
           '<button type="button" style="cursor:pointer;" class="btn btn-success stackupgradebutton" data-toggle="modal" data-target="#modal" value="' + labels.stackname + '">Upgrade <i class="fa fa-arrow-up"></i></button>']
         );
@@ -958,6 +980,30 @@ $('body').on('click', '.stackupgradebutton', function(){
   $('#modalloading').show();
   $('#modalconsole').show();
   socket.emit('upgradestack',$(this).attr("value"));
+});
+
+// When the restart button is clicked send to server
+$('body').on('click', '.stackrestartbutton', function(){
+  modalpurge();
+  $('#modalloading').show();
+  $('#modalconsole').show();
+  socket.emit('restartstack',$(this).attr("value"));
+});
+
+// When the stop button is clicked send to server
+$('body').on('click', '.stackstopbutton', function(){
+  modalpurge();
+  $('#modalloading').show();
+  $('#modalconsole').show();
+  socket.emit('stopstack',$(this).attr("value"));
+});
+
+// When the start button is clicked send to server
+$('body').on('click', '.stackstartbutton', function(){
+  modalpurge();
+  $('#modalloading').show();
+  $('#modalconsole').show();
+  socket.emit('startstack',$(this).attr("value"));
 });
 
 // When the user clicks to browse remote stack yaml files render and ask the server for the results
@@ -1050,7 +1096,9 @@ function stackdestroymodal(){
     <input type="text" class="form-control" id="stack-destroy" placeholder="Stack Name">\
     </div>\
   </div>\
-  ');
+  ').promise().done($('#modal').on('shown.bs.modal', function () {
+      $('#stack-destroy').focus();
+    }));
   $('#modalfooter').show();
   $('#modalfooter').append('\
   <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>\
@@ -1345,6 +1393,39 @@ function renderremotestart() {
 function rendergateway(data) {
   var envars = data[0];
   var clientconfig = data[1];
+  var container = data[2];
+  $('#pageheader').append('\
+    <div class="row">\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white stackrestartbutton" style="cursor:pointer;" value="' + container.Config.Labels.stackname + '">\
+          <div class="card text-white bg-info o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="fa fa-fw fa-refresh"></i>\
+              </div>\
+              <div class="mr-5">\
+                Restart Gateway\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white stackupgradebutton" style="cursor:pointer;" value="' + container.Config.Labels.stackname + '">\
+          <div class="card text-white bg-info o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="fa fa-fw fa-arrow-up"></i>\
+              </div>\
+              <div class="mr-5">\
+                Upgrade Gateway\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
+    </div>\
+  ');
   $('#pagecontent').append('\
   <div class="card mb-3">\
     <div class="card-header">\

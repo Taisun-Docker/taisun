@@ -387,7 +387,7 @@ io.on('connection', function(socket){
         var cmd = 'docker exec taisun_gateway ovpn_getclient taisun';
         exec(cmd, function (err, stdout) {
           var clientconfig = stdout;
-          io.sockets.in(socket.id).emit('renderremote', [data,clientconfig]);
+          io.sockets.in(socket.id).emit('renderremote', [data,clientconfig,data]);
         });
       }
     });
@@ -426,6 +426,18 @@ io.on('connection', function(socket){
   // When Stack Upgrade is requested execute
   socket.on('upgradestack', function(stackname){
     upgradestack(stackname);
+  });
+  // When Stack Restart is requested execute
+  socket.on('restartstack', function(stackname){
+    restartstack(stackname);
+  });
+  // When Stack Stop is requested execute
+  socket.on('stopstack', function(stackname){
+    stopstack(stackname);
+  });
+  // When Stack Start is requested execute
+  socket.on('startstack', function(stackname){
+    startstack(stackname);
   });
   // When build from git is requested execute
   socket.on('builddockergit', function(formdata){
@@ -622,6 +634,7 @@ io.on('connection', function(socket){
       }
     });
   }
+  // Build a docker container from a git repository
   function builddockergit(repo,path,checkout,tag){
     var tempfolder = '/tmp/' + uuidv4(); + '/';
     if (checkout == ''){
@@ -661,6 +674,87 @@ io.on('connection', function(socket){
             }
           });
     	  }
+    });
+  }
+  // Restart all containers in a stack
+  function restartstack(stackname){
+    // Grab the current running docker container information
+    docker.listContainers(function (err, containers) {
+      if (err){
+        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
+      }
+      else{
+        containers.forEach(function(container){
+          // If the container has the stackname as the label
+          if (container.Labels.stackname == stackname){
+            var restartcontainer = docker.getContainer(container.Id);
+            io.sockets.in(socket.id).emit('sendmodalstart','Started restart for ' + container.Names[0]);
+            restartcontainer.restart(function (err, data) {
+              if (err){
+                io.sockets.in(socket.id).emit('sendmodalstart','Error restarting ' + container.Names[0]);
+              }
+              else{
+                io.sockets.in(socket.id).emit('sendmodalend','Restarted ' + container.Names[0]);
+                containerinfo('updatestacks');
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+  // Stop all containers in a stack
+  function stopstack(stackname){
+    // Grab the current running docker container information
+    docker.listContainers(function (err, containers) {
+      if (err){
+        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
+      }
+      else{
+        containers.forEach(function(container){
+          // If the container has the stackname as the label
+          if (container.Labels.stackname == stackname){
+            var stopcontainer = docker.getContainer(container.Id);
+            io.sockets.in(socket.id).emit('sendmodalstart','Started stop for ' + container.Names[0]);
+            stopcontainer.stop(function (err, data) {
+              if (err){
+                io.sockets.in(socket.id).emit('sendmodalstart','Error stopping ' + container.Names[0]);
+              }
+              else{
+                io.sockets.in(socket.id).emit('sendmodalend','Stopped ' + container.Names[0]);
+                containerinfo('updatestacks');
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+  // Start all containers in a stack
+  function startstack(stackname){
+    // Grab the current running docker container information
+    docker.listContainers({all: true}, function (err, containers) {
+      if (err){
+        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
+      }
+      else{
+        containers.forEach(function(container){
+          // If the container has the stackname as the label
+          if (container.Labels.stackname == stackname){
+            var startcontainer = docker.getContainer(container.Id);
+            io.sockets.in(socket.id).emit('sendmodalstart','Started start for ' + container.Names[0]);
+            startcontainer.start(function (err, data) {
+              if (err){
+                io.sockets.in(socket.id).emit('sendmodalstart','Error starting ' + container.Names[0]);
+              }
+              else{
+                io.sockets.in(socket.id).emit('sendmodalend','Started ' + container.Names[0]);
+                containerinfo('updatestacks');
+              }
+            });
+          }
+        });
+      }
     });
   }
 });
