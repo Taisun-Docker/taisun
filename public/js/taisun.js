@@ -801,7 +801,10 @@ socket.on('senddockerodeoutdone', function(output) {
   $('#modalfooter').show();
   $('#modalfooter').append('\
   <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
-  ');  
+  ');
+  // Scroll to the bottom of the console output
+  var toscroll = $("#modalconsole").get(0);
+  toscroll.scrollTop = toscroll.scrollHeight;
 });
 
 // Show Basic output in modal
@@ -905,6 +908,7 @@ function updatelocalstacks(containers){
         <th>Source</th>\
         <th>Status</th>\
         <th>Manage</th>\
+        <th>Logs</th>\
         <th>Created</th>\
         <th>Upgrade</th>\
       </tr>\
@@ -966,6 +970,7 @@ function updatelocalstacks(containers){
           '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary configurestack" value="' + labels.stackurl + '">Source Template</button>',
           container.State + ' ' + container.Status,
           management,
+          '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stacklogsbutton" value="' + labels.stackname + '">Logs <i class="fa fa-fw fa-terminal"></i></button>',
           new Date( container.Created * 1e3).toISOString().slice(0,19),
           '<button type="button" style="cursor:pointer;" class="btn btn-success stackupgradebutton" data-toggle="modal" data-target="#modal" value="' + labels.stackname + '">Upgrade <i class="fa fa-arrow-up"></i></button>']
         );
@@ -1004,6 +1009,14 @@ $('body').on('click', '.stackstartbutton', function(){
   $('#modalloading').show();
   $('#modalconsole').show();
   socket.emit('startstack',$(this).attr("value"));
+});
+
+// When the logs button is clicked send to server
+$('body').on('click', '.stacklogsbutton', function(){
+  modalpurge();
+  $('#modalloading').show();
+  $('#modalconsole').show();
+  socket.emit('stacklogs',$(this).attr("value"));
 });
 
 // When the user clicks to browse remote stack yaml files render and ask the server for the results
@@ -1320,6 +1333,9 @@ socket.on('sendconsoleoutdone', function(data) {
   $('#modalfooter').append('\
   <button type="button" class="btn btn-success" data-dismiss="modal">Close <i class="fa fa-check"></i></button>\
   ');
+  // Scroll to the bottom of the console output
+  var toscroll = $("#modalconsole").get(0);
+  toscroll.scrollTop = toscroll.scrollHeight;
 });
 
 // Upload Yaml Modal

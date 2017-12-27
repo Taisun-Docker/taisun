@@ -439,6 +439,10 @@ io.on('connection', function(socket){
   socket.on('startstack', function(stackname){
     startstack(stackname);
   });
+  // When Stack Logs are requested execute
+  socket.on('stacklogs', function(stackname){
+    stacklogs(stackname);
+  });
   // When build from git is requested execute
   socket.on('builddockergit', function(formdata){
     var repo = formdata[0];
@@ -750,6 +754,44 @@ io.on('connection', function(socket){
               else{
                 io.sockets.in(socket.id).emit('sendmodalend','Started ' + container.Names[0]);
                 containerinfo('updatestacks');
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+  // Get logs for all containers in stack
+  function stacklogs(stackname){
+    // Grab the current running docker container information
+    docker.listContainers({all: true}, function (err, containers) {
+      if (err){
+        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
+      }
+      else{
+        containers.forEach(function(container){
+          // If the container has the stackname as the label
+          if (container.Labels.stackname == stackname){
+            var logcontainer = docker.getContainer(container.Id);
+            var logOpts = {
+              stdout: 1,
+              stderr: 1,
+              tail:100,
+              follow:0
+            };
+            io.sockets.in(socket.id).emit('senddockerodeoutstart','Getting logs for ' + container.Names[0]);
+            logcontainer.logs(logOpts,function (err, stream) {
+              if (err){
+                io.sockets.in(socket.id).emit('sendconsoleoutdone','Error Getting logs for ' + container.Names[0]);
+              }
+              else{
+                stream.setEncoding('utf8');
+                stream.on('data', (data) => {
+                  io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
+                });
+                stream.on('end', function(){
+                  io.sockets.in(socket.id).emit('sendconsoleoutdone','Logs for ' + container.Names[0] + ' below');
+                });
               }
             });
           }
