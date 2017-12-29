@@ -244,7 +244,7 @@ socket.on('rendervdi', function(response){
         <i class="fa fa-desktop"></i>\
         Deployed Desktops\
       </div>\
-      <div class="card-body">\
+      <div class="card-body" style="overflow-x:auto">\
         <div class="table-responsive">\
           <table id="desktops" class="table table-bordered" width="100%" cellspacing="0">\
             <thead>\
@@ -253,8 +253,9 @@ socket.on('rendervdi', function(response){
                 <th>URL</th>\
                 <th>Image</th>\
                 <th>Status</th>\
-                <th>Created</th>\
-                <th>Command</th>\
+                <th>Logs</th>\
+                <th>Manage</th>\
+                <th>Upgrade</th>\
               </tr>\
             </thead>\
           </table>\
@@ -275,20 +276,30 @@ function updatevdi(containers){
   var desktoptable = $('#desktops').DataTable( {} );
   desktoptable.clear();
   //Loop through the containers to build the containers table
-  for (var container in containers){
-    var info = containers[container];
-    if (info.Names[0].indexOf("taisunvdi_") != -1 ){
-      desktoptable.row.add( 
-        [info.Names[0].replace('/taisunvdi_',''), 
-        '<a href="/desktop/' + info.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
-        info.Image, 
-        info.State + ' ' + info.Status, 
-        new Date( info.Created * 1e3).toISOString().slice(0,19),
-        info.Command] 
-      );
+  $(containers).each(function(index,container){
+    var labels = container.Labels;
+    if (labels.stacktype){
+      if (labels.stacktype == 'vdi'){
+        if (container.State == 'running'){
+          var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackrestartbutton" value="' + labels.stackname + '">Restart <i class="fa fa-fw fa-refresh"></i></button>' + '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-danger stackstopbutton" value="' + labels.stackname + '">Stop <i class="fa fa-fw fa-stop"></i></button>';
+        }
+        else{
+          var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackstartbutton" value="' + labels.stackname + '">Start <i class="fa fa-fw fa-play"></i></button>';
+        }
+        desktoptable.row.add( 
+          [labels.stackname, 
+          '<a href="/desktop/' + container.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+          container.Image, 
+          container.State + ' ' + container.Status, 
+          '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stacklogsbutton" value="' + labels.stackname + '">Logs <i class="fa fa-fw fa-terminal"></i></button>',
+          management,
+          '<button type="button" style="cursor:pointer;" class="btn btn-success stackupgradebutton" data-toggle="modal" data-target="#modal" value="' + labels.stackname + '">Upgrade <i class="fa fa-arrow-up"></i></button>'] 
+        );
+      }
     }
-  }
-  desktoptable.draw();
+  }).promise().done(function(){
+    desktoptable.draw();
+  });
 }
 
 // When the guacd button is pressed tell the server to launch guacd docker container
@@ -936,10 +947,8 @@ function updatelocalstacks(containers){
     var labels = container.Labels;
     if (labels.stacktype){
       var stacktype = labels.stacktype;
-      if (stacktype == 'community'){
-        if (labels.appport){
-          stackcontainers.push(container);
-        }
+      if (stacktype == 'container' || stacktype == 'community'){
+        stackcontainers.push(container);
       }
     }
   }).promise().done(function(){
@@ -958,16 +967,27 @@ function updatelocalstacks(containers){
       $(stackcontainers).each(function(index, container) {
         var labels = container.Labels;
         var host = window.location.hostname;
+        var apport = labels.appport;
+        var source = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary configurestack" value="' + labels.stackurl + '">Source Template</button>';
         if (container.State == 'running'){
           var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackrestartbutton" value="' + labels.stackname + '">Restart <i class="fa fa-fw fa-refresh"></i></button>' + '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-danger stackstopbutton" value="' + labels.stackname + '">Stop <i class="fa fa-fw fa-stop"></i></button>';
         }
         else{
           var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackstartbutton" value="' + labels.stackname + '">Start <i class="fa fa-fw fa-play"></i></button>';
         }
+        if (apport){
+          var launch = '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Open <i class="fa fa-external-link" aria-hidden="true"></i></a>';
+        }
+        else{
+          var launch = 'Not Set';
+        }
+        if (labels.stacktype == 'container'){
+          var source = 'container';
+        }
         stacktable.row.add( 
           [labels.stackname, 
-          '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
-          '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary configurestack" value="' + labels.stackurl + '">Source Template</button>',
+          launch,
+          source,
           container.State + ' ' + container.Status,
           management,
           '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stacklogsbutton" value="' + labels.stackname + '">Logs <i class="fa fa-fw fa-terminal"></i></button>',
