@@ -515,7 +515,7 @@ function renderdockerhub(){
       <i class="fa fa-docker"></i>\
       DockerHub\
     </div>\
-    <div class="card-body" id="dockerresults">\
+    <div class="card-body" style="overflow-x:auto" id="dockerresults">\
     <center><h2>Please search for Docker images</h2></center>\
     </div>\
   </div>');
@@ -571,7 +571,7 @@ function renderdeveloper(){
       <i class="fa fa-play"></i>\
       Running Developer Containers\
     </div>\
-    <div class="card-body" id="devstacks">\
+    <div class="card-body" id="devstacks" style="overflow-x:auto">\
     <center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Fetching developer containers from Taisun</h2></center>\
     </div>\
   </div>\
@@ -886,7 +886,7 @@ function renderstacks(){
       <i class="fa fa-play"></i>\
       Running Stacks\
     </div>\
-    <div class="card-body" id="localstacks">\
+    <div style="overflow-x:auto" class="card-body" id="localstacks">\
     <center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Fetching running stacks from Taisun</h2></center>\
     </div>\
   </div>\
@@ -1036,7 +1036,7 @@ function renderbrowsestacks(){
       <i class="fa fa-bars"></i>\
       Taisun Stacks\
     </div>\
-    <div class="card-body" id="taisunstacks">\
+    <div style="overflow-x:auto" class="card-body" id="taisunstacks">\
     <center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Fetching available stacks from Taisun.io</h2></center>\
     </div>\
   </div>\
@@ -1060,15 +1060,62 @@ socket.on('stacksresults', function(data) {
   else {
     // Create table for taisun results
     $('#taisunstacks').append('<table style="width:100%" id="stackstable" class="table table-bordered table-hover"></table>');
-    $('#stackstable').append('<thead><tr><th></th><th>Name</th><th>User</th><th>Description</th><th>Downloads</th><th></th></tr></thead>');
-    for (i = 0; i < data.stacktemplates.length; i++){
-      var name = data.stacktemplates[i].name;
-      var description = data.stacktemplates[i].description;
-      var iconurl = data.stacktemplates[i].icon;
-      var dataurl = data.stacktemplates[i].stackdata;
-      var downloads = data.stacktemplates[i].downloads;
-      var user = data.stacktemplates[i].user;
-      $('#stackstable').append('<tr height="130"><td><center><img src="' + iconurl + '"></center></td><td>' + name + '</td><td><a href="https://github.com/' + user + '" target="_blank">' + user + '</a></td><td>' + description + '</td><td>' + downloads + '</td><td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td></tr>')
+    // Browser Window
+    if ($(window).width() > 500){
+      $('#stackstable').append('\
+        <thead>\
+          <tr>\
+            <th></th>\
+            <th>Name</th>\
+            <th>User</th>\
+            <th>Description</th>\
+            <th>Downloads</th>\
+            <th></th>\
+          </tr>\
+        </thead>');
+      for (i = 0; i < data.stacktemplates.length; i++){
+        var name = data.stacktemplates[i].name;
+        var description = data.stacktemplates[i].description;
+        var iconurl = data.stacktemplates[i].icon;
+        var dataurl = data.stacktemplates[i].stackdata;
+        var downloads = data.stacktemplates[i].downloads;
+        var user = data.stacktemplates[i].user;
+        $('#stackstable').append('\
+          <tr height="130">\
+            <td><center><img src="' + iconurl + '"></center></td>\
+            <td>' + name + '</td>\
+            <td><a href="https://github.com/' + user + '" target="_blank">' + user + '</a></td>\
+            <td>' + description + '</td>\
+            <td>' + downloads + '</td>\
+            <td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td>\
+          </tr>');
+      }
+    }
+    // Mobile Table
+    else{
+      $('#stackstable').append('\
+        <thead>\
+          <tr>\
+            <th>Name</th>\
+            <th>User</th>\
+            <th>Downloads</th>\
+            <th></th>\
+          </tr>\
+        </thead>');
+      for (i = 0; i < data.stacktemplates.length; i++){
+        var name = data.stacktemplates[i].name;
+        var description = data.stacktemplates[i].description;
+        var dataurl = data.stacktemplates[i].stackdata;
+        var downloads = data.stacktemplates[i].downloads;
+        var user = data.stacktemplates[i].user;
+        $('#stackstable').append('\
+          <tr height="130">\
+            <td>' + name + '</td>\
+            <td><a href="https://github.com/' + user + '" target="_blank">' + user + '</a></td>\
+            <td>' + downloads + '</td>\
+            <td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td>\
+          </tr>');
+      }
     }
     // Pagination logic show +2 and -2 pages at the bottom of the table
     $('#taisunstacks').append('<ul id="stackpages" class="pagination"></ul>');
@@ -1153,8 +1200,8 @@ socket.on('stackurlresults', function(data) {
       <i class="fa fa-pencil"></i>\
       Launch Options\
     </div>\
-    <div class="card-body" id="stackform">' +
-    '</div>\
+    <div class="card-body" id="stackform">\
+    </div>\
   </div>').promise().done(formbuilder(data[2]));
   $('#modalfooter').show();
   $('#modalfooter').append('\
@@ -1448,7 +1495,7 @@ function rendergateway(data) {
       <i class="fa fa-sitemap"></i>\
       HTTPS Proxy\
     </div>\
-    <div class="card-body">\
+    <div style="overflow-x:auto" class="card-body">\
         <p> A chrome extension for using the web proxy can be found <a href="https://chrome.google.com/webstore/detail/taisun-connect/cfikmlkjcnlbabkghfcnakfcbgnokkpd" target="_blank">here</a></p><br>\
         <table id="gatewaytable" class="table table-bordered">\
           <tr><td>State</td><td>' + envars.State.Status + '</td></tr>\
