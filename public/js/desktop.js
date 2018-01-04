@@ -2,10 +2,17 @@
 var host = window.location.hostname; 
 var port = window.location.port;
 var path = window.location.pathname;
+var protocol = window.location.protocol;
+if (protocol == 'https:'){
+  var wsprotocol = 'wss:';
+}
+else{
+  var wsprotocol = 'ws:'
+}
 // Hide Cursor
 document.body.style.cursor = 'none';
 // Initiate a websocket connection to the server
-var socket = io.connect('http://' + host + ':' + port, {
+var socket = io.connect(protocol + '//' + host + ':' + port, {
 });
 // Send the client window resolution to resize the desktop
 socket.emit('resizedesktop', $(window).width(), $(window).height(),path,'0');
@@ -72,7 +79,7 @@ var display = document.getElementById("display");
 // Instantiate client, using an HTTP tunnel for communications.
 var connectionstring = $('#connectionstring').val();
 var guac = new Guacamole.Client(
-  new Guacamole.WebSocketTunnel('ws://' + host + ':' + port + '/guaclite?token=' + connectionstring)
+  new Guacamole.WebSocketTunnel(wsprotocol + '//' + host + ':' + port + '/guaclite?token=' + connectionstring)
 );
 // Show current client clipboard
 guac.onclipboard = function clientClipboardReceived(stream, mimetype) {

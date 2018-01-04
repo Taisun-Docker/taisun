@@ -126,6 +126,18 @@ app.get("/desktop/:containerid", function (req, res) {
     }
   });
 });
+//// Api ////
+// Container data
+app.get("/containers", function (req, res) {
+  docker.listContainers({all: true}, function (err, containers) {
+    if (err){
+      res.send(JSON.stringify({'error':'cannot access docker on taisun'}));
+    }
+    else{
+      res.send(JSON.stringify(containers));
+    }
+  });  
+});
 
 
 // Socket IO connection
@@ -384,11 +396,7 @@ io.on('connection', function(socket){
         io.sockets.in(socket.id).emit('renderremote', 'no');
       }
       else{
-        var cmd = 'docker exec taisun_gateway ovpn_getclient taisun';
-        exec(cmd, function (err, stdout) {
-          var clientconfig = stdout;
-          io.sockets.in(socket.id).emit('renderremote', [data,clientconfig,data]);
-        });
+        io.sockets.in(socket.id).emit('renderremote', data);
       }
     });
   });
@@ -450,7 +458,16 @@ io.on('connection', function(socket){
     var checkout = formdata[2];
     var tag = formdata[3];
     builddockergit(repo,path,checkout,tag);
-  });  
+  });
+  // When the user requests a remote access check ping the port checker with the URL
+  socket.on('checkremoteaccess', function(domain){
+    var url = 'https://api.taisun.io/server/portcheck?host=' + domain;
+    request(url, function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        io.sockets.in(socket.id).emit('sendremotestatus', JSON.parse(body));
+      }
+    });
+  }); 
   ///////////////////
   //// Functions ////
   ///////////////////

@@ -5,8 +5,9 @@
 // Initiate a websocket connection to the server
 var host = window.location.hostname; 
 var port = window.location.port;
+var protocol = window.location.protocol;
 var converter = new showdown.Converter({parseImgDimensions: true});
-var socket = io.connect('http://' + host + ':' + port, {});
+var socket = io.connect(protocol + '//' + host + ':' + port, {});
 // If the page is being loaded for the first time render in the homepage
 $(document).ready(function(){renderhome()})
 
@@ -1464,7 +1465,7 @@ function renderremotestart() {
     </div>\
     <div class="card-body">\
       <center>\
-        <h2>You will need a DNS endpoint that points to your IP to continue <a href="https://api.taisun.io/prod/genurl" target="_blank">Click Here</a> to generate one</h2>\
+        <h2>You will need a DNS endpoint that points to your IP to continue login at <a href="https://www.taisun.io" target="_blank">Taisun.io</a> and click on Taisun DynDNS</h2>\
         <br>\
         <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost/public/taisuntemplates/taisungateway.yml">I have an Endpoint</button>\
       </center>\
@@ -1473,10 +1474,7 @@ function renderremotestart() {
   ');
 }
 // Gateway management page
-function rendergateway(data) {
-  var envars = data[0];
-  var clientconfig = data[1];
-  var container = data[2];
+function rendergateway(container) {
   $('#pageheader').append('\
     <div class="row">\
       <div class="col-xl-3 col-sm-6 mb-3">\
@@ -1513,46 +1511,51 @@ function rendergateway(data) {
   <div class="card mb-3">\
     <div class="card-header">\
       <i class="fa fa-sitemap"></i>\
-      HTTPS Proxy\
+      Taisun Proxy\
     </div>\
     <div style="overflow-x:auto" class="card-body">\
-        <p> A chrome extension for using the web proxy can be found <a href="https://chrome.google.com/webstore/detail/taisun-connect/cfikmlkjcnlbabkghfcnakfcbgnokkpd" target="_blank">here</a></p><br>\
-        <table id="gatewaytable" class="table table-bordered">\
-          <tr><td>State</td><td>' + envars.State.Status + '</td></tr>\
-        </table>\
-    </div>\
-  </div>\
-  <div class="card mb-3">\
-    <div class="card-header">\
-      <i class="fa fa-file-code-o"></i>\
-      OpenVPN Client File<button type="button" class="btn btn-sm btn-primary float-right" style="cursor:pointer;" onClick="downloadovpn()">Download <i class="fa fa-download"></i></button>\
-    </div>\
-    <div class="card-body">\
-    <pre id="vpnconfig">' + clientconfig + '<pre>\
+        <div><p> Your server can be accessed remotely at <a href="https://www.taisun.io" target="_blank">Taisun.io</a></p></div>\
+        <div><button type="button" class="btn btn-sm btn-secondary checkremotebutton" value="">Check Remote Access</button><div id="remotestatus"></div></div>\
+        <br>\
+        <div>\
+          <table id="gatewaytable" class="table table-bordered">\
+            <tr><td>State</td><td>' + container.State.Status + '</td></tr>\
+          </table>\
+        </div>\
     </div>\
   </div>\
   ').promise().done(function(){
-    var envarr = envars.Config.Env;
+    var envarr = container.Config.Env;
     for (i = 0; i < envarr.length; i++){
       var key = envarr[i].split('=')[0];
       var value = envarr[i].split('=')[1];
-      if (key == 'SQUIDPASS'){
-        $('#gatewaytable').append('<tr><td>' + key + '</td><td>***********</td></tr>');
-      }
-      else if (key == 'DNSKEY' || key == 'SERVERIP' || key == 'SQUIDUSER' || key == 'EMAIL' ){
+      if (key == 'DNSKEY' || key == 'SERVERIP' || key == 'EMAIL' ){
         $('#gatewaytable').append('<tr><td>' + key + '</td><td>' + value + '</td></tr>');
+      }
+      if (key == 'SERVERIP'){
+        $('.checkremotebutton').attr('value', value);
       }
     }
   });
 }
 
-// Send the contents of the client config to the user
-function downloadovpn(){
-  var text = $("#vpnconfig").text();
-  var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
-  saveAs(blob, 'client.ovpn');
-}
-
+// When remote button is clicked ask the server to check
+$('body').on('click', '.checkremotebutton', function(){
+  socket.emit('checkremoteaccess', $(this).attr("value"));
+  $('#remotestatus').empty();
+  $('#remotestatus').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
+});
+// When server tells us the response populate the status div
+socket.on('sendremotestatus', function(data){
+  if (data.result == 'open'){
+    $('#remotestatus').empty();
+    $('#remotestatus').append('<i style="color:green;" class="fa fa-check"></i> ' + data.message);
+  }
+  else {
+    $('#remotestatus').empty();
+    $('#remotestatus').append('<i style="color:red;" class="fa fa-times"></i> ' + data.message);
+  }
+});
 
 //// Render the remote access pages ////
 function renderportainer(){
