@@ -355,6 +355,9 @@ io.on('connection', function(socket){
       composeup.on('close', (code) => {
         io.sockets.in(socket.id).emit('sendconsoleoutdone','Compose up process exited with code ' + code);
         containerinfo('updatestacks');
+        if (code != '0'){
+          destroystack(inputs.stackname);
+        }
         if (stacktype == 'community'){
           var guid = templatename.replace('.yml','');
           request.get({url:'https://api.taisun.io/stacks/download?guid=' + guid},function(error, response, body){
