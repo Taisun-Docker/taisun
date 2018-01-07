@@ -1241,7 +1241,7 @@ function formbuilder(data){
           <div class="form-group row">\
           <label class="col-sm-2 control-label">' + input.FormName + '</label>\
             <div class="col-sm-10">\
-            <input type="text" data-label="' + input.label + '" class="form-control stackinputdata" value="' + input.value + '" placeholder="' + input.placeholder + '">\
+            <input type="text" data-validation="' + input.validation + '" data-error="' + input.errormessage + '" data-required="' + input.required + '" data-label="' + input.label + '" class="form-control stackinputdata" value="' + input.value + '" placeholder="' + input.placeholder + '">\
             </div>\
           </div>');
       }
@@ -1250,7 +1250,7 @@ function formbuilder(data){
           <div class="form-group row">\
           <label class="col-sm-2 control-label">' + input.FormName + '</label>\
             <div class="col-sm-10">\
-            <input type="text" data-label="' + input.label + '" class="form-control stackinputdata" placeholder="' + input.placeholder + '">\
+            <input type="text" data-validation="' + input.validation + '" data-error="' + input.errormessage + '" data-required="' + input.required + '" data-label="' + input.label + '" class="form-control stackinputdata" placeholder="' + input.placeholder + '">\
             </div>\
           </div>');
       }
@@ -1287,7 +1287,7 @@ function formbuilder(data){
           <div class="form-group row">\
           <label class="col-sm-2 control-label">' + input.FormName + '</label>\
             <div class="col-sm-10">\
-            <textarea data-label="' + input.label + '" class="form-control stackinputdata" value="' + input.value + '" placeholder="' + input.placeholder + '" rows="3"></textarea>\
+            <textarea data-validation="' + input.validation + '" data-error="' + input.errormessage + '" data-required="' + input.required + '" data-label="' + input.label + '" class="form-control stackinputdata" value="' + input.value + '" placeholder="' + input.placeholder + '" rows="3"></textarea>\
             </div>\
           </div>');
       }
@@ -1296,37 +1296,10 @@ function formbuilder(data){
           <div class="form-group row">\
           <label class="col-sm-2 control-label">' + input.FormName + '</label>\
             <div class="col-sm-10">\
-            <textarea type="text" data-label="' + input.label + '" class="form-control stackinputdata" placeholder="' + input.placeholder + '" rows="3"></textarea>\
+            <textarea type="text" data-validation="' + input.validation + '" data-error="' + input.errormessage + '" data-required="' + input.required + '" data-label="' + input.label + '" class="form-control stackinputdata" placeholder="' + input.placeholder + '" rows="3"></textarea>\
             </div>\
           </div>');
       }
-    }
-    else if (type == 'advanced'){
-      $('#stackform').append('\
-        <div class="form-group row">\
-        <label class="col-sm-2 control-label">Command</label>\
-          <div class="col-sm-10">\
-          <input type="text" data-label="command" class="form-control stackinputdata" placeholder="Leave empty to run default">\
-          </div>\
-        </div>\
-        <div class="form-group row">\
-        <label class="col-sm-2 control-label">Volumes</label>\
-          <div class="col-sm-10">\
-          <textarea data-label="volumes" class="form-control stackinputdata" placeholder="To enter multiple use line breaks (enter) Format /hostfolder:/containerfolder" rows="3"></textarea>\
-          </div>\
-        </div>\
-        <div class="form-group row">\
-        <label class="col-sm-2 control-label">Ports</label>\
-          <div class="col-sm-10">\
-          <textarea data-label="ports" class="form-control stackinputdata" rows="3" placeholder="To enter multiple use line breaks (enter) Format <hostport>:<containerport>"></textarea>\
-          </div>\
-        </div>\
-        <div class="form-group row">\
-        <label class="col-sm-2 control-label">Environment Variables</label>\
-          <div class="col-sm-10">\
-          <textarea data-label="envars" class="form-control stackinputdata" rows="3" placeholder="To enter multiple use line breaks (enter) Format MYENVVALUE=SOMEVALUE"></textarea>\
-          </div>\
-        </div>');
     }
     // If hidden return nothing
     else if (type == 'hidden'){
@@ -1340,36 +1313,84 @@ function formbuilder(data){
 // Send the form data to the server
 $('body').on('click', '#createstack', function(){
   var inputs = {};
+  var error = 'false';
   var url = $("#createstack").val();
-  // Create an object with all the inputs for nunchucks
+  // Create an object with all the inputs for nunchucks and hide any previous errors
   $(".stackinputdata").each(function() {
+    var validation = $(this).data('validation');
+    var errormessage = $(this).data('error');
+    var required = $(this).data('required');
+    var value = $(this).val();
+    var label = $(this).data('label');
+    if ($(this).is("textarea")) {
+      var checkarray = value.split("\n");
+      for (i in checkarray){
+        validatedata($(this),validation,errormessage,required,checkarray[i],label);
+      }
+    }
+    else if ($(this).is("input")){
+      validatedata($(this),validation,errormessage,required,value,label)
+    }
+    function validatedata(field,validation,errormessage,required,value,label){
+      // Validate input
+      if (required == true){
+        if(value.length == 0){
+          field.val('');
+          field.removeClass('is-valid');
+          field.addClass('is-invalid');
+          field.attr("placeholder", label + ' is required');
+          error += 'bad';        
+        }
+        else{
+          field.removeClass('is-invalid');
+          field.addClass('is-valid');
+        }
+      }
+      if (validation != 'undefined' && errormessage != 'undefined'){
+        var regexp = new RegExp(validation);
+        if(!regexp.test(value)){
+          field.val('');
+          field.removeClass('is-valid');
+          field.addClass('is-invalid');
+          field.attr("placeholder", field.data('error'));
+          error += 'bad';
+        }
+        else{
+          field.removeClass('is-invalid');
+          field.addClass('is-valid');
+        }
+      }
+    }
+    // Add to object based on input
     if ($(this).is(':checked') == true ) {
-      var label = $(this).data('label');
       inputs[label] = 'true';
     }
     else if ($(this).is("textarea") ) {
       var value = $(this).val();
       if (value != '') {
-        var label = $(this).data('label');
         inputs[label] = value.split("\n");
       }
     }
     else {
       var value = $(this).val();
       if (value != '') {
-        var label = $(this).data('label');
         inputs[label] = value;
       }
     }
-  }).promise().done(function(){
-    socket.emit('launchstack',{"stackurl":url,"inputs":inputs});
-    modalpurge();
-    $('#modalloading').show();
-    $('#modaltitle').append('Launching ' + url);
-    $('#modalconsole').show();
-    $('#modalconsole').height('60vh');
+  }).promise().then(function(){
+      if (error == 'false'){
+      socket.emit('launchstack',{"stackurl":url,"inputs":inputs});
+      modalpurge();
+      $('#modalloading').show();
+      $('#modaltitle').append('Launching ' + url);
+      $('#modalconsole').show();
+      $('#modalconsole').height('60vh');
+    }
   });
 });
+
+
+
 // Show console output
 socket.on('sendconsoleout', function(data) {
   // If this data has a docker guid in front of it then assign it to a div for updating

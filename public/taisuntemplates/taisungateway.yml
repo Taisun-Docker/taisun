@@ -22,31 +22,40 @@ form:
     label: domain
     FormName: Taisun Domain
     placeholder: format <yourdomain>.taisun.io
+    required: true
   - type: input
     format: text
     label: dnskey
     FormName: Taisun DNSKey
     placeholder: IE debec485bcab4ab189a2315ae37fe196
+    required: true
   - type: input
     format: text
     label: email
     FormName: Email
     placeholder: This is used by certbot to send notifications of expiration
+    required: true
   - type: input
     format: text
     label: taisunip
     FormName: Taisun IP
     placeholder: The local IP the taisun server is running on (hint look at your URL bar)
+    validation: ^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
+    errormessage: Value must be a valid IP IE 192.168.1.100
   - type: input
     format: text
     label: taisunport
     FormName: Taisun Port
     placeholder: Should be 3000 the port Taisun is listening on (hint look at your URL bar)
+    validation: ^[1-65535]
+    errormessage: Values must be in a valid port range 1-65535
   - type: input
     format: text
     label: letsencryptport
     FormName: Certbot Port
     placeholder: This port will need to be forwarded to 80 on your router
+    validation: ^[1-65535]
+    errormessage: Values must be in a valid port range 1-65535
 
 compose: |
   version: "3"

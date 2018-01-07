@@ -5,11 +5,34 @@ description: |
 
 form:
   - type: input
-    format: text
     label: name
     FormName: Name
     placeholder: Unique Name to identify *required
-  - type: advanced
+    validation: ^[\w\d-\_]+$
+    errormessage: Name must only container letters, numbers, and - or _
+  - type: input
+    label: command
+    FormName: Command
+    placeholder: Leave empty to run default
+  - type: textarea
+    label: ports
+    FormName: Ports
+    placeholder: To enter multiple use line breaks (enter) Format hostport:containerport
+    validation: ^([1-65535]+:[1-65535]+)*$
+    errormessage: Values must be in the format hostport:containerport 1-65535
+  - type: textarea
+    label: volumes
+    FormName: Volumes
+    placeholder: To enter multiple use line breaks (enter) Format /hostfolder:/containerfolder
+    validation: ^([\/A-Za-z0-9._~()'!*:@,;+?-]+:[\/A-Za-z0-9._~()'!*:@,;+?-]+)*$
+    errormessage: Values must be in the format /hostfolder:/containerfolder
+  - type: textarea
+    label: envars
+    FormName: Environment Variables
+    placeholder: To enter multiple use line breaks (enter) Format MYENVVALUE=SOMEVALUE
+    validation: ^([\/A-Za-z0-9._~()'!*:@,;+?-]+=[\/A-Za-z0-9._~()'!*:@,;+?-]+)*$
+    errormessage: Values must be in the format MYENVVALUE=SOMEVALUE
+    
 
 compose: |
   version: "3"

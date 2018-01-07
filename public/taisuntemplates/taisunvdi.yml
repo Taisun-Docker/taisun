@@ -19,10 +19,11 @@ description: |
   The first time you spinup a Desktop please allow 20-30 seconds for the Desktop to startup before clicking "Launch"
 form:
   - type: input
-    format: text
     label: name
     FormName: Name
     placeholder: Unique Name to identify
+    validation: ^[\w\d-\_]+$
+    errormessage: Name must only container letters, numbers, and - or _
   - type: select
     label: os
     FormName: OS

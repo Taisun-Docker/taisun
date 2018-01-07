@@ -25,18 +25,24 @@ form:
     label: name
     FormName: Name
     placeholder: Unique Name to identify *required
+    validation: ^[\w\d-\_]+$
+    errormessage: Name must only container letters, numbers, and - or _
   - type: input
     label: giturl
     FormName: Git URL
-    placeholder: Public Git URL IE https://gitlab.com/thelamer/taisun.git
+    placeholder: Public Git URL IE https://gitlab.com/thelamer/taisun.git leave blank to start from scratch
   - type: input
     label: devport
     FormName: Dev Interface Port
     placeholder: Port to use to access the development interface (ignore for VDI)
+    validation: ^[1-65535]
+    errormessage: Values must be in a valid port range 1-65535
   - type: textarea
     label: ports
     FormName: Application Ports
-    placeholder: To enter multiple use line breaks (enter) Format <hostport>:<containerport>
+    placeholder: To enter multiple use line breaks (enter) Format hostport:containerport
+    validation: ^([1-65535]+:[1-65535]+)*$
+    errormessage: Values must be in the format hostport:containerport 1-65535
   - type: select
     label: ide
     FormName: IDE
