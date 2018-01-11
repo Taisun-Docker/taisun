@@ -18,7 +18,7 @@ form:
     label: ports
     FormName: Ports
     placeholder: To enter multiple use line breaks (enter) Format hostport:containerport
-    validation: ^([1-65535]+:[1-65535]+)*$
+    validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])+(:([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))$
     errormessage: Values must be in the format hostport:containerport 1-65535
   - type: textarea
     label: volumes
