@@ -10,6 +10,7 @@ form:
     placeholder: Unique Name to identify *required
     validation: ^[\w\d-\_]+$
     errormessage: Name must only container letters, numbers, and - or _
+    required: true
   - type: input
     label: command
     FormName: Command

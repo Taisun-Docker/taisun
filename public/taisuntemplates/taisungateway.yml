@@ -42,6 +42,7 @@ form:
     placeholder: The local IP the taisun server is running on (hint look at your URL bar)
     validation: ^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
     errormessage: Value must be a valid IP IE 192.168.1.100
+    required: true
   - type: input
     format: text
     label: taisunport
@@ -49,6 +50,7 @@ form:
     placeholder: Should be 3000 the port Taisun is listening on (hint look at your URL bar)
     validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
     errormessage: Values must be in a valid port range 1-65535
+    required: true
   - type: input
     format: text
     label: letsencryptport
@@ -56,6 +58,7 @@ form:
     placeholder: This port will need to be forwarded to 80 on your router
     validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
     errormessage: Values must be in a valid port range 1-65535
+    required: true
 
 compose: |
   version: "3"

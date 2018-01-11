@@ -24,6 +24,7 @@ form:
     placeholder: Unique Name to identify
     validation: ^[\w\d-\_]+$
     errormessage: Name must only container letters, numbers, and - or _
+    required: true
   - type: select
     label: os
     FormName: OS

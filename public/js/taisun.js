@@ -1346,7 +1346,7 @@ $('body').on('click', '#createstack', function(){
           field.addClass('is-valid');
         }
       }
-      if (validation != 'undefined' && errormessage != 'undefined'){
+      if (validation != 'undefined' && errormessage != 'undefined' && (required == true|| value.length != 0)){
         var regexp = new RegExp(validation);
         if(!regexp.test(value)){
           field.val('');
