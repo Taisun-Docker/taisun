@@ -266,7 +266,12 @@ io.on('connection', function(socket){
   // Get remote list of stack definition files from stacks.taisun.io
   socket.on('browsestacks', function(page){
     request.get({url:'https://api.taisun.io/stacks'},function(error, response, body){
-      io.sockets.in(socket.id).emit('stacksresults',JSON.parse(body));
+      if (!error && response.statusCode == 200) {
+        io.sockets.in(socket.id).emit('stacksresults',JSON.parse(body));
+      }
+      else{
+        io.sockets.in(socket.id).emit('stacksresults','error');
+      }
     });
   });
   // Get Stack search results
