@@ -266,12 +266,7 @@ io.on('connection', function(socket){
   // Get remote list of stack definition files from stacks.taisun.io
   socket.on('browsestacks', function(page){
     request.get({url:'https://api.taisun.io/stacks'},function(error, response, body){
-      if (!error && response.statusCode == 200) {
-        io.sockets.in(socket.id).emit('stacksresults',JSON.parse(body));
-      }
-      else{
-        io.sockets.in(socket.id).emit('stacksresults','error');
-      }
+      io.sockets.in(socket.id).emit('stacksresults',JSON.parse(body));
     });
   });
   // Get Stack search results
@@ -329,9 +324,6 @@ io.on('connection', function(socket){
     }
     else if  (templatename == 'taisungateway.yml'){
       var stacktype = 'gateway';
-    }
-    else if  (templatename == 'taisunportainer.yml'){
-      var stacktype = 'portainer';
     }
     else if  (templatename == 'taisundeveloper.yml'){
       var stacktype = 'developer';
@@ -408,18 +400,6 @@ io.on('connection', function(socket){
       }
     });
   });
-  // When the user checks the status of portainer render page based on status
-  socket.on('checkportainer', function(){
-    var portainercontainer = docker.getContainer('taisun_portainer');
-    portainercontainer.inspect(function (err, data) {
-      if (data == null){
-        io.sockets.in(socket.id).emit('renderportainer', 'no');
-      }
-      else{
-        io.sockets.in(socket.id).emit('renderportainer', data);
-      }
-    });
-  });
   // When devstacks info is requested send to client
   socket.on('getdev', function(){
     containerinfo('updatedev');
@@ -456,8 +436,8 @@ io.on('connection', function(socket){
     startstack(stackname);
   });
   // When Stack Logs are requested execute
-  socket.on('stacklogs', function(stackname){
-    stacklogs(stackname);
+  socket.on('containerlogs', function(containerid){
+    containerlogs(containerid);
   });
   // When build from git is requested execute
   socket.on('builddockergit', function(formdata){
@@ -475,7 +455,11 @@ io.on('connection', function(socket){
         io.sockets.in(socket.id).emit('sendremotestatus', JSON.parse(body));
       }
     });
-  }); 
+  });
+  // Get Taisun.io stacks running locally for stack management
+  socket.on('getmanage', function(){
+    containerinfo('manageinfo');
+  });
   ///////////////////
   //// Functions ////
   ///////////////////
@@ -787,39 +771,26 @@ io.on('connection', function(socket){
     });
   }
   // Get logs for all containers in stack
-  function stacklogs(stackname){
-    // Grab the current running docker container information
-    docker.listContainers({all: true}, function (err, containers) {
+  function containerlogs(containerid){
+    var logcontainer = docker.getContainer(containerid);
+    var logOpts = {
+      stdout: 1,
+      stderr: 1,
+      tail:100,
+      follow:0
+    };
+    io.sockets.in(socket.id).emit('senddockerodeoutstart','Getting logs for ' + containerid);
+    logcontainer.logs(logOpts,function (err, stream) {
       if (err){
-        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
+        io.sockets.in(socket.id).emit('sendconsoleoutdone','Error Getting logs for ' + containerid);
       }
       else{
-        containers.forEach(function(container){
-          // If the container has the stackname as the label
-          if (container.Labels.stackname == stackname){
-            var logcontainer = docker.getContainer(container.Id);
-            var logOpts = {
-              stdout: 1,
-              stderr: 1,
-              tail:100,
-              follow:0
-            };
-            io.sockets.in(socket.id).emit('senddockerodeoutstart','Getting logs for ' + container.Names[0]);
-            logcontainer.logs(logOpts,function (err, stream) {
-              if (err){
-                io.sockets.in(socket.id).emit('sendconsoleoutdone','Error Getting logs for ' + container.Names[0]);
-              }
-              else{
-                stream.setEncoding('utf8');
-                stream.on('data', (data) => {
-                  io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
-                });
-                stream.on('end', function(){
-                  io.sockets.in(socket.id).emit('sendconsoleoutdone','Logs for ' + container.Names[0] + ' below');
-                });
-              }
-            });
-          }
+        stream.setEncoding('utf8');
+        stream.on('data', (data) => {
+          io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
+        });
+        stream.on('end', function(){
+          io.sockets.in(socket.id).emit('sendconsoleoutdone','Logs for ' + containerid + ' below');
         });
       }
     });

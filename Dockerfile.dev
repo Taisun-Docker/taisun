@@ -1,7 +1,7 @@
 #Dockerfile for Taisun base development image
 #2017
 #Use the node base image
-FROM node:8.9
+FROM node:8.11
 
 MAINTAINER Ryan Kuba <ryankuba@gmail.com>
 

@@ -8,10 +8,9 @@
     <meta name="author" content="">
     <title>Taisun</title>
     <link href="public/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="public/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-    <link href="public/vendor/datatables/dataTables.bootstrap4.css" rel="stylesheet">
+    <link href="public/vendor/font-awesome/css/fontawesome.min.css" rel="stylesheet" type="text/css">
+    <link href="public/vendor/datatables/css/datatables.min.css" rel="stylesheet">
     <link href="public/css/sb-admin.min.css" rel="stylesheet">
-    <link href="public/css/fontcustom.css" rel="stylesheet">
     <link rel="apple-touch-icon" sizes="57x57" href="public/favicon/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="public/favicon/apple-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="public/favicon/apple-icon-72x72.png">
@@ -48,7 +47,7 @@
           </li>
           <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Images" id="ImagesNav">
             <a class="nav-link" onclick="renderimages()">
-              <i class="fa fa-fw fa-hdd-o"></i>
+              <i class="far fa-fw fa-hdd"></i>
               <span class="nav-link-text">
                 Images</span>
             </a>
@@ -72,13 +71,6 @@
               <i class="fa fa-fw fa-sitemap"></i>
               <span class="nav-link-text">
                 Remote Access</span>
-            </a>
-          </li>
-          <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Portainer" id="Portainernav">
-            <a class="nav-link" onclick="renderportainer()">
-              <i class="fa fa-fw fa-docker"></i>
-              <span class="nav-link-text">
-                Portainer</span>
             </a>
           </li>
         </ul>
@@ -127,7 +119,7 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           </div>
           <div class="modal-body" style="overflow-x:auto">
-            <div id="modalloading"><i class="fa fa-refresh fa-spin" style="font-size:36px"></i></div>
+            <div id="modalloading"><i class="fas fa-spinner fa-pulse" style="font-size:36px"></i></div>
             <div id="modalbody"></div>
             <div id="modalconsole" style="font-family:monospace;background:black;color:white;overflow-y:auto;"></div>
           </div>
@@ -141,10 +133,8 @@
     <script src="public/vendor/bootstrap/js/bootstrap.min.js"></script>
     <!-- Plugin JavaScript -->
     <script src="public/vendor/jquery-easing/jquery.easing.min.js"></script>
-    <script src="public/vendor/datatables/jquery.dataTables.js"></script>
-    <script src="public/vendor/datatables/dataTables.bootstrap4.js"></script>
+    <script src="public/vendor/datatables/js/datatables.min.js"></script>
     <script src="public/vendor/showdown/showdown.min.js"></script>
-    <script src="public/vendor/filesaver/js/filesaver.js"></script>
     <script src="public/vendor/ace/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="/socket.io/socket.io.js"></script>
     <!-- Custom scripts for Taisun -->

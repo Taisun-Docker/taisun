@@ -16,7 +16,7 @@ function renderhome(){
   $('.nav-item').removeClass('active');
   $('#pagecontent').empty();
   $('#pageheader').empty();
-  $('#pagecontent').append('<center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Getting Server Info</h2></center>');
+  $('#pagecontent').append('<center><i class="fas fa-spinner fa-pulse" style="font-size:36px"></i><br><h2>Getting Server Info</h2></center>');
   socket.emit('getdashinfo');
 }
 socket.on('renderdash', function(response){
@@ -31,7 +31,6 @@ socket.on('renderdash', function(response){
   var stackcount = 0;
   var vdicount = 0;
   var devcount = 0;
-  var portainer = 0;
   var gateway = 0;
   $(containers).each(function(index,container){
     var labels = container.Labels;
@@ -46,9 +45,6 @@ socket.on('renderdash', function(response){
       else if (stacktype == 'community'){
         stackcount++;
       }
-      else if (stacktype == 'portainer'){
-        portainer++;
-      }
       else if (stacktype == 'gateway'){
         gateway++;
       }
@@ -58,11 +54,6 @@ socket.on('renderdash', function(response){
       var gatewaystatus = 'Not Running';
     }else{
       var gatewaystatus = 'Running';
-    }
-    if (portainer == 0){
-      var portainerstatus = 'Not Running';
-    }else{
-      var portainerstatus = 'Running';
     }
     $('#pagecontent').empty();
     $('#pagecontent').append('\
@@ -78,7 +69,7 @@ socket.on('renderdash', function(response){
             CPU\
           </div>\
           <div class="card-body">\
-          <table class="table table-bordered">\
+          <table class="table table-hover">\
             <tr><td>CPU</td><td>' + cpustats.manufacturer + ' ' + cpustats.brand + '</td></tr>\
             <tr><td>Cores</td><td>' + cpustats.cores + '</td></tr>\
             <tr><td>Usage</td><td><div class="progress"><div class="progress-bar" role="progressbar" style="width: ' + cpupercent + '%;" aria-valuenow="' + cpupercent + '" aria-valuemin="0" aria-valuemax="100"></div></div></td></tr>\
@@ -91,7 +82,7 @@ socket.on('renderdash', function(response){
             Memory\
           </div>\
           <div class="card-body">\
-          <table class="table table-bordered">\
+          <table class="table table-hover">\
             <tr><td>Total Mem</td><td>' + totalmem + 'G</td></tr>\
             <tr><td>Disk buffer</td><td>' + diskbuffer + 'G</td></tr>\
             <tr><td>Usage</td><td><div class="progress"><div class="progress-bar" role="progressbar" style="width: ' + usedmem + '%;" aria-valuenow="' + usedmem + '" aria-valuemin="0" aria-valuemax="100"></div></div></td></tr>\
@@ -110,7 +101,7 @@ socket.on('renderdash', function(response){
       </div>\
       <div class="card mb-3" style="cursor:pointer;" onclick="renderimages()">\
         <div class="card-header">\
-          <i class="fa fa-hdd-o"></i>\
+          <i class="far fa-hdd"></i>\
           Images\
           <span style="float:right;">' + images.length + '</span>\
         </div>\
@@ -138,13 +129,6 @@ socket.on('renderdash', function(response){
           <i class="fa fa-sitemap"></i>\
           Remote Access Status\
           <span style="float:right;">' + gatewaystatus + '</span>\
-        </div>\
-      </div>\
-      <div class="card mb-3" style="cursor:pointer;" onclick="renderportainer()">\
-        <div class="card-header">\
-          <i class="fa fa-docker"></i>\
-          Portainer Status\
-          <span style="float:right;">' + portainerstatus + '</span>\
         </div>\
       </div>\
     </div>\
@@ -186,7 +170,7 @@ socket.on('rendervdi', function(response){
           <div class="card text-white bg-success o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
-                <i class="fa fa-fw fa-plus-square-o"></i>\
+                <i class="far fa-fw fa-plus-square"></i>\
               </div>\
               <div class="mr-5">\
                 Launch Desktop\
@@ -214,7 +198,7 @@ socket.on('rendervdi', function(response){
           <div class="card text-white bg-primary o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
-                <i class="fa fa-fw fa-linux"></i>\
+                <i class="fab fa-fw fa-linux"></i>\
               </div>\
               <div class="mr-5">\
                 Desktop Builder\
@@ -228,7 +212,7 @@ socket.on('rendervdi', function(response){
           <div class="card text-white bg-success o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
-                <i class="fa fa-fw fa-thumbs-o-up"></i>\
+                <i class="far fa-fw fa-thumbs-up"></i>\
               </div>\
               <div class="mr-5">\
                 GuacD\
@@ -247,7 +231,7 @@ socket.on('rendervdi', function(response){
       </div>\
       <div class="card-body" style="overflow-x:auto">\
         <div class="table-responsive">\
-          <table id="desktops" class="table table-bordered" width="100%" cellspacing="0">\
+          <table id="desktops" class="table table-hover" width="100%" cellspacing="0">\
             <thead>\
               <tr>\
                 <th>Name</th>\
@@ -282,7 +266,7 @@ function updatevdi(containers){
     if (labels.stacktype){
       if (labels.stacktype == 'vdi'){
         if (container.State == 'running'){
-          var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackrestartbutton" value="' + labels.stackname + '">Restart <i class="fa fa-fw fa-refresh"></i></button>' + '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-danger stackstopbutton" value="' + labels.stackname + '">Stop <i class="fa fa-fw fa-stop"></i></button>';
+          var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackrestartbutton" value="' + labels.stackname + '">Restart <i class="fas fa-fw fa-sync"></i></button>' + '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-danger stackstopbutton" value="' + labels.stackname + '">Stop <i class="fa fa-fw fa-stop"></i></button>';
         }
         else{
           var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackstartbutton" value="' + labels.stackname + '">Start <i class="fa fa-fw fa-play"></i></button>';
@@ -292,7 +276,7 @@ function updatevdi(containers){
           '<a href="/desktop/' + container.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
           container.Image, 
           container.State + ' ' + container.Status, 
-          '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stacklogsbutton" value="' + labels.stackname + '">Logs <i class="fa fa-fw fa-terminal"></i></button>',
+          '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary containerlogsbutton" value="' + container.Id + '">Logs <i class="fa fa-fw fa-terminal"></i></button>',
           management,
           '<button type="button" style="cursor:pointer;" class="btn btn-success stackupgradebutton" data-toggle="modal" data-target="#modal" value="' + labels.stackname + '">Upgrade <i class="fa fa-arrow-up"></i></button>'] 
         );
@@ -412,7 +396,7 @@ function renderimages(){
         <div class="card text-white bg-info o-hidden h-60">\
           <div class="card-body">\
             <div class="card-body-icon">\
-              <i class="fa fa-fw fa-hdd-o"></i>\
+              <i class="far fa-fw fa-hdd"></i>\
             </div>\
             <div class="mr-5">\
               Local Images\
@@ -424,7 +408,7 @@ function renderimages(){
         <div class="card text-white bg-info o-hidden h-60">\
           <div class="card-body">\
             <div class="card-body-icon">\
-              <i class="fa fa-fw fa-docker"></i>\
+              <i class="fab fa-fw fa-docker"></i>\
             </div>\
             <div class="mr-5">\
               DockerHub\
@@ -436,7 +420,7 @@ function renderimages(){
         <div data-toggle="modal" data-target="#modal" class="card text-white bg-info o-hidden h-60" style="cursor:pointer;" onclick="gitmodal()">\
           <div class="card-body">\
             <div class="card-body-icon">\
-              <i class="fa fa-fw fa-git"></i>\
+              <i class="fab fa-fw fa-git-square"></i>\
             </div>\
             <div class="mr-5">\
               From Git\
@@ -466,12 +450,12 @@ function renderlocal(){
   $('#pagecontent').append('\
   <div class="card mb-3">\
     <div class="card-header">\
-      <i class="fa fa-hdd-o"></i>\
+      <i class="far fa-hdd"></i>\
       Local Images\
     </div>\
     <div class="card-body">\
       <div class="table-responsive">\
-        <table id="images" class="table table-bordered" width="100%" cellspacing="0">\
+        <table id="images" class="table table-hover" width="100%" cellspacing="0">\
           <thead>\
             <tr>\
               <th>Image</th>\
@@ -524,7 +508,7 @@ function renderdockerhub(){
   </form>\
   <div class="card mb-3">\
     <div class="card-header">\
-      <i class="fa fa-docker"></i>\
+      <i class="fab fa-docker"></i>\
       DockerHub\
     </div>\
     <div class="card-body" style="overflow-x:auto" id="dockerresults">\
@@ -551,7 +535,7 @@ function renderdeveloper(){
           <div class="card text-white bg-success o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
-                <i class="fa fa-fw fa-plus-square-o"></i>\
+                <i class="far fa-fw fa-plus-square"></i>\
               </div>\
               <div class="mr-5">\
                 Launch Developer Container\
@@ -584,7 +568,7 @@ function renderdeveloper(){
       Running Developer Containers\
     </div>\
     <div class="card-body" id="devstacks" style="overflow-x:auto">\
-    <center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Fetching developer containers from Taisun</h2></center>\
+    <center><i class="fas fa-spinner fa-pulse" style="font-size:36px"></i><br><h2>Fetching developer containers from Taisun</h2></center>\
     </div>\
   </div>\
   ');
@@ -596,7 +580,7 @@ socket.on('updatedev', function(containers){
 });
 function updatedev(containers){
   $('#devstacks').empty();
-  $('#devstacks').append('<table style="width:100%" id="devresults" class="table table-bordered table-hover"><thead><tr><th>Name</th><th>URL</th><th>Language</th><th>IDE</th><th>Status</th><th>Created</th></tr></thead></table>');
+  $('#devstacks').append('<table style="width:100%" id="devresults" class="table table-hover"><thead><tr><th>Name</th><th>URL</th><th>Language</th><th>IDE</th><th>Status</th><th>Created</th></tr></thead></table>');
   var devcontainers = [];
   $(containers).each(function(index,container){
     var labels = container.Labels;
@@ -610,7 +594,7 @@ function updatedev(containers){
     // No Dev containers found render launcher
     if (devcontainers.length == 0){
       $('#devstacks').empty();
-      $('#devstacks').append('<center><h2>No Running Development Containers</h2><br><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary configurestack" value="http://localhost/public/taisuntemplates/taisundeveloper.yml">Launch Developer Container <i class="fa fa-plus-square-o"></i></button></center>');
+      $('#devstacks').append('<center><h2>No Running Development Containers</h2><br><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary configurestack" value="http://localhost/public/taisuntemplates/taisundeveloper.yml">Launch Developer Container <i class="far fa-plus-square"></i></button></center>');
     }
     // Found some dev containers
     else{
@@ -653,7 +637,7 @@ function updatedev(containers){
 function dockersearch(page){
   $('#dockerresults').empty();
   // Set the content to a spinner to signify loading
-  $('#dockerresults').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
+  $('#dockerresults').append('<i class="fas fa-spinner fa-pulse" style="font-size:36px"></i>');
   socket.emit('searchdocker', $('#hubsearch').val(), page);
 }
 // When the server gives us the results parse them
@@ -665,13 +649,13 @@ socket.on('hubresults', function(data) {
   }
   else {
     // Create table for dockerhub results
-    $('#dockerresults').append('<table style="width:100%" id="hubresults" class="table table-bordered table-hover"></table>');
+    $('#dockerresults').append('<table style="width:100%" id="hubresults" class="table table-hover"></table>');
     $('#hubresults').append('<thead><tr><th>Name</th><th>Rating</th><th>Description</th><th></th></tr></thead>');
     for (i = 0; i < data.results.length; i++){
       var name = data.results[i].name;
       var description = data.results[i].description;
       var stars = data.results[i].star_count;
-      $('#hubresults').append('<tr><td>' + name + '</td><td>' + '<i class="fa fa-star-o"></i>' + stars + '</td><td>' + description + '</td><td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs hubinfo" value="' + name + '"><i class="fa fa-download"></i> Pull</button></td></tr>')
+      $('#hubresults').append('<tr><td>' + name + '</td><td>' + '<i class="far fa-star"></i>' + stars + '</td><td>' + description + '</td><td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs hubinfo" value="' + name + '"><i class="fa fa-download"></i> Pull</button></td></tr>')
     }
     // Pagination logic show +2 and -2 pages at the bottom of the table
     $('#dockerresults').append('<ul id="dockerhubpages" class="pagination"></ul>');
@@ -751,7 +735,7 @@ socket.on('sendtagsinfo', function(arr) {
   var name = arr[1];
   $('#modalloading').hide();
   $('#modalbody').show();
-  $('#modalbody').append('<table style="width:100%" id="tagsresults" class="table table-bordered table-hover"></table>');
+  $('#modalbody').append('<table style="width:100%" id="tagsresults" class="table table-hover"></table>');
   $('#tagsresults').append('<thead><tr><th>Name</th><th>Size</th><th>Updated</th><th></th></tr></thead>');
   for (i = 0; i < data.length; i++){
     var tag = data[i].name;
@@ -899,7 +883,7 @@ function renderstacks(){
       Running Stacks\
     </div>\
     <div style="overflow-x:auto" class="card-body" id="localstacks">\
-    <center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Fetching running stacks from Taisun</h2></center>\
+    <center><i class="fas fa-spinner fa-pulse" style="font-size:36px"></i><br><h2>Fetching running stacks from Taisun</h2></center>\
     </div>\
   </div>\
   ');
@@ -912,36 +896,17 @@ socket.on('localstacks', function(containers) {
 function updatelocalstacks(containers){
   $('#localstacks').empty();
   $('#localstacks').append('\
-  <table style="width:100%" id="stackresults" class="table table-bordered table-hover">\
+  <table style="width:100%" id="stackresults" class="table table-hover">\
     <thead>\
       <tr>\
         <th>Name</th>\
         <th>App Launch</th>\
-        <th>Source</th>\
         <th>Status</th>\
-        <th>Manage</th>\
-        <th>Logs</th>\
         <th>Created</th>\
-        <th>Upgrade</th>\
+        <th>Manage</th>\
       </tr>\
     </thead>\
-  </table><br>\
-  <div class="row">\
-    <div class="col-xl-3 col-sm-6 mb-3">\
-      <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="stackdestroymodal()">\
-        <div class="card text-white bg-danger o-hidden h-60">\
-          <div class="card-body">\
-            <div class="card-body-icon">\
-              <i class="fa fa-fw fa-minus-circle"></i>\
-            </div>\
-            <div class="mr-5">\
-              Destroy Stack\
-            </div>\
-          </div>\
-        </a>\
-      </div>\
-    </div>\
-  </div>\
+  </table>\
   ');
   var stackcontainers = [];
   $(containers).each(function(index,container){
@@ -969,75 +934,263 @@ function updatelocalstacks(containers){
         var labels = container.Labels;
         var host = window.location.hostname;
         var apport = labels.appport;
-        var source = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary configurestack" value="' + labels.stackurl + '">Source Template</button>';
-        if (container.State == 'running'){
-          var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackrestartbutton" value="' + labels.stackname + '">Restart <i class="fa fa-fw fa-refresh"></i></button>' + '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-danger stackstopbutton" value="' + labels.stackname + '">Stop <i class="fa fa-fw fa-stop"></i></button>';
-        }
-        else{
-          var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackstartbutton" value="' + labels.stackname + '">Start <i class="fa fa-fw fa-play"></i></button>';
-        }
         if (apport){
-          var launch = '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Open <i class="fa fa-external-link" aria-hidden="true"></i></a>';
+          // This is being accessed remote do not show links
+          if (host.indexOf('taisun.io') > -1){
+            var launch = '<button class="btn btn-sm btn-danger">NA Remote <i class="far fa-times-circle" aria-hidden="true"></i></button>';
+          }
+          // Local mode show links
+          else{
+            var launch = '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Open <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>';
+          }
         }
         else{
           var launch = 'Not Set';
         }
-        if (labels.stacktype == 'container'){
-          var source = 'container';
-        }
-        stacktable.row.add( 
-          [labels.stackname, 
-          launch,
-          source,
-          container.State + ' ' + container.Status,
-          management,
-          '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stacklogsbutton" value="' + labels.stackname + '">Logs <i class="fa fa-fw fa-terminal"></i></button>',
-          new Date( container.Created * 1e3).toISOString().slice(0,19),
-          '<button type="button" style="cursor:pointer;" class="btn btn-success stackupgradebutton" data-toggle="modal" data-target="#modal" value="' + labels.stackname + '">Upgrade <i class="fa fa-arrow-up"></i></button>']
+        stacktable.row.add(
+          [
+            labels.stackname,
+            launch,
+            container.State + ' ' + container.Status,
+            new Date( container.Created * 1e3).toISOString().slice(0,19),
+            '<button type="button" style="cursor:pointer;" class="btn btn-sm" onclick="managestack(\'' + labels.stackname + '\')">Manage <i class="fas fa-fw fa-edit"></i></button></div>'
+          ]
         );
       }).promise().done(stacktable.draw());
     }
   });
 }
 
+// When manage stack is clicked render the information for the stack in question
+function managestack(stackname){
+  $('#pagecontent').empty();
+  $('#pagecontent').append('\
+  <div class="card mb-3">\
+    <div class="card-header">\
+      <i class="fas fa-edit"></i>\
+      Manage ' + stackname + '\
+    </div>\
+    <div style="overflow-x:auto" class="card-body" id="' + stackname + '">\
+      <div id="manageheader">\
+        <center><i class="fas fa-spinner fa-pulse" style="font-size:36px"></i><br><h2>Fetching info from Taisun</h2></center>\
+      </div>\
+    </div>\
+  </div>\
+  ');
+  socket.emit('getmanage', '1');
+}
+// When we get container info render in the stack management page
+socket.on('manageinfo', function(containers) {
+  $(containers).each(function(index,container){
+    var labels = container.Labels;
+    // Check if the div for this stack name exists
+    if($('#' + labels.stackname).length != 0) {
+      var id = container.Id;
+      var name = container.Names[0];
+      var mounts = container.Mounts;
+      var ports = container.Ports;
+      console.log(JSON.stringify(container));
+      $('#manageheader').empty();
+      $('#manageheader').append('\
+     <div class="row">\
+        <div class="col-xl-2 col-sm-6 mb-3" data-toggle="modal" data-target="#modal" style="cursor:pointer;" onclick="upgradestack(\'' + labels.stackname + '\')">\
+            <div class="card text-white bg-success o-hidden h-60">\
+              <div class="card-body">\
+                <div class="card-body-icon">\
+                  <i class="fa fa-fw fa-arrow-up"></i>\
+                </div>\
+                <div class="mr-5">\
+                  Update All\
+                </div>\
+              </div>\
+          </div>\
+        </div>\
+        <div class="col-xl-2 col-sm-6 mb-3" data-toggle="modal" data-target="#modal" style="cursor:pointer;" onclick="stackrestart(\'' + labels.stackname + '\')">\
+            <div class="card text-white bg-info o-hidden h-60">\
+              <div class="card-body">\
+                <div class="card-body-icon">\
+                  <i class="fas fa-fw fa-sync"></i>\
+                </div>\
+                <div class="mr-5">\
+                  Restart All\
+                </div>\
+              </div>\
+          </div>\
+        </div>\
+        <div class="col-xl-2 col-sm-6 mb-3" data-toggle="modal" data-target="#modal" style="cursor:pointer;" onclick="stackstop(\'' + labels.stackname + '\')">\
+            <div class="card text-white bg-danger o-hidden h-60">\
+              <div class="card-body">\
+                <div class="card-body-icon">\
+                  <i class="fa fa-fw fa-stop"></i>\
+                </div>\
+                <div class="mr-5">\
+                  Stop All\
+                </div>\
+              </div>\
+          </div>\
+        </div>\
+        <div class="col-xl-2 col-sm-6 mb-3" data-toggle="modal" data-target="#modal" style="cursor:pointer;" onclick="stackstart(\'' + labels.stackname + '\')">\
+            <div class="card text-white bg-success o-hidden h-60">\
+              <div class="card-body">\
+                <div class="card-body-icon">\
+                  <i class="fa fa-fw fa-play"></i>\
+                </div>\
+                <div class="mr-5">\
+                  Start All\
+                </div>\
+              </div>\
+          </div>\
+        </div>\
+        <div class="col-xl-2 col-sm-6 mb-3">\
+        </div>\
+        <div class="col-xl-2 col-sm-6 mb-3" data-toggle="modal" data-target="#modal" style="cursor:pointer;" onclick="stackdestroymodal()">\
+            <div class="card text-white bg-danger o-hidden h-60">\
+              <div class="card-body">\
+                <div class="card-body-icon">\
+                  <i class="fa fa-fw fa-minus-circle"></i>\
+                </div>\
+                <div class="mr-5">\
+                  Destroy Stack\
+                </div>\
+              </div>\
+          </div>\
+        </div>\
+      </div>\
+      ');
+      $('#' + labels.stackname).append('\
+        <div class="card mb-3">\
+          <div class="card-header">\
+            <i class="fab fa-docker"></i>\
+            Container ' + name + ' <button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary containerlogsbutton float-right" value="' + id + '">Logs <i class="fa fa-fw fa-terminal"></i></button>\
+          </div>\
+          <div style="overflow-x:auto" class="card-body" id="' + id + '">\
+            <div class="card mb-3">\
+              <div class="card-header">\
+                <i class="fas fa-bullseye"></i>\
+                Status\
+              </div>\
+              <div style="overflow-x:auto" class="card-body" id="status_' + id + '"></div>\
+            </div>\
+            <div class="row">\
+              <div class="col-sm-6">\
+                <div class="card mb-3">\
+                  <div class="card-header">\
+                    <i class="far fa-hdd"></i>\
+                    Volumes\
+                  </div>\
+                  <div style="overflow-x:auto" class="card-body" id="volumes_' + id + '"></div>\
+                </div>\
+              </div>\
+              <div class="col-sm-6">\
+                <div class="card mb-3">\
+                  <div class="card-header">\
+                    <i class="fas fa-sitemap"></i>\
+                    Port Binding\
+                  </div>\
+                  <div style="overflow-x:auto" class="card-body" id="ports_' + id + '"></div>\
+                </div>\
+              </div>\
+            </div>\
+          </div>\
+        </div>\
+      ').ready(function () {
+        $('#status_' + id).append('\
+        <table class="table">\
+          <tr>\
+            <td>Status</td>\
+            <td>' + container.State + ' ' + container.Status + '</td>\
+          </tr>\
+          <tr>\
+            <td>Image</td>\
+            <td>' + container.Image + '</td>\
+          </tr>\
+          <tr>\
+            <td>Created</td>\
+            <td>' + new Date( container.Created * 1e3).toISOString().slice(0,19) + '</td>\
+          </tr>\
+          <tr>\
+            <td>Command</td>\
+            <td>' + container.Command + '</td>\
+          </tr>\
+        </table>\
+        ');
+        $('#volumes_' + id).append('\
+        <table class="table" id="vtable_' + id + '">\
+          <tr>\
+            <th>Host Mountpoint</td>\
+            <th>Container Mountpoint</th>\
+          </tr>\
+        </table>\
+        ').ready(function () {
+          for (i = 0; i < mounts.length; i++){
+            $('#vtable_' + id).append('\
+            <tr>\
+              <td>' + mounts[i].Source + '</td>\
+              <td>' + mounts[i].Destination + '</td>\
+            </tr>\
+            ');
+          }
+        });
+        $('#ports_' + id).append('\
+        <table class="table" id="ptable_' + id + '">\
+          <tr>\
+            <th>Host Port</td>\
+            <th>Container Port</th>\
+          </tr>\
+        </table>\
+        ').ready(function () {
+          for (i = 0; i < ports.length; i++){
+            $('#ptable_' + id).append('\
+            <tr>\
+              <td>' + ports[i].PublicPort + ' ' + ports[i].Type + '</td>\
+              <td>' + ports[i].PrivatePort + ' ' + ports[i].Type + '</td>\
+            </tr>\
+            ');
+          }
+        });
+      });
+    }
+  });
+});
+
 // When the upgrade button is clicked send to server
-$('body').on('click', '.stackupgradebutton', function(){
+function upgradestack(stackname){
   modalpurge();
   $('#modalloading').show();
   $('#modalconsole').show();
-  socket.emit('upgradestack',$(this).attr("value"));
-});
+  socket.emit('upgradestack',stackname);
+}
 
 // When the restart button is clicked send to server
-$('body').on('click', '.stackrestartbutton', function(){
+function stackrestart(stackname){
   modalpurge();
   $('#modalloading').show();
   $('#modalconsole').show();
-  socket.emit('restartstack',$(this).attr("value"));
-});
+  socket.emit('restartstack',stackname);
+}
 
 // When the stop button is clicked send to server
-$('body').on('click', '.stackstopbutton', function(){
+function stackstop(stackname){
   modalpurge();
   $('#modalloading').show();
   $('#modalconsole').show();
-  socket.emit('stopstack',$(this).attr("value"));
-});
+  socket.emit('stopstack',stackname);
+}
 
 // When the start button is clicked send to server
-$('body').on('click', '.stackstartbutton', function(){
+function stackstart(stackname){
   modalpurge();
   $('#modalloading').show();
   $('#modalconsole').show();
-  socket.emit('startstack',$(this).attr("value"));
-});
+  socket.emit('startstack',stackname);
+}
 
 // When the logs button is clicked send to server
-$('body').on('click', '.stacklogsbutton', function(){
+$('body').on('click', '.containerlogsbutton', function(){
   modalpurge();
   $('#modalloading').show();
   $('#modalconsole').show();
-  socket.emit('stacklogs',$(this).attr("value"));
+  socket.emit('containerlogs',$(this).attr("value"));
 });
 
 // When the user clicks to browse remote stack yaml files render and ask the server for the results
@@ -1058,7 +1211,7 @@ function renderbrowsestacks(){
       Taisun Stacks\
     </div>\
     <div style="overflow-x:auto" class="card-body" id="taisunstacks">\
-    <center><i class="fa fa-refresh fa-spin" style="font-size:36px"></i><br><h2>Fetching available stacks from Taisun.io</h2></center>\
+    <center><i class="fas fa-spinner fa-pulse" style="font-size:36px"></i><br><h2>Fetching available stacks from Taisun.io</h2></center>\
     </div>\
   </div>\
   ');
@@ -1080,7 +1233,7 @@ socket.on('stacksresults', function(data) {
   }
   else {
     // Create table for taisun results
-    $('#taisunstacks').append('<table style="width:100%" id="stackstable" class="table table-bordered table-hover"></table>');
+    $('#taisunstacks').append('<table style="width:100%" id="stackstable" class="table table-hover"></table>');
     // Browser Window
     if ($(window).width() > 500){
       $('#stackstable').append('\
@@ -1161,7 +1314,7 @@ socket.on('stacksresults', function(data) {
 function stacksearch(page){
   $('#taisunstacks').empty();
   // Set the content to a spinner to signify loading
-  $('#taisunstacks').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
+  $('#taisunstacks').append('<i class="fas fa-spinner fa-pulse" style="font-size:36px"></i>');
   socket.emit('searchstacks', $('#stacksearch').val(), page);
 }
 
@@ -1226,7 +1379,7 @@ socket.on('stackurlresults', function(data) {
   </div>').promise().done(formbuilder(data[2]));
   $('#modalfooter').show();
   $('#modalfooter').append('\
-  <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel <i class="fa fa-times-circle-o"></i></button>\
+  <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel <i class="far fa-times-circle"></i></button>\
   <button type="button" class="btn btn-success" id="createstack" value="' + url + '">Create<i class="fa fa-rocket"></i></button>\
   ');
 });
@@ -1503,7 +1656,7 @@ function rendergateway(container) {
           <div class="card text-white bg-info o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
-                <i class="fa fa-fw fa-refresh"></i>\
+                <i class="fas fa-fw fa-sync"></i>\
               </div>\
               <div class="mr-5">\
                 Restart Gateway\
@@ -1539,7 +1692,7 @@ function rendergateway(container) {
         <div><button type="button" class="btn btn-sm btn-secondary checkremotebutton" value="">Check Remote Access</button><div id="remotestatus"></div></div>\
         <br>\
         <div>\
-          <table id="gatewaytable" class="table table-bordered">\
+          <table id="gatewaytable" class="table table-hover">\
             <tr><td>State</td><td>' + container.State.Status + '</td></tr>\
           </table>\
         </div>\
@@ -1564,7 +1717,7 @@ function rendergateway(container) {
 $('body').on('click', '.checkremotebutton', function(){
   socket.emit('checkremoteaccess', $(this).attr("value"));
   $('#remotestatus').empty();
-  $('#remotestatus').append('<i class="fa fa-refresh fa-spin" style="font-size:36px"></i>');
+  $('#remotestatus').append('<i class="fas fa-spinner fa-pulse" style="font-size:36px"></i>');
 });
 // When server tells us the response populate the status div
 socket.on('sendremotestatus', function(data){
@@ -1574,46 +1727,9 @@ socket.on('sendremotestatus', function(data){
   }
   else {
     $('#remotestatus').empty();
-    $('#remotestatus').append('<i style="color:red;" class="fa fa-times"></i> ' + data.message);
+    $('#remotestatus').append('<i style="color:red;" class="far fa-times"></i> ' + data.message);
   }
 });
-
-//// Render the remote access pages ////
-function renderportainer(){
-  $('.nav-item').removeClass('active');
-  $('#Portainernav').addClass('active');
-  $('#pagecontent').empty();
-  $('#pageheader').empty();  
-  socket.emit('checkportainer');
-}
-// Render the page based on the response from the server
-socket.on('renderportainer', function(data){
-  if (data == 'no'){
-    renderportainerstart();
-  }
-  else {
-    renderportainerrunning(data);
-  }
-});
-
-// Start page for remote access
-function renderportainerstart() {
-  $('#pagecontent').append('\
-  <div class="card mb-3">\
-    <div class="card-header">\
-      <i class="fa fa-docker"></i>\
-      Portainer quickstart\
-    </div>\
-    <div class="card-body">\
-      <center>\
-        <h2>Portainer is a great web based management interface for docker.<br>It has more polished features than Taisun for basic container management <a href="https://portainer.io/" target="_blank">Portainer.io</a></h2>\
-        <br>\
-        <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost/public/taisuntemplates/taisunportainer.yml">Launch Portainer</button>\
-      </center>\
-    </div>\
-  </div>\
-  ');
-}
 
 // Taisun Update Modal
 $('body').on('click', '.updatetaisun', function(){
@@ -1642,13 +1758,6 @@ $('body').on('click', '.taisunupdate', function(){
   setTimeout(location.reload.bind(location), 20000);
   socket.emit('upgradetaisun');
 });
-
-//// Render the portainer page ////
-function renderportainerrunning(){
-  $('#pagecontent').empty();
-  $('#pageheader').empty(); 
-  $('#pagecontent').append('<iframe src="http://' + host + ':9000" frameborder="0"style="position: relative; height: calc(100vh - 95px); width: 100%;"></iframe>')
-}
 
 //// Page updating ////
 // When the server sends data call update funtions with it based on the dom elements present
