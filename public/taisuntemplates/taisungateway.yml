@@ -3,8 +3,6 @@ description: |
   Taisun Gateway Container [taisun/gateway](https://hub.docker.com/r/taisun/gateway/)
   ============
   
-  If you choose not to forward port 80 to this container it will still generate a self signed certificate, but when accessing your server remotely you will be presented with a certificate error and will need to add an exception for the domain. 
-  
   This will spinup a container on your system that houses 3 seperate running processes
     * Taisun.io Https proxy with password protection (uses the DNSKey for auth)
     * Dynamic DNS updater
@@ -12,9 +10,7 @@ description: |
   
   To use this service you will need to complete two seperate steps in advance:
     1. Generate a Dynamic DNS url at [Taisun.io](https://www.taisun.io) (login then click on Taisun DynDNS) it will output keys needed for this form
-    2. Forward a series of ports on your router to your host machine
-      * 4443/tcp needed for the Https proxy
-      * 80/tcp needed for [certbot](https://certbot.eff.org/) to renew and generate SSL certificates the internal port your server listens on can be configured below
+    2. Forward port 4443 from your router to the server hosting Taisun
 
 form:
   - type: input
@@ -51,20 +47,13 @@ form:
     validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
     errormessage: Values must be in a valid port range 1-65535
     required: true
-  - type: input
-    format: text
-    label: letsencryptport
-    FormName: Certbot Port
-    placeholder: This port will need to be forwarded to 80 on your router
-    validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
-    errormessage: Values must be in a valid port range 1-65535
-    required: true
 
 compose: |
   version: "3"
   services:
     taisungateway:
       image: taisun/gateway:latest
+      pull: true
       container_name: taisun_gateway
       environment:
         - SERVERIP={{ domain }}
@@ -81,7 +70,6 @@ compose: |
       volumes:
         - "ssl:/etc/letsencrypt"
       ports:
-        - "{{ letsencryptport }}:80"
         - "4443:3000"
   volumes:
     ssl:

@@ -1679,6 +1679,20 @@ function rendergateway(container) {
           </a>\
         </div>\
       </div>\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white containerlogsbutton" style="cursor:pointer;" value="' + container.Id + '">\
+          <div class="card text-white bg-info o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="fa fa-fw fa-terminal"></i>\
+              </div>\
+              <div class="mr-5">\
+                View logs\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
     </div>\
   ');
   $('#pagecontent').append('\
@@ -1727,7 +1741,7 @@ socket.on('sendremotestatus', function(data){
   }
   else {
     $('#remotestatus').empty();
-    $('#remotestatus').append('<i style="color:red;" class="far fa-times"></i> ' + data.message);
+    $('#remotestatus').append('<i style="color:red;" class="fas fa-times"></i> ' + data.message);
   }
 });
 

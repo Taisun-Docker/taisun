@@ -69,6 +69,7 @@ compose: |
   services:
     taisunvdi_{{ name }}:
       image: taisun/vdi_ubuntu:dev
+      pull: true
       container_name: taisunvdi_{{ name }}
       network_mode: bridge
       {% if ports %}
@@ -93,6 +94,7 @@ compose: |
   services:
     {{ name }}:
       image: taisun/dev_cloud9:{{ language }}
+      pull: true
       container_name: {{ name }}
       network_mode: bridge
       ports:
