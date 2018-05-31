@@ -40,7 +40,6 @@ compose: |
   services:
     taisunvdi_{{ name }}:
       image: taisun/vdi_{{ os }}:latest
-      pull: true
       container_name: taisunvdi_{{ name }}
       network_mode: bridge
       labels:

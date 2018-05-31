@@ -94,7 +94,6 @@ compose: |
   services:
     {{ name }}:
       image: taisun/dev_cloud9:{{ language }}
-      pull: true
       container_name: {{ name }}
       network_mode: bridge
       ports:

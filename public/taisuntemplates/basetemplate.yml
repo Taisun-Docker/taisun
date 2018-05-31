@@ -40,7 +40,6 @@ compose: |
   services:
     {{ name }}:
       image: {{ image }}
-      pull: true
       container_name: {{ name }}
       network_mode: bridge
       labels:

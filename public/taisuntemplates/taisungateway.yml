@@ -14,6 +14,14 @@ description: |
 
 form:
   - type: input
+    label: name
+    FormName: Name
+    placeholder: Unique Name to identify *required
+    value: gateway
+    validation: ^[\w\d-\_]+$
+    errormessage: Name must only container letters, numbers, and - or _
+    required: true
+  - type: input
     format: text
     label: domain
     FormName: Taisun Domain
@@ -53,7 +61,6 @@ compose: |
   services:
     taisungateway:
       image: taisun/gateway:latest
-      pull: true
       container_name: taisun_gateway
       environment:
         - SERVERIP={{ domain }}
