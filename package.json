@@ -25,7 +25,6 @@
     "guacamole-lite": "^0.6.2",
     "http": "0.0.0",
     "js-yaml": "^3.10.0",
-    "node-pty": "^0.7.4",
     "nunjucks": "^3.0.1",
     "request": "^2.81.0",
     "rmdir": "^1.2.0",

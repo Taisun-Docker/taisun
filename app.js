@@ -19,7 +19,6 @@ var express = require('express');
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var pty = require('node-pty');
 var Docker = require('dockerode');
 var docker = new Docker({socketPath: '/var/run/docker.sock'});
 var exec = require('child_process').exec;
