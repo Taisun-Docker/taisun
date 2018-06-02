@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <title>Terminal</title>
+    <link href="/public/vendor/xterm/css/xterm.css" rel="stylesheet" type="text/css">
+    <script src="/public/vendor/jquery/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/public/vendor/xterm/js/xterm.js"></script>
+  </head>
+  <body>
+    <div id="terminal-container" style="position:fixed; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;"></div>
+    <!-- Storage for variables -->
+    <input type="hidden" id="containerid" value="<%- containerid -%>" />
+    <input type="hidden" id="shell" value="<%- shell -%>" />
+    <!-- Main Logic -->
+    <script src="/public/js/term.js" ></script>
+  </body>
+</html>

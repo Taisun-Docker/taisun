@@ -1061,7 +1061,7 @@ socket.on('manageinfo', function(containers) {
         <div class="card mb-3">\
           <div class="card-header">\
             <i class="fab fa-docker"></i>\
-            Container ' + name + ' <button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary containerlogsbutton float-right" value="' + id + '">Logs <i class="fa fa-fw fa-terminal"></i></button>\
+            Container ' + name + ' <button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary containerlogsbutton float-right" value="' + id + '">Logs <i class="fas fa-file-alt"></i></button> <button type="button" style="cursor:pointer;margin-right:10px;" class="btn btn-sm btn-primary float-right" onclick="window.open(\'/terminal/' + id + '\',\'_blank\');">Terminal <i class="fa fa-fw fa-terminal"></i></button>\
           </div>\
           <div style="overflow-x:auto" class="card-body" id="' + id + '">\
             <div class="card mb-3">\

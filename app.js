@@ -19,6 +19,7 @@ var express = require('express');
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var pty = require('node-pty');
 var Docker = require('dockerode');
 var docker = new Docker({socketPath: '/var/run/docker.sock'});
 var exec = require('child_process').exec;
@@ -116,6 +117,7 @@ app.use('/public', express.static(__dirname + '/public'));
 //// Embedded guac ////
 app.get("/desktop/:containerid", function (req, res) {
   var container = docker.getContainer(req.params.containerid);
+  // Make sure this is a container
   container.inspect(function (err, data) {
     if (data == null){
       res.send('container does not exist');
@@ -123,6 +125,41 @@ app.get("/desktop/:containerid", function (req, res) {
     else{
       var connectionstring = encrypt({"connection":{"type":"vnc","settings":{"hostname":data.NetworkSettings.IPAddress,"port":"5900"}}});
       res.render(__dirname + '/views/guac.ejs', {token : connectionstring});
+    }
+  });
+});
+//// Terminal Emulator ////
+app.get("/terminal/:containerid", function (req, res) {
+  var container = docker.getContainer(req.params.containerid);
+  // Make sure this is a container
+  container.inspect(function (err, data) {
+    if (data == null){
+      res.send('container does not exist');
+    }
+    else{
+      // Shell check
+      var options = {
+        Cmd: ['/bin/sh', '-c', 'test -e /bin/bash12'],
+        AttachStdout: true,
+        AttachStderr: true
+      };
+      container.exec(options, function(err, exec) {
+        if (err) return;
+        exec.start(function(err, stream) {
+          if (err) return;
+          container.modem.demuxStream(stream, process.stdout, process.stderr);
+          stream.on('end', function(output){
+            exec.inspect(function(err, data) {
+              if (data.ExitCode == 0){
+                res.render(__dirname + '/views/terminal.ejs', {containerid : req.params.containerid,shell : '/bin/bash'});
+              }
+              else{
+                res.render(__dirname + '/views/terminal.ejs', {containerid : req.params.containerid,shell : '/bin/sh'});
+              }
+            });
+          });
+        });
+      });
     }
   });
 });
@@ -204,12 +241,12 @@ io.on('connection', function(socket){
     io.sockets.in(socket.id).emit('modal_update','Starting Launch Process for Guacd');
     // Check if the guacd image exists on this server
     images.list(function (err, res) {
-      if (JSON.stringify(res).indexOf('glyptodon/guacd:latest') > -1 ){
+      if (JSON.stringify(res).indexOf('guacamole/guacd:latest') > -1 ){
         deployguac();
       }
       else {
         io.sockets.in(socket.id).emit('modal_update','Guacd image not present on server downloading now');
-        docker.pull('glyptodon/guacd:latest', function(err, stream) {
+        docker.pull('guacamole/guacd:latest', function(err, stream) {
           stream.pipe(process.stdout);
           stream.once('end', deployguac);
         });
@@ -460,6 +497,49 @@ io.on('connection', function(socket){
   socket.on('getmanage', function(){
     containerinfo('manageinfo');
   });
+  // Container Terminal access
+  socket.on('spawnterm', function(containerid, w, h, shell){
+    console.log('Spawning terminal on ' + containerid);
+    var container = docker.getContainer(containerid);
+    var cmd = {
+      "AttachStdout": true,
+      "AttachStderr": true,
+      "AttachStdin": true,
+      "Tty": true,
+      Cmd: [shell]
+    };
+    container.exec(cmd, (err, exec) => {
+      if (err) return;
+      var options = {
+        'Tty': true,
+        stream: true,
+        stdin: true,
+        stdout: true,
+        stderr: true,
+        hijack: true
+      };
+      exec.start(options, (err, stream) => {
+        if (err) return;
+        var dimensions = { h, w };
+        exec.resize(dimensions, () => { });
+        stream.on('data', (chunk) => {
+          io.sockets.in(socket.id).emit('termdata', chunk.toString());
+        });
+        socket.on('termdata', (data) => {
+          stream.write(data);
+        });
+        socket.on('resizeterm', (w, h) => {
+          var dimensions = { h, w };
+          exec.resize(dimensions, () => { });
+        });
+        // Close Terminal
+        socket.on('killterm', function(){
+          console.log('Killing Terminal on ' + containerid);
+          stream.end();
+        });
+      });
+    });
+  });
   ///////////////////
   //// Functions ////
   ///////////////////
@@ -479,6 +559,7 @@ io.on('connection', function(socket){
   function getres(id){
     var xcmd = 'docker exec ' + id + ' xrandr';
     exec(xcmd, function (err, stdout) {
+      if (err) return;
       var resolutions = xparse(stdout);
       io.sockets.in(socket.id).emit('sendres', resolutions);
     });
@@ -529,7 +610,7 @@ io.on('connection', function(socket){
       }
       else{
           var guacoptions ={
-            Image: 'glyptodon/guacd',
+            Image: 'guacamole/guacd',
             name: 'guacd'
           };
           docker.createContainer(guacoptions, function (err, container){
@@ -559,11 +640,13 @@ io.on('connection', function(socket){
   function upgradetaisun(){
     // Check if the upgrade image exists on this server
     images.list(function (err, res) {
+      if (err) return;
       if (JSON.stringify(res).indexOf('taisun/updater:latest') > -1 ){
         runupgrade();
       }
       else {
         docker.pull('taisun/updater:latest', function(err, stream) {
+          if (err) return;
           stream.pipe(process.stdout);
           stream.once('end', runupgrade);
         });
@@ -595,17 +678,20 @@ io.on('connection', function(socket){
   function upgradestack(stackname){
     // Check if the upgrade image exists on this server
     images.list(function (err, res) {
+      if (err) return;
       if (JSON.stringify(res).indexOf('taisun/updater:latest') > -1 ){
         stackupgrade(stackname);
       }
       else {
         io.sockets.in(socket.id).emit('senddockerodeoutstart','Need to pull the updater image');
         docker.pull('taisun/updater:latest', function(err, stream) {
-         docker.modem.followProgress(stream, onFinished, onProgress);
+          if (err) return;
+          docker.modem.followProgress(stream, onFinished, onProgress);
           function onProgress(event) {
-            io.sockets.in(socket.id).emit('senddockerodeout', event);
+           io.sockets.in(socket.id).emit('senddockerodeout', event);
           }
           function onFinished(err) {
+            if (err) return;
             io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Finished Pull process for updater');
             stackupgrade(stackname);
             console.log('Finished Pulling updater');
@@ -680,6 +766,7 @@ io.on('connection', function(socket){
                 io.sockets.in(socket.id).emit('senddockerodeout', event);
               }
               function onFinished(err, output) {
+                if (err) return;
                 io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Finished Build process for ' + repo + ' at ' + checkout);
                 console.log('Finished building ' + repo + ' at ' + checkout);
                 rmdir(tempfolder);
@@ -796,6 +883,8 @@ io.on('connection', function(socket){
     });
   }
 });
+
+
 
 
 // Spin up application on port 80
