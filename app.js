@@ -9,6 +9,7 @@ var gitClone = require('git-clone');
 var rmdir = require('rmdir');
 var tar = require('tar-fs');
 var AU = require('ansi_up');
+var stream = require('stream');
 var ansi_up = new AU.default;
 var nunjucks = require('nunjucks');
 var yaml = require('js-yaml');
@@ -866,13 +867,14 @@ io.on('connection', function(socket){
       follow:0
     };
     io.sockets.in(socket.id).emit('senddockerodeoutstart','Getting logs for ' + containerid);
+    var logStream = new stream.PassThrough();
     logcontainer.logs(logOpts,function (err, stream) {
       if (err){
         io.sockets.in(socket.id).emit('sendconsoleoutdone','Error Getting logs for ' + containerid);
       }
       else{
-        stream.setEncoding('utf8');
-        stream.on('data', (data) => {
+        logcontainer.modem.demuxStream(stream, logStream, logStream);
+        logStream.on('data', (data) => {
           io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
         });
         stream.on('end', function(){

@@ -989,7 +989,6 @@ socket.on('manageinfo', function(containers) {
       var name = container.Names[0];
       var mounts = container.Mounts;
       var ports = container.Ports;
-      console.log(JSON.stringify(container));
       $('#manageheader').empty();
       $('#manageheader').append('\
      <div class="row">\
