@@ -982,6 +982,7 @@ function managestack(stackname){
 // When we get container info render in the stack management page
 socket.on('manageinfo', function(containers) {
   $(containers).each(function(index,container){
+    
     var labels = container.Labels;
     // Check if the div for this stack name exists
     if($('#' + labels.stackname).length != 0) {
@@ -1159,6 +1160,12 @@ function upgradestack(stackname){
   $('#modalconsole').show();
   socket.emit('upgradestack',stackname);
 }
+$('body').on('click', '.stackupgradebutton', function(){
+  modalpurge();
+  $('#modalloading').show();
+  $('#modalconsole').show();
+  socket.emit('upgradestack',$(this).attr("value"));
+});
 
 // When the restart button is clicked send to server
 function stackrestart(stackname){
@@ -1710,7 +1717,26 @@ function rendergateway(container) {
           </table>\
         </div>\
     </div>\
-  </div>\
+    </div>\
+      <div class="card mb-3">\
+        <div class="card-header">\
+          <i class="fas fa-ellipsis-h"></i>\
+          Deployed Public Gateways <button type="button" data-toggle="modal" data-target="#modal" onclick="stackdestroymodal()" style="cursor:pointer;" class="btn btn-sm btn-danger float-right" >Remove <i class="fas fa-minus-circle"></i></button> <button type="button " style="cursor:pointer;margin-right:10px;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-success configurestack float-right" value="http://localhost/public/taisuntemplates/taisunportforward.yml">Add <i class="fas fa-plus"></i></button>\
+        </div>\
+        <div class="card-body" style="overflow-x:auto">\
+          <div class="table-responsive">\
+            <table id="gateways" class="table table-hover" width="100%" cellspacing="0">\
+              <thead>\
+                <tr>\
+                  <th>Name</th>\
+                  <th>Public URL</th>\
+                  <th>Backend</th>\
+                </tr>\
+              </thead>\
+            </table>\
+          </div>\
+        </div>\
+      </div>\
   ').promise().done(function(){
     var envarr = container.Config.Env;
     for (i = 0; i < envarr.length; i++){
@@ -1721,8 +1747,35 @@ function rendergateway(container) {
       }
       if (key == 'SERVERIP'){
         $('.checkremotebutton').attr('value', value);
+        $('#pagecontent').append('<input type="hidden" id="serverip" value="' + value + '" />');
       }
     }
+  });
+}
+// Whenever the stack list is updated rebuild the displayed table for port forwarders
+socket.on('updategateway', function(containers) {
+  updategateway(containers);
+});
+function updategateway(containers){
+  // Loop through the Gateways deployed to show them on the remote access page
+  $("#gateways").dataTable().fnDestroy();
+  var gatewaytable = $('#gateways').DataTable( {} );
+  gatewaytable.clear();
+  //Loop through the containers to build the containers table
+  $(containers).each(function(index,container){
+    var labels = container.Labels;
+    if (labels.stacktype){
+      if (labels.stacktype == 'portforward'){
+        var ext_url = 'https://' + labels.frontend + '.' + $('#serverip').val() + ':4443';
+        gatewaytable.row.add( 
+          [labels.stackname,
+          '<a href="' + ext_url + '" target="_blank">' + ext_url + '</a>',
+          '<a href="' + labels.backend + '" target="_blank">' + labels.backend + '</a>'] 
+        );
+      }
+    }
+  }).promise().done(function(){
+    gatewaytable.draw();
   });
 }
 
@@ -1783,6 +1836,9 @@ socket.on('updatestacks', function(containers) {
   }
   if ($('#localstacks').length > 0) {
     updatelocalstacks(containers);
+  }
+  if ($('#gateways').length > 0) {
+    updategateway(containers);
   }
 });
 

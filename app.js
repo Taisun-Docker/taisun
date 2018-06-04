@@ -50,6 +50,7 @@ var clientOptions = {
 // Spinup the Guac websocket proxy on port 3000 if guacd is running
 var guacontainer = docker.getContainer('guacd');
 guacontainer.inspect(function (err, containerdata) {
+  if (err) return;
   // For first time users or people that do not care about VDI
   if (containerdata == null){
     console.log('Guacd does not exist on this server will not start websocket tunnel');
@@ -59,6 +60,7 @@ guacontainer.inspect(function (err, containerdata) {
     // Start Guacd if it exists and it not running then exit the process supervisor will pick it up
     if (containerdata.State.Status != 'running'){
       guacontainer.start(function (err, data) {
+        if (err) return;
         console.log('Guacd exists starting and restarting app via exit for nodemon to pickup');
         sleep(5000).then(() => {
           process.exit();
@@ -119,6 +121,7 @@ app.get("/desktop/:containerid", function (req, res) {
   var container = docker.getContainer(req.params.containerid);
   // Make sure this is a container
   container.inspect(function (err, data) {
+    if (err) return;
     if (data == null){
       res.send('container does not exist');
     }
@@ -133,6 +136,7 @@ app.get("/terminal/:containerid", function (req, res) {
   var container = docker.getContainer(req.params.containerid);
   // Make sure this is a container
   container.inspect(function (err, data) {
+    if (err) return;
     if (data == null){
       res.send('container does not exist');
     }
@@ -150,6 +154,7 @@ app.get("/terminal/:containerid", function (req, res) {
           container.modem.demuxStream(stream, process.stdout, process.stderr);
           stream.on('end', function(output){
             exec.inspect(function(err, data) {
+              if (err) return;
               if (data.ExitCode == 0){
                 res.render(__dirname + '/views/terminal.ejs', {containerid : req.params.containerid,shell : '/bin/bash'});
               }
@@ -202,6 +207,7 @@ io.on('connection', function(socket){
             else{
               dashinfo['containers'] = containers;
               images.list(function (err, images) {
+                if (err) return;
                 dashinfo['images'] = images;
                 io.sockets.in(socket.id).emit('renderdash',dashinfo);
               });
@@ -233,6 +239,7 @@ io.on('connection', function(socket){
   // Send local images
   socket.on('getimages', function(){
     images.list(function (err, res) {
+      if (err) return;
       io.sockets.in(socket.id).emit('sendimages',res);
     });
   });
@@ -241,12 +248,14 @@ io.on('connection', function(socket){
     io.sockets.in(socket.id).emit('modal_update','Starting Launch Process for Guacd');
     // Check if the guacd image exists on this server
     images.list(function (err, res) {
+      if (err) return;
       if (JSON.stringify(res).indexOf('guacamole/guacd:latest') > -1 ){
         deployguac();
       }
       else {
         io.sockets.in(socket.id).emit('modal_update','Guacd image not present on server downloading now');
         docker.pull('guacamole/guacd:latest', function(err, stream) {
+          if (err) return;
           stream.pipe(process.stdout);
           stream.once('end', deployguac);
         });
@@ -286,11 +295,13 @@ io.on('connection', function(socket){
     io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Starting Pull process for ' + image);
     console.log('Pulling ' + image);
     docker.pull(image, function(err, stream) {
+      if (err) return;
       docker.modem.followProgress(stream, onFinished, onProgress);
       function onProgress(event) {
         io.sockets.in(socket.id).emit('senddockerodeout', event);
       }
       function onFinished(err, output) {
+        if (err) return;
         io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Finished Pull process for ' + image);
         console.log('Finished Pulling ' + image);
       }       
@@ -365,6 +376,9 @@ io.on('connection', function(socket){
     else if  (templatename == 'taisundeveloper.yml'){
       var stacktype = 'developer';
     }
+    else if  (templatename == 'taisunportforward.yml'){
+      var stacktype = 'portforward';
+    }
     else{
       var stacktype = 'community';
     }
@@ -405,6 +419,7 @@ io.on('connection', function(socket){
   socket.on('checkguac', function(){
     var guacontainer = docker.getContainer('guacd');
     guacontainer.inspect(function (err, data) {
+      if (err) return;
       if (data == null){
         io.sockets.in(socket.id).emit('rendervdi', 'no');
       }
@@ -417,6 +432,7 @@ io.on('connection', function(socket){
   socket.on('getguacinfo', function(){
     var guacontainer = docker.getContainer('guacd');
     guacontainer.inspect(function (err, data) {
+      if (err) return;
       if (data == null){
         io.sockets.in(socket.id).emit('guacinfo', 'Error Getting GuacD infor');
       }
@@ -429,11 +445,13 @@ io.on('connection', function(socket){
   socket.on('checkremote', function(){
     var remotecontainer = docker.getContainer('taisun_gateway');
     remotecontainer.inspect(function (err, data) {
+      if (err) return;
       if (data == null){
         io.sockets.in(socket.id).emit('renderremote', 'no');
       }
       else{
         io.sockets.in(socket.id).emit('renderremote', data);
+        containerinfo('updategateway');
       }
     });
   });
@@ -452,6 +470,7 @@ io.on('connection', function(socket){
   // When version is requested send
   socket.on('getversion', function(){
     fs.readFile('version', 'utf8', function (err, version) {
+      if (err) return;
       var taisunversion = version;
       io.sockets.in(socket.id).emit('sendversion', taisunversion);
     });

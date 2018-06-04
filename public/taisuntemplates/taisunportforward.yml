@@ -1,0 +1,61 @@
+name: Taisun Port Forward
+description: |
+  Taisun Port Forward Container [taisun/port-forward](https://hub.docker.com/r/taisun/port-forward//)
+  ============
+  
+  This will spinup a container that operates as a transparent tcp proxy to a backend service. 
+  These containers listen on a specific port range 49050-49150, any requests to these ports will not require authentication by the remote gateway.
+  This allows you to share links with friends to access applications hosted on your network through the remote access web proxy.
+  
+form:
+  - type: input
+    label: name
+    FormName: Name
+    placeholder: Unique Name to identify *required
+    validation: ^[\w\d-\_]+$
+    errormessage: Name must only container letters, numbers, and - or _
+    required: true
+  - type: input
+    format: text
+    label: frontendport
+    FormName: Frontend Port
+    placeholder: The port the forwarder will listen on must be 49050-49150
+    validation: ^(490[5-8][0-9]|4909[0-9]|491[0-4][0-9]|49150)$
+    errormessage: Values must be in a valid port range 49050-49150
+    required: true
+  - type: input
+    format: text
+    label: backendhost
+    FormName: Backend Host
+    placeholder: The backend host to forward to
+    validation: ^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
+    errormessage: Value must be a valid IP IE 192.168.1.100
+    required: true
+  - type: input
+    format: text
+    label: backendport
+    FormName: Backend Port
+    placeholder: The backend port to forward to
+    validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
+    errormessage: Values must be in a valid port range 1-65535
+    required: true
+
+compose: |
+  version: "3"
+  services:
+    taisunportforward:
+      image: taisun/port-forward:latest
+      container_name: forward_{{ name }}
+      environment:
+        - HOST={{ backendhost }}
+        - PORT={{ backendport }}
+      restart: always
+      network_mode: bridge
+      labels:
+        - "stackname={{ stackname }}"
+        - "stacktype={{ stacktype }}"
+        - "stackurl={{ stackurl }}"
+        - "frontend={{ frontendport }}"
+        - "backend=http://{{ backendhost }}:{{ backendport }}"
+      ports:
+        - "{{ frontendport }}:80"
