@@ -121,7 +121,6 @@ app.get("/desktop/:containerid", function (req, res) {
   var container = docker.getContainer(req.params.containerid);
   // Make sure this is a container
   container.inspect(function (err, data) {
-    if (err) return;
     if (data == null){
       res.send('container does not exist');
     }
@@ -136,7 +135,6 @@ app.get("/terminal/:containerid", function (req, res) {
   var container = docker.getContainer(req.params.containerid);
   // Make sure this is a container
   container.inspect(function (err, data) {
-    if (err) return;
     if (data == null){
       res.send('container does not exist');
     }
@@ -419,7 +417,6 @@ io.on('connection', function(socket){
   socket.on('checkguac', function(){
     var guacontainer = docker.getContainer('guacd');
     guacontainer.inspect(function (err, data) {
-      if (err) return;
       if (data == null){
         io.sockets.in(socket.id).emit('rendervdi', 'no');
       }
@@ -432,7 +429,6 @@ io.on('connection', function(socket){
   socket.on('getguacinfo', function(){
     var guacontainer = docker.getContainer('guacd');
     guacontainer.inspect(function (err, data) {
-      if (err) return;
       if (data == null){
         io.sockets.in(socket.id).emit('guacinfo', 'Error Getting GuacD infor');
       }
