@@ -445,7 +445,6 @@ io.on('connection', function(socket){
   socket.on('checkremote', function(){
     var remotecontainer = docker.getContainer('taisun_gateway');
     remotecontainer.inspect(function (err, data) {
-      if (err) return;
       if (data == null){
         io.sockets.in(socket.id).emit('renderremote', 'no');
       }
