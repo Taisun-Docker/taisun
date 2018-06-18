@@ -947,15 +947,20 @@ function updatelocalstacks(containers){
         else{
           var launch = 'Not Set';
         }
-        stacktable.row.add(
-          [
-            labels.stackname,
-            launch,
-            container.State + ' ' + container.Status,
-            new Date( container.Created * 1e3).toISOString().slice(0,19),
-            '<button type="button" style="cursor:pointer;" class="btn btn-sm" onclick="managestack(\'' + labels.stackname + '\')">Manage <i class="fas fa-fw fa-edit"></i></button></div>'
-          ]
-        );
+        if ( labels.stacktype == 'community' && launch == 'Not Set' ){
+          // Community Stacks without ports set, set logic for this if they are single container stacks
+        }
+        else {
+          stacktable.row.add(
+            [
+              labels.stackname,
+              launch,
+              container.State + ' ' + container.Status,
+              new Date( container.Created * 1e3).toISOString().slice(0,19),
+              '<button type="button" style="cursor:pointer;" class="btn btn-sm" onclick="managestack(\'' + labels.stackname + '\')">Manage <i class="fas fa-fw fa-edit"></i></button></div>'
+            ]
+          );
+        }
       }).promise().done(stacktable.draw());
     }
   });
