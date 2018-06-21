@@ -941,29 +941,52 @@ function updatelocalstacks(containers){
           }
           // Local mode show links
           else{
-            var launch = '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Open <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>';
+            if (isNaN(apport)){
+              var dropdownlinks = '';
+              var ports = JSON.parse(apport);
+              $(ports).each(function( key, value ){
+                dropdownlinks += '<a class="dropdown-item" href="http://' + host + ':' + value[Object.keys(value)[0]] + '" target="_blank">' + Object.keys(value)[0] + '</a>';
+              }).promise().done( function(){
+                var launch = '<div class="dropdown">\
+                                <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-toggle="dropdown">\
+                                  Open\
+                                </button>\
+                                <div class="dropdown-menu">\
+                                  ' + dropdownlinks + '\
+                                </div>\
+                              </div>';
+                addrowlocal(launch, container, labels, stacktable);
+              });
+            }
+            else{
+              var launch = '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Open <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>';
+            }
           }
         }
         else{
           var launch = 'Not Set';
         }
-        if ( labels.stacktype == 'community' && launch == 'Not Set' ){
+        if ( labels.stacktype == 'community' && launch == 'Not Set' || isNaN(apport) ){
           // Community Stacks without ports set, set logic for this if they are single container stacks
         }
         else {
-          stacktable.row.add(
-            [
-              labels.stackname,
-              launch,
-              container.State + ' ' + container.Status,
-              new Date( container.Created * 1e3).toISOString().slice(0,19),
-              '<button type="button" style="cursor:pointer;" class="btn btn-sm" onclick="managestack(\'' + labels.stackname + '\')">Manage <i class="fas fa-fw fa-edit"></i></button></div>'
-            ]
-          );
+          addrowlocal(launch, container, labels, stacktable);
         }
       }).promise().done(stacktable.draw());
     }
   });
+}
+// Add the rows to the table to be rendered
+function addrowlocal(launch, container, labels, stacktable){
+  stacktable.row.add(
+    [
+      labels.stackname,
+      launch,
+      container.State + ' ' + container.Status,
+      new Date( container.Created * 1e3).toISOString().slice(0,19),
+      '<button type="button" style="cursor:pointer;" class="btn btn-sm" onclick="managestack(\'' + labels.stackname + '\')">Manage <i class="fas fa-fw fa-edit"></i></button></div>'
+    ]
+  );
 }
 
 // When manage stack is clicked render the information for the stack in question
