@@ -6,11 +6,12 @@ services:
   - docker
 
 env:
-  - DEBIAN_FRONTEND="noninteractive"
-  - BUILD_DATE=$(date '+%Y-%m-%dT%H:%M:%S%:z')
-  - DOCKERHUB_LIVE="taisun/webapp"
-  - DOCKERHUB_PR="taisun/webapp-pr"
-  - GITHUB_REPO="Taisun-Docker/taisun"
+  global:
+    - DEBIAN_FRONTEND="noninteractive"
+    - BUILD_DATE=$(date '+%Y-%m-%dT%H:%M:%S%:z')
+    - DOCKERHUB_LIVE="taisun/webapp"
+    - DOCKERHUB_PR="taisun/webapp-pr"
+    - GITHUB_REPO="Taisun-Docker/taisun"
 
 jobs:
   include:
