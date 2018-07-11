@@ -64,9 +64,9 @@ jobs:
         - wget https://s3-us-west-2.amazonaws.com/taisun-builds/qemu/qemu-arm-static
         - chmod +x qemu-*
         # Build the applicaiton against the 3 architectures
-        - docker build --no-cache -f Dockerfile.amd64 --build-arg TAISUN_RELEASE="${TRAVIS_TAG}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:amd64-${TRAVIS_COMMIT} .
-        - docker build --no-cache -f Dockerfile.armhf --build-arg TAISUN_RELEASE="${TRAVIS_TAG}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} .
-        - docker build --no-cache -f Dockerfile.aarch64 --build-arg TAISUN_RELEASE="${TRAVIS_TAG}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT} .
+        - docker build --no-cache -f Dockerfile.amd64 --build-arg TAISUN_RELEASE="${TRAVIS_COMMIT}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:amd64-${TRAVIS_COMMIT} .
+        - docker build --no-cache -f Dockerfile.armhf --build-arg TAISUN_RELEASE="${TRAVIS_COMMIT}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} .
+        - docker build --no-cache -f Dockerfile.aarch64 --build-arg TAISUN_RELEASE="${TRAVIS_COMMIT}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT} .
         # Tag these builds to dev
         - docker tag ${DOCKERHUB_LIVE}:amd64-${TRAVIS_COMMIT} taisun/webapp:amd64-dev
         - docker tag ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} taisun/webapp:arm32v6-dev
@@ -100,9 +100,9 @@ jobs:
         - wget https://s3-us-west-2.amazonaws.com/taisun-builds/qemu/qemu-arm-static
         - chmod +x qemu-*
         # Build the applicaiton against the 3 architectures
-        - docker build --no-cache -f Dockerfile.amd64 --build-arg TAISUN_RELEASE="${TRAVIS_TAG}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_PR}:amd64-${TRAVIS_PULL_REQUEST} .
-        - docker build --no-cache -f Dockerfile.armhf --build-arg TAISUN_RELEASE="${TRAVIS_TAG}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_PR}:arm32v6-${TRAVIS_PULL_REQUEST} .
-        - docker build --no-cache -f Dockerfile.aarch64 --build-arg TAISUN_RELEASE="${TRAVIS_TAG}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_PR}:arm64v8-${TRAVIS_PULL_REQUEST} .
+        - docker build --no-cache -f Dockerfile.amd64 --build-arg TAISUN_RELEASE="${TRAVIS_COMMIT}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_PR}:amd64-${TRAVIS_PULL_REQUEST} .
+        - docker build --no-cache -f Dockerfile.armhf --build-arg TAISUN_RELEASE="${TRAVIS_COMMIT}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_PR}:arm32v6-${TRAVIS_PULL_REQUEST} .
+        - docker build --no-cache -f Dockerfile.aarch64 --build-arg TAISUN_RELEASE="${TRAVIS_COMMIT}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_PR}:arm64v8-${TRAVIS_PULL_REQUEST} .
         # Login to DockerHub
         - echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
         # Push all of the tags
