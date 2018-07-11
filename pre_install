@@ -7,3 +7,6 @@ sudo apt-get install -y --only-upgrade docker-ce
 # Set experiemental features on
 mkdir -p ~/.docker/
 echo '{"experimental": "enabled"}' > ~/.docker/config.json
+
+# Register the Qemu binaries
+docker run --rm --privileged multiarch/qemu-user-static:register
