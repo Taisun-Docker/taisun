@@ -1,0 +1,18 @@
+#!/usr/bin/with-contenv bash
+
+DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
+
+# Check if the GID is taken and swap to 65500
+CURRENT=$(getent group ${DOCKER_GID} | awk -F: '{print $1}')
+if [ -z "${CURRENT}" ] || [ "${CURRENT}" == 'docker' ]; then
+	groupmod -g ${DOCKER_GID} docker
+	usermod -a -G docker abc
+else
+	groupmod -g 65500 ${CURRENT}
+	groupmod -g ${DOCKER_GID} docker
+	usermod -a -G docker abc
+fi
+
+cd /usr/src/Taisun || exit
+exec \
+	s6-setuidgid abc node app.js

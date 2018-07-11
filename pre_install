@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bash
+
+# Update Docker
+sudo apt-get update
+sudo apt-get install -y --only-upgrade docker-ce
+
+# Set experiemental features on
+mkdir -p ~/.docker/
+echo '{"experimental": "enabled"}' > ~/.docker/config.json

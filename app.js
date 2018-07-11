@@ -97,7 +97,7 @@ function startstacks(){
       containers.forEach(function(container){
         // If the container has a stackname label assume it is a taisun container
         if (container.Labels.stackname){
-          // If the container is not running 
+          // If the container is not running
           if (container.State != 'running'){
             var contostart = docker.getContainer(container.Id);
             contostart.start();
@@ -176,7 +176,7 @@ app.get("/containers", function (req, res) {
     else{
       res.send(JSON.stringify(containers));
     }
-  });  
+  });
 });
 
 
@@ -302,7 +302,7 @@ io.on('connection', function(socket){
         if (err) return;
         io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Finished Pull process for ' + image);
         console.log('Finished Pulling ' + image);
-      }       
+      }
     });
   });
   // Get Taisun.io stacks running locally
@@ -333,13 +333,13 @@ io.on('connection', function(socket){
   });
   // Parse Yaml for single container and send to user
   socket.on('sendimagename', function(imagename){
-    request.get({url:'http://localhost/public/taisuntemplates/basetemplate.yml'},function(error, response, body){
+    request.get({url:'http://localhost:3000/public/taisuntemplates/basetemplate.yml'},function(error, response, body){
       var yml = yaml.safeLoad(body);
       var name = yml.name;
       var description = yml.description;
       var form = yml.form;
       form.push({type:'input',format:'text',label:'image',FormName:'Image',placeholder:'',value:imagename});
-      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost/public/taisuntemplates/basetemplate.yml']);
+      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost:3000/public/taisuntemplates/basetemplate.yml']);
     });
   });
   // Get custom Yaml from user and create a temp file for using the standard workflow
@@ -354,8 +354,8 @@ io.on('connection', function(socket){
       var name = yml.name;
       var description = yml.description;
       var form = yml.form;
-      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost/public/stackstemp/' + guid + '.yml']);
-    }); 
+      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost:3000/public/stackstemp/' + guid + '.yml']);
+    });
   });
   // When user submits stack data launch the stack
   socket.on('launchstack', function(userinput){
@@ -902,7 +902,7 @@ io.on('connection', function(socket){
 
 
 
-// Spin up application on port 80
-http.listen(80, function(){
-  console.log('listening on *:80');
+// Spin up application on port 3000
+http.listen(3000, function(){
+  console.log('listening on *:3000');
 });

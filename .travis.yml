@@ -1,0 +1,116 @@
+sudo: true
+
+language: bash
+
+services:
+  - docker
+
+env:
+  - DEBIAN_FRONTEND="noninteractive"
+  - BUILD_DATE=$(date '+%Y-%m-%dT%H:%M:%S%:z')
+  - DOCKERHUB_LIVE="taisun/webapp"
+  - DOCKERHUB_PR="taisun/webapp-pr"
+  - GITHUB_REPO="Taisun-Docker/taisun"
+
+jobs:
+  include:
+    - stage: BuildMaster
+      if: (branch = master) AND (NOT (type IN (pull_request))) AND (NOT (tag IS blank))
+      before_install:
+        - /bin/bash pre_install
+      script:
+        # Grab the qemu binaries
+        - wget https://s3-us-west-2.amazonaws.com/taisun-builds/qemu/qemu-aarch64-static
+        - wget https://s3-us-west-2.amazonaws.com/taisun-builds/qemu/qemu-arm-static
+        - chmod +x qemu-*
+        # Build the applicaiton against the 3 architectures
+        - docker build --no-cache -f Dockerfile.amd64 -t ${DOCKERHUB_LIVE}:amd64-${TRAVIS_TAG} --build-arg VERSION="Version ${TRAVIS_TAG} Date ${BUILD_DATE}" .
+        - docker build --no-cache -f Dockerfile.armhf -t ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_TAG} --build-arg VERSION="Version ${TRAVIS_TAG} Date ${BUILD_DATE}" .
+        - docker build --no-cache -f Dockerfile.aarch64 -t ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG} --build-arg VERSION="Version ${TRAVIS_TAG} Date ${BUILD_DATE}" .
+        # Tag these builds to latest
+        - docker tag ${DOCKERHUB_LIVE}:amd64-${TRAVIS_TAG} taisun/webapp:amd64-latest
+        - docker tag ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_TAG} taisun/webapp:arm32v6-latest
+        - docker tag ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG} taisun/webapp:arm64v8-latest
+        # Login to DockerHub
+        - echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
+        # Push all of the tags
+        - docker push ${DOCKERHUB_LIVE}:amd64-${TRAVIS_TAG}
+        - docker push ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_TAG}
+        - docker push ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG}
+        - docker push ${DOCKERHUB_LIVE}:amd64-latest
+        - docker push ${DOCKERHUB_LIVE}:arm32v6-latest
+        - docker push ${DOCKERHUB_LIVE}:arm64v8-latest
+        # Generate local manifests for latest and release
+        - docker manifest create ${DOCKERHUB_LIVE}:latest ${DOCKERHUB_LIVE}:amd64-latest ${DOCKERHUB_LIVE}:arm32v6-latest ${DOCKERHUB_LIVE}:arm64v8-latest
+        - docker manifest annotate ${DOCKERHUB_LIVE}:latest ${DOCKERHUB_LIVE}:arm32v6-latest --os linux --arch arm
+        - docker manifest annotate ${DOCKERHUB_LIVE}:latest ${DOCKERHUB_LIVE}:arm64v8-latest --os linux --arch arm64 --variant armv8
+        - docker manifest create ${DOCKERHUB_LIVE}:${TRAVIS_TAG} ${DOCKERHUB_LIVE}:amd64-${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG}
+        - docker manifest annotate ${DOCKERHUB_LIVE}:${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_TAG} --os linux --arch arm
+        - docker manifest annotate ${DOCKERHUB_LIVE}:${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG} --os linux --arch arm64 --variant armv8
+        # Push the manifests to these meta tags
+        - docker manifest push ${DOCKERHUB_LIVE}:latest
+        - docker manifest push ${DOCKERHUB_LIVE}:${TRAVIS_TAG}
+        # Sync readme to DockerHub
+        - docker pull lsiodev/readme-sync
+        - docker run --rm=true -e DOCKERHUB_USERNAME=$DOCKERUSER -e DOCKERHUB_PASSWORD=$DOCKERPASS -e GIT_REPOSITORY=${GITHUB_REPO} -e DOCKER_REPOSITORY=${DOCKERHUB_LIVE} -e GIT_BRANCH=master lsiodev/readme-sync bash -c 'node sync'
+    - stage: BuildMasterDev
+      if: (NOT (type IN (pull_request))) AND (tag IS blank)
+      before_install:
+        - /bin/bash pre_install
+      script:
+        # Grab the qemu binaries
+        - wget https://s3-us-west-2.amazonaws.com/taisun-builds/qemu/qemu-aarch64-static
+        - wget https://s3-us-west-2.amazonaws.com/taisun-builds/qemu/qemu-arm-static
+        - chmod +x qemu-*
+        # Build the applicaiton against the 3 architectures
+        - docker build --no-cache -f Dockerfile.amd64 -t ${DOCKERHUB_LIVE}:amd64-${TRAVIS_COMMIT} --build-arg VERSION="Version ${TRAVIS_COMMIT} Date ${BUILD_DATE}" .
+        - docker build --no-cache -f Dockerfile.armhf -t ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} --build-arg VERSION="Version ${TRAVIS_COMMIT} Date ${BUILD_DATE}" .
+        - docker build --no-cache -f Dockerfile.aarch64 -t ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT} --build-arg VERSION="Version ${TRAVIS_COMMIT} Date ${BUILD_DATE}" .
+        # Tag these builds to dev
+        - docker tag ${DOCKERHUB_LIVE}:amd64-${TRAVIS_COMMIT} taisun/webapp:amd64-dev
+        - docker tag ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} taisun/webapp:arm32v6-dev
+        - docker tag ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT} taisun/webapp:arm64v8-dev
+        # Login to DockerHub
+        - echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
+        # Push all of the tags
+        - docker push ${DOCKERHUB_LIVE}:amd64-${TRAVIS_COMMIT}
+        - docker push ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT}
+        - docker push ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT}
+        - docker push ${DOCKERHUB_LIVE}:amd64-dev
+        - docker push ${DOCKERHUB_LIVE}:arm32v6-dev
+        - docker push ${DOCKERHUB_LIVE}:arm64v8-dev
+        # Generate local manifests for dev and at commit
+        - docker manifest create ${DOCKERHUB_LIVE}:dev ${DOCKERHUB_LIVE}:amd64-dev ${DOCKERHUB_LIVE}:arm32v6-dev ${DOCKERHUB_LIVE}:arm64v8-dev
+        - docker manifest annotate ${DOCKERHUB_LIVE}:dev ${DOCKERHUB_LIVE}:arm32v6-dev --os linux --arch arm
+        - docker manifest annotate ${DOCKERHUB_LIVE}:dev ${DOCKERHUB_LIVE}:arm64v8-dev --os linux --arch arm64 --variant armv8
+        - docker manifest create ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:amd64-${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT}
+        - docker manifest annotate ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} --os linux --arch arm
+        - docker manifest annotate ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT} --os linux --arch arm64 --variant armv8
+        # Push the manifests to these meta tags
+        - docker manifest push ${DOCKERHUB_LIVE}:dev
+        - docker manifest push ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT}
+    - stage: BuildPR
+      if: (type IN (pull_request))
+      before_install:
+        - /bin/bash pre_install
+      script:
+        # Grab the qemu binaries
+        - wget https://s3-us-west-2.amazonaws.com/taisun-builds/qemu/qemu-aarch64-static
+        - wget https://s3-us-west-2.amazonaws.com/taisun-builds/qemu/qemu-arm-static
+        - chmod +x qemu-*
+        # Build the applicaiton against the 3 architectures
+        - docker build --no-cache -f Dockerfile.amd64 -t ${DOCKERHUB_PR}:amd64-${TRAVIS_PULL_REQUEST} --build-arg VERSION="Version ${TRAVIS_PULL_REQUEST} Date ${BUILD_DATE}" .
+        - docker build --no-cache -f Dockerfile.armhf -t ${DOCKERHUB_PR}:arm32v6-${TRAVIS_PULL_REQUEST} --build-arg VERSION="Version ${TRAVIS_PULL_REQUEST} Date ${BUILD_DATE}" .
+        - docker build --no-cache -f Dockerfile.aarch64 -t ${DOCKERHUB_PR}:arm64v8-${TRAVIS_PULL_REQUEST} --build-arg VERSION="Version ${TRAVIS_PULL_REQUEST} Date ${BUILD_DATE}" .
+        # Login to DockerHub
+        - echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
+        # Push all of the tags
+        - docker push ${DOCKERHUB_PR}:amd64-${TRAVIS_PULL_REQUEST}
+        - docker push ${DOCKERHUB_PR}:arm32v6-${TRAVIS_PULL_REQUEST}
+        - docker push ${DOCKERHUB_PR}:arm64v8-${TRAVIS_PULL_REQUEST}
+        # Generate local manifest
+        - docker manifest create ${DOCKERHUB_PR}:${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:amd64-${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:arm32v6-${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:arm64v8-${TRAVIS_PULL_REQUEST}
+        - docker manifest annotate ${DOCKERHUB_PR}:${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:arm32v6-${TRAVIS_PULL_REQUEST} --os linux --arch arm
+        - docker manifest annotate ${DOCKERHUB_PR}:${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:arm64v8-${TRAVIS_PULL_REQUEST} --os linux --arch arm64 --variant armv8
+        # Push the manifest
+        - docker manifest push ${DOCKERHUB_PR}:${TRAVIS_PULL_REQUEST}
