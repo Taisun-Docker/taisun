@@ -29,9 +29,9 @@ jobs:
         - docker build --no-cache -f Dockerfile.armhf --build-arg TAISUN_RELEASE="${TRAVIS_TAG}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_TAG} .
         - docker build --no-cache -f Dockerfile.aarch64 --build-arg TAISUN_RELEASE="${TRAVIS_TAG}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG} .
         # Tag these builds to latest
-        - docker tag ${DOCKERHUB_LIVE}:amd64-${TRAVIS_TAG} taisun/webapp:amd64-latest
-        - docker tag ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_TAG} taisun/webapp:arm32v6-latest
-        - docker tag ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG} taisun/webapp:arm64v8-latest
+        - docker tag ${DOCKERHUB_LIVE}:amd64-${TRAVIS_TAG} ${DOCKERHUB_LIVE}:amd64-latest
+        - docker tag ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm32v6-latest
+        - docker tag ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm64v8-latest
         # Login to DockerHub
         - echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
         # Push all of the tags
@@ -68,9 +68,9 @@ jobs:
         - docker build --no-cache -f Dockerfile.armhf --build-arg TAISUN_RELEASE="${TRAVIS_COMMIT}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} .
         - docker build --no-cache -f Dockerfile.aarch64 --build-arg TAISUN_RELEASE="${TRAVIS_COMMIT}" --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT} .
         # Tag these builds to dev
-        - docker tag ${DOCKERHUB_LIVE}:amd64-${TRAVIS_COMMIT} taisun/webapp:amd64-dev
-        - docker tag ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} taisun/webapp:arm32v6-dev
-        - docker tag ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT} taisun/webapp:arm64v8-dev
+        - docker tag ${DOCKERHUB_LIVE}:amd64-${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:amd64-dev
+        - docker tag ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm32v6-dev
+        - docker tag ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm64v8-dev
         # Login to DockerHub
         - echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
         # Push all of the tags

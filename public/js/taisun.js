@@ -166,7 +166,7 @@ socket.on('rendervdi', function(response){
     $('#pageheader').append('\
     <div class="row">\
       <div class="col-xl-3 col-sm-6 mb-3">\
-        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost/public/taisuntemplates/taisunvdi.yml">\
+        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost:3000/public/taisuntemplates/taisunvdi.yml">\
           <div class="card text-white bg-success o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
@@ -531,7 +531,7 @@ function renderdeveloper(){
   $('#pageheader').append('\
     <div class="row">\
       <div class="col-xl-3 col-sm-6 mb-3">\
-        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost/public/taisuntemplates/taisundeveloper.yml">\
+        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost:3000/public/taisuntemplates/taisundeveloper.yml">\
           <div class="card text-white bg-success o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
@@ -594,7 +594,7 @@ function updatedev(containers){
     // No Dev containers found render launcher
     if (devcontainers.length == 0){
       $('#devstacks').empty();
-      $('#devstacks').append('<center><h2>No Running Development Containers</h2><br><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary configurestack" value="http://localhost/public/taisuntemplates/taisundeveloper.yml">Launch Developer Container <i class="far fa-plus-square"></i></button></center>');
+      $('#devstacks').append('<center><h2>No Running Development Containers</h2><br><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary configurestack" value="http://localhost:3000/public/taisuntemplates/taisundeveloper.yml">Launch Developer Container <i class="far fa-plus-square"></i></button></center>');
     }
     // Found some dev containers
     else{
@@ -1675,7 +1675,7 @@ function renderremotestart() {
       <center>\
         <h2>You will need a DNS endpoint that points to your IP to continue login at <a href="https://www.taisun.io" target="_blank">Taisun.io</a> and click on Taisun DynDNS</h2>\
         <br>\
-        <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost/public/taisuntemplates/taisungateway.yml">I have an Endpoint</button>\
+        <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost:3000/public/taisuntemplates/taisungateway.yml">I have an Endpoint</button>\
       </center>\
     </div>\
   </div>\
@@ -1749,7 +1749,7 @@ function rendergateway(container) {
       <div class="card mb-3">\
         <div class="card-header">\
           <i class="fas fa-ellipsis-h"></i>\
-          Deployed Public Gateways <button type="button" data-toggle="modal" data-target="#modal" onclick="stackdestroymodal()" style="cursor:pointer;" class="btn btn-sm btn-danger float-right" >Remove <i class="fas fa-minus-circle"></i></button> <button type="button " style="cursor:pointer;margin-right:10px;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-success configurestack float-right" value="http://localhost/public/taisuntemplates/taisunportforward.yml">Add <i class="fas fa-plus"></i></button>\
+          Deployed Public Gateways <button type="button" data-toggle="modal" data-target="#modal" onclick="stackdestroymodal()" style="cursor:pointer;" class="btn btn-sm btn-danger float-right" >Remove <i class="fas fa-minus-circle"></i></button> <button type="button " style="cursor:pointer;margin-right:10px;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-success configurestack float-right" value="http://localhost:3000/public/taisuntemplates/taisunportforward.yml">Add <i class="fas fa-plus"></i></button>\
         </div>\
         <div class="card-body" style="overflow-x:auto">\
           <div class="table-responsive">\

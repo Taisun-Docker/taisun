@@ -247,12 +247,12 @@ io.on('connection', function(socket){
     // Check if the guacd image exists on this server
     images.list(function (err, res) {
       if (err) return;
-      if (JSON.stringify(res).indexOf('guacamole/guacd:latest') > -1 ){
+      if (JSON.stringify(res).indexOf('taisun/guacd:latest') > -1 ){
         deployguac();
       }
       else {
         io.sockets.in(socket.id).emit('modal_update','Guacd image not present on server downloading now');
-        docker.pull('guacamole/guacd:latest', function(err, stream) {
+        docker.pull('taisun/guacd:latest', function(err, stream) {
           if (err) return;
           stream.pipe(process.stdout);
           stream.once('end', deployguac);
@@ -624,7 +624,7 @@ io.on('connection', function(socket){
       }
       else{
           var guacoptions ={
-            Image: 'guacamole/guacd',
+            Image: 'taisun/guacd',
             name: 'guacd'
           };
           docker.createContainer(guacoptions, function (err, container){
