@@ -1,7 +1,7 @@
 #Dockerfile for Taisun base image
-#2017
+#2019
 #Use LinuxServer Base Image
-FROM lsiobase/alpine.arm64:edge
+FROM lsiobase/alpine.arm64:3.8
 MAINTAINER Ryan Kuba <ryankuba@gmail.com>
 # Add qemu to build on x86_64 systems
 COPY qemu-aarch64-static /usr/bin
@@ -13,41 +13,41 @@ LABEL build_version="${TAISUN_RELEASE} Build-date:- ${BUILD_DATE}"
 RUN \
  echo "**** install build packages ****" && \
  apk add --no-cache --virtual=build-dependencies \
-        curl \
-	nodejs-npm \
-	py-pip && \
+   curl \
+	 nodejs-npm \
+	 py-pip && \
  echo "**** install runtime packages ****" && \
  apk add --no-cache \
-	nodejs \
-        docker \
-	libcap \
-        tcl \
-        expect \
-	python2 && \
+	 nodejs \
+   docker \
+	 libcap \
+   tcl \
+   expect \
+	 python2 && \
  pip install --upgrade pip && \
  npm config set unsafe-perm true && \
  npm i npm@latest -g && \
  pip install docker-compose && \
  echo "**** install Taisun ****" && \
  mkdir -p \
-	/usr/src/Taisun && \
+	 /usr/src/Taisun && \
  if [ -z ${TAISUN_RELEASE+x} ]; then \
- 	TAISUN_RELEASE=master; \
+ 	 TAISUN_RELEASE=master; \
  fi && \
  curl -o \
- /tmp/taisun.tar.gz -L \
-	"https://github.com/Taisun-Docker/taisun/archive/${TAISUN_RELEASE}.tar.gz" && \
+   /tmp/taisun.tar.gz -L \
+	 "https://github.com/Taisun-Docker/taisun/archive/${TAISUN_RELEASE}.tar.gz" && \
  tar -xzf \
- /tmp/taisun.tar.gz -C \
-	/usr/src/Taisun/ --strip-components=1 && \
+   /tmp/taisun.tar.gz -C \
+	 /usr/src/Taisun/ --strip-components=1 && \
  echo "**** install node modules ****" && \
  npm install --prefix /usr/src/Taisun && \
  chown -R abc:abc /usr/src/Taisun && \
  echo "**** cleanup ****" && \
  apk del --purge \
-	build-dependencies && \
+	 build-dependencies && \
  rm -rf \
-	/tmp/*
+	 /tmp/*
 
 # copy local files
 COPY root/ /
