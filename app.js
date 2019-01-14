@@ -138,10 +138,14 @@ app.get("/terminal/:containerid", function (req, res) {
     if (data == null){
       res.send('container does not exist');
     }
+    // If this is a tmux container attach to the running session
+    else if ( JSON.stringify(data.Config.Labels).indexOf('taisuntmux.yml') > -1 ) {
+      res.render(__dirname + '/views/terminal.ejs', {containerid : req.params.containerid,shell : 'tmux'});
+    }
     else{
       // Shell check
       var options = {
-        Cmd: ['/bin/sh', '-c', 'test -e /bin/bash12'],
+        Cmd: ['/bin/sh', '-c', 'test -e /bin/bash'],
         AttachStdout: true,
         AttachStderr: true
       };
@@ -454,6 +458,10 @@ io.on('connection', function(socket){
   socket.on('getdev', function(){
     containerinfo('updatedev');
   });
+  // When termstacks info is requested send to client
+  socket.on('getterm', function(){
+    containerinfo('updateterm');
+  });
   // When stack destruction is requested initiate
   socket.on('destroystack', function(name){
     destroystack(name, 'no');
@@ -515,13 +523,24 @@ io.on('connection', function(socket){
   socket.on('spawnterm', function(containerid, w, h, shell){
     console.log('Spawning terminal on ' + containerid);
     var container = docker.getContainer(containerid);
-    var cmd = {
-      "AttachStdout": true,
-      "AttachStderr": true,
-      "AttachStdin": true,
-      "Tty": true,
-      Cmd: [shell]
-    };
+    if (shell != 'tmux'){
+      var cmd = {
+        "AttachStdout": true,
+        "AttachStderr": true,
+        "AttachStdin": true,
+        "Tty": true,
+        Cmd: [shell]
+      };
+    }
+    else {
+      var cmd = {
+        "AttachStdout": true,
+        "AttachStderr": true,
+        "AttachStdin": true,
+        "Tty": true,
+        Cmd: ['/usr/bin/tmux','a','-t','taisun']
+      };    
+    }
     container.exec(cmd, (err, exec) => {
       if (err) return;
       var options = {

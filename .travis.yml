@@ -49,10 +49,10 @@ jobs:
         # Generate local manifests for latest and release
         - docker manifest create ${DOCKERHUB_LIVE}:latest ${DOCKERHUB_LIVE}:amd64-latest ${DOCKERHUB_LIVE}:arm32v6-latest ${DOCKERHUB_LIVE}:arm64v8-latest
         - docker manifest annotate ${DOCKERHUB_LIVE}:latest ${DOCKERHUB_LIVE}:arm32v6-latest --os linux --arch arm
-        - docker manifest annotate ${DOCKERHUB_LIVE}:latest ${DOCKERHUB_LIVE}:arm64v8-latest --os linux --arch arm64 --variant armv8
+        - docker manifest annotate ${DOCKERHUB_LIVE}:latest ${DOCKERHUB_LIVE}:arm64v8-latest --os linux --arch arm64 --variant v8
         - docker manifest create ${DOCKERHUB_LIVE}:${TRAVIS_TAG} ${DOCKERHUB_LIVE}:amd64-${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG}
         - docker manifest annotate ${DOCKERHUB_LIVE}:${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_TAG} --os linux --arch arm
-        - docker manifest annotate ${DOCKERHUB_LIVE}:${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG} --os linux --arch arm64 --variant armv8
+        - docker manifest annotate ${DOCKERHUB_LIVE}:${TRAVIS_TAG} ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_TAG} --os linux --arch arm64 --variant v8
         # Push the manifests to these meta tags
         - docker manifest push ${DOCKERHUB_LIVE}:latest
         - docker manifest push ${DOCKERHUB_LIVE}:${TRAVIS_TAG}
@@ -93,10 +93,10 @@ jobs:
         # Generate local manifests for dev and at commit
         - docker manifest create ${DOCKERHUB_LIVE}:dev ${DOCKERHUB_LIVE}:amd64-dev ${DOCKERHUB_LIVE}:arm32v6-dev ${DOCKERHUB_LIVE}:arm64v8-dev
         - docker manifest annotate ${DOCKERHUB_LIVE}:dev ${DOCKERHUB_LIVE}:arm32v6-dev --os linux --arch arm
-        - docker manifest annotate ${DOCKERHUB_LIVE}:dev ${DOCKERHUB_LIVE}:arm64v8-dev --os linux --arch arm64 --variant armv8
+        - docker manifest annotate ${DOCKERHUB_LIVE}:dev ${DOCKERHUB_LIVE}:arm64v8-dev --os linux --arch arm64 --variant v8
         - docker manifest create ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:amd64-${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT}
         - docker manifest annotate ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm32v6-${TRAVIS_COMMIT} --os linux --arch arm
-        - docker manifest annotate ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT} --os linux --arch arm64 --variant armv8
+        - docker manifest annotate ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:arm64v8-${TRAVIS_COMMIT} --os linux --arch arm64 --variant v8
         # Push the manifests to these meta tags
         - docker manifest push ${DOCKERHUB_LIVE}:dev
         - docker manifest push ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT}
@@ -125,6 +125,6 @@ jobs:
         # Generate local manifest
         - docker manifest create ${DOCKERHUB_PR}:${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:amd64-${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:arm32v6-${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:arm64v8-${TRAVIS_PULL_REQUEST}
         - docker manifest annotate ${DOCKERHUB_PR}:${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:arm32v6-${TRAVIS_PULL_REQUEST} --os linux --arch arm
-        - docker manifest annotate ${DOCKERHUB_PR}:${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:arm64v8-${TRAVIS_PULL_REQUEST} --os linux --arch arm64 --variant armv8
+        - docker manifest annotate ${DOCKERHUB_PR}:${TRAVIS_PULL_REQUEST} ${DOCKERHUB_PR}:arm64v8-${TRAVIS_PULL_REQUEST} --os linux --arch arm64 --variant v8
         # Push the manifest
         - docker manifest push ${DOCKERHUB_PR}:${TRAVIS_PULL_REQUEST}

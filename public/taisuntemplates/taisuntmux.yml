@@ -1,0 +1,36 @@
+name: Taisun Terminal
+description: |
+  Taisun Terminal launcher
+  ============
+  
+  This will launch a stateful Tmux container, as a base it can be used as a simple terminal for quick remote access where a full desktop might be overkill.
+
+  These images are based on Debian with all the Docker and base network tools installed by default.
+  
+  If you want access to the Docker API make sure to enable the Docker Socket.
+
+form:
+  - type: input
+    label: name
+    FormName: Name
+    placeholder: Unique Name to identify *required
+    validation: ^[\w\d-\_]+$
+    errormessage: Name must only container letters, numbers, and - or _
+    required: true
+  - type: checkbox
+    label: dockersock
+    FormName: Enable Docker Socket
+
+compose: |
+  version: "3"
+  services:
+    taisunterm_{{ name }}:
+      image: taisun/tmux:latest
+      container_name: taisunterm_{{ name }}
+      network_mode: bridge
+      labels:
+        - "stackname={{ stackname }}"
+        - "stacktype=terminal"
+        - "stackurl={{ stackurl }}"
+      {% if dockersock == 'true' %}volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock"{% endif %}

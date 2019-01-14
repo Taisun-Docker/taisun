@@ -32,6 +32,7 @@ socket.on('renderdash', function(response){
   var vdicount = 0;
   var devcount = 0;
   var gateway = 0;
+  var termcount = 0;
   $(containers).each(function(index,container){
     var labels = container.Labels;
     if (labels.stacktype){
@@ -47,6 +48,9 @@ socket.on('renderdash', function(response){
       }
       else if (stacktype == 'gateway'){
         gateway++;
+      }
+      else if (stacktype == 'terminal'){
+        termcount++;
       }
     }
   }).promise().done(function(){
@@ -117,13 +121,20 @@ socket.on('renderdash', function(response){
       </div>\
       <div class="card mb-3" style="cursor:pointer;" onclick="renderdeveloper()">\
         <div class="card-header">\
-          <i class="fa fa-terminal"></i>\
+          <i class="fa fa-code"></i>\
           Developer Containers\
           <span style="float:right;">' + devcount + '</span>\
         </div>\
       </div>\
     </div>\
     <div class="card-deck">\
+      <div class="card mb-3" style="cursor:pointer;" onclick="renderterminals()">\
+        <div class="card-header">\
+          <i class="fa fa-terminal"></i>\
+          Terminal Containers\
+          <span style="float:right;">' + termcount + '</span>\
+        </div>\
+      </div>\
       <div class="card mb-3" style="cursor:pointer;" onclick="renderremote()">\
         <div class="card-header">\
           <i class="fa fa-sitemap"></i>\
@@ -628,6 +639,102 @@ function updatedev(containers){
           );          
         }
       }).promise().done(devtable.draw());
+    }
+  });
+}
+
+// Terminals Page
+function renderterminals(){
+  $('.nav-item').removeClass('active');
+  $('#TerminalsNav').addClass('active');
+  $('#pageheader').empty();
+  $('#pagecontent').empty();
+  $('#pageheader').append('\
+    <div class="row">\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost:3000/public/taisuntemplates/taisuntmux.yml">\
+          <div class="card text-white bg-success o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="far fa-fw fa-plus-square"></i>\
+              </div>\
+              <div class="mr-5">\
+                Launch Terminal Container\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="stackdestroymodal()">\
+          <div class="card text-white bg-danger o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="fa fa-fw fa-minus-circle"></i>\
+              </div>\
+              <div class="mr-5">\
+                Destroy Terminal Container\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
+    </div>\
+  ');
+  $('#pagecontent').empty();
+  $('#pagecontent').append('\
+  <div class="card mb-3">\
+    <div class="card-header">\
+      <i class="fa fa-play"></i>\
+      Running Terminal Containers\
+    </div>\
+    <div class="card-body" id="termstacks" style="overflow-x:auto">\
+    <center><i class="fas fa-spinner fa-pulse" style="font-size:36px"></i><br><h2>Fetching terminal containers from Taisun</h2></center>\
+    </div>\
+  </div>\
+  ');
+  socket.emit('getterm', '1');
+}
+// When the server sends us the container information render the table in
+socket.on('updateterm', function(containers){
+  updateterm(containers);
+});
+function updateterm(containers){
+  $('#termstacks').empty();
+  $('#termstacks').append('<table style="width:100%" id="termresults" class="table table-hover"><thead><tr><th>Name</th><th>Launch</th><th>Status</th><th>Created</th></tr></thead></table>');
+  var termcontainers = [];
+  $(containers).each(function(index,container){
+    var labels = container.Labels;
+    if (labels.stacktype){
+      var stacktype = labels.stacktype;
+      if (stacktype == 'terminal'){
+        termcontainers.push(container);
+      }
+    }
+  }).promise().done(function(){
+    // No Terminal containers found render launcher
+    if (termcontainers.length == 0){
+      $('#termstacks').empty();
+      $('#termstacks').append('<center><h2>No Running Terminal Containers</h2><br><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary configurestack" value="http://localhost:3000/public/taisuntemplates/taisuntmux.yml">Launch Terminal Container <i class="far fa-plus-square"></i></button></center>');
+    }
+    // Found some Terminal containers
+    else{
+      // Loop through the VDIs deployed to show them on the vdi page
+      $("#termresults").dataTable().fnDestroy();
+      var termtable = $('#termresults').DataTable( {} );
+      termtable.clear();
+      //Loop through the containers to build the Terminal table
+      $(termcontainers).each(function(index, container) {
+        var id = container.Id;
+        var labels = container.Labels;
+        var host = window.location.hostname;
+        termtable.row.add( 
+          [labels.stackname, 
+          '<button type="button" style="cursor:pointer;margin-right:10px;" class="btn btn-sm btn-primary" onclick="window.open(\'/terminal/' + id + '\',\'_blank\');">Terminal <i class="fa fa-fw fa-terminal"></i></button>',
+          container.State + ' ' + container.Status, 
+          new Date( container.Created * 1e3).toISOString().slice(0,19)] 
+        );
+      }).promise().done(termtable.draw());
     }
   });
 }
