@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/thelamer/taisun.git"
+    "url": "git+https://github.com/Taisun-Docker/taisun.git"
   },
   "author": "Ryan Kuba",
   "license": "WTFPL",

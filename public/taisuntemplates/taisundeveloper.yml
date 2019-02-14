@@ -31,7 +31,7 @@ form:
   - type: input
     label: giturl
     FormName: Git URL
-    placeholder: Public Git URL IE https://gitlab.com/thelamer/taisun.git leave blank to start from scratch
+    placeholder: Public Git URL IE https://github.com/Taisun-Docker/taisun.git leave blank to start from scratch
   - type: input
     label: devport
     FormName: Dev Interface Port

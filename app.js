@@ -573,6 +573,10 @@ io.on('connection', function(socket){
       });
     });
   });
+  // Destroy a single container by name
+  socket.on('destroycontainer', function(name){
+    destroycontainer(name);
+  });
   ///////////////////
   //// Functions ////
   ///////////////////
@@ -631,6 +635,24 @@ io.on('connection', function(socket){
             }
           }
         });
+      }
+    });
+  }
+  // Destroy a Single container
+  function destroycontainer(name){
+    io.sockets.in(socket.id).emit('modal_update','Attempting to destroy ' + name);
+    docker.getContainer(name).remove({force: true},function (err, data) {
+      if (err){
+        console.log(JSON.stringify(err));
+        io.sockets.in(socket.id).emit('modal_finish','Cannot destroy ' + name + ' does not exist');
+      }
+      else{
+        console.log('Destroyed container ' + name);
+        io.sockets.in(socket.id).emit('modal_finish','Destroyed ' + name);
+        // Restart the app if we just killed the guacd container
+        if (name == 'guacd'){
+          process.exit();
+        }
       }
     });
   }

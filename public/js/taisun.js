@@ -333,7 +333,7 @@ function gitmodal(){
   <div class="form-group row">\
   <label for="desktop-destroy" class="col-sm-2 control-label">Repo</label>\
     <div class="col-sm-10">\
-    <input type="text" class="form-control" id="build-repo" placeholder="IE: https://gitlab.com/thelamer/taisun.git">\
+    <input type="text" class="form-control" id="build-repo" placeholder="IE: https://github.com/Taisun-Docker/taisun.git">\
     </div>\
   </div>\
   <div class="form-group row">\
@@ -379,6 +379,10 @@ function guacstatusmodal(){
   $('#modaltitle').append('Guacamole server info');
   $('#modalloading').show();
   socket.emit('getguacinfo');
+  $('#modalfooter').show();
+  $('#modalfooter').append('\
+  <button type="button" class="btn btn-danger" onclick="destroycontainer(\'guacd\')">Destroy GuacD</button>\
+  ');
 }
 socket.on('guacinfo', function (data){
   $('#modalloading').hide();
@@ -389,6 +393,14 @@ socket.on('guacinfo', function (data){
     <div> Command: '+ data.Config.Cmd[0] + '</div>\
   ');
 });
+
+// Destroy a single container
+function destroycontainer(name){
+  modalpurge();
+  $('#modaltitle').append('Destroying ' + name);
+  $('#modalloading').show();
+  socket.emit('destroycontainer', name);
+}
 
 // When the desktop form is submitted send the reqest to the server
 function createdesktop(){
@@ -1727,7 +1739,7 @@ function yamluploadmodal(){
   $('#modaltitle').append('Custom YAML');
   $('#modalbody').show();
   $('#modalbody').append('\
-    <p>Please see documentation <a href="https://gitlab.com/thelamer/taisun/wikis/Development/Templates" target="_blank">here</a> for writing Stack Templates</p>\
+    <p>Please see documentation <a href="https://github.com/Taisun-Docker/taisun/wiki/Templates" target="_blank">here</a> for writing Stack Templates</p>\
     <div id="editor" style="height: 500px; width: 100%"></div>\
   ');
   // Ace editor
@@ -1834,6 +1846,20 @@ function rendergateway(container) {
           </a>\
         </div>\
       </div>\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white destroycontainer" style="cursor:pointer;" value="taisun_gateway">\
+          <div class="card text-white bg-danger o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="fa fa-fw fa-minus-circle"></i>\
+              </div>\
+              <div class="mr-5">\
+                Destroy Gateway\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
     </div>\
   ');
   $('#pagecontent').append('\
@@ -1914,6 +1940,12 @@ function updategateway(containers){
   });
 }
 
+// When destroy gateway is clicked remove it from the system
+$('body').on('click', '.destroycontainer', function(){
+  name = $(this).attr("value");
+  destroycontainer(name);
+});
+
 // When remote button is clicked ask the server to check
 $('body').on('click', '.checkremotebutton', function(){
   socket.emit('checkremoteaccess', $(this).attr("value"));
@@ -1945,7 +1977,7 @@ socket.on('sendversion', function(version){
   $('#modalbody').append('<center>\
           <h2>This will replace the Taisun Container if a new version is available</h2>\
           <br>\
-          <h2>Current Version: <a href="https://gitlab.com/thelamer/taisun/commit/' + version + '" target="_blank">' + version + '</a></h2>\
+          <h2>Current Version: <a href="https://github.com/Taisun-Docker/taisun/releases/' + version + '" target="_blank">' + version + '</a></h2>\
           <br>\
           <button type="button" class="btn btn-lg btn-primary taisunupdate" style="cursor:pointer;">Update</button>\
         </center>\

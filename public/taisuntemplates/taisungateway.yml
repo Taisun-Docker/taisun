@@ -11,6 +11,9 @@ description: |
   To use this service you will need to complete two seperate steps in advance:
     1. Generate a Dynamic DNS url at [Taisun.io](https://www.taisun.io) (login then click on Taisun DynDNS) it will output keys needed for this form
     2. Forward port 4443 from your router to the server hosting Taisun
+    
+  By default this container will use your DNS key for authentication. Keys are stored as securly as possible but they are stored in plain text.
+  If you do not want to trust server access from taisun.io to us please set a custom password below. Just note that even on a modern browser you may be prompted for this password many times when accessing your server.
 
 form:
   - type: input
@@ -33,6 +36,12 @@ form:
     FormName: Taisun DNSKey
     placeholder: IE debec485bcab4ab189a2315ae37fe196
     required: true
+  - type: input
+    format: text
+    label: custompass
+    FormName: Custom Password
+    placeholder: Optional Make this complex it is internet facing
+    required: false
   - type: input
     format: text
     label: email
@@ -68,6 +77,7 @@ compose: |
         - EMAIL={{ email }}
         - TAISUNIP={{ taisunip }}
         - TAISUNPORT={{ taisunport }}
+        {% if custompass|length %}- CUSTOMPASS={{ custompass }}{% endif %}
       restart: always
       network_mode: bridge
       labels:

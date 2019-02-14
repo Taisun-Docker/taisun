@@ -10,25 +10,25 @@ LABEL build_version="Build-date:- ${BUILD_DATE}"
 RUN \
  echo "**** install build packages ****" && \
  apk add --no-cache --virtual=build-dependencies \
-   curl \
-	 nodejs-npm \
-	 py-pip && \
+	curl \
+	nodejs-npm \
+	py-pip && \
  echo "**** install runtime packages ****" && \
  apk add --no-cache \
-	 nodejs \
-   docker \
-	 libcap \
-   tcl \
-   expect \
-	 python2 \
-   git \
-   sudo && \
+	nodejs \
+	docker \
+	libcap \
+	tcl \
+	expect \
+	python2 \
+	git \
+	sudo && \
  pip install --upgrade pip && \
  npm i npm@latest -g && \
  pip install docker-compose && \
  echo "**** install Taisun ****" && \
  mkdir -p \
-	 /usr/src/Taisun && \
+	/usr/src/Taisun && \
  git clone https://github.com/Taisun-Docker/taisun.git /usr/src/Taisun && \
  echo "**** install node modules ****" && \
  npm install --prefix /usr/src/Taisun && \
@@ -37,16 +37,16 @@ RUN \
  curl https://s3-us-west-2.amazonaws.com/taisun-pubfiles/c9-alpine-3.8.tar.gz | tar xz -C / && \
  mkdir /applogs && \
  chown -R abc:abc \
-   /usr/src/Taisun \
-   /c9sdk \
-   /root/.c9 \
-   /applogs && \
+	/usr/src/Taisun \
+	/c9sdk \
+	/root/.c9 \
+	/applogs && \
  mv /usr/bin/git /usr/bin/gitbin && \
  echo "**** cleanup ****" && \
  apk del --purge \
-	 build-dependencies && \
+	build-dependencies && \
  rm -rf \
-	 /tmp/*
+	/tmp/*
 
 # copy local files
 COPY root-dev/ /
