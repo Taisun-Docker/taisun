@@ -22,7 +22,7 @@ sudo docker run --name taisun -d \
 --restart always \
 -p 3000:3000 \
 -v /var/run/docker.sock:/var/run/docker.sock \
-taisun/webapp:latest
+linuxserver/taisun:latest
 ```
 Taisun will be available by accessing:
 
