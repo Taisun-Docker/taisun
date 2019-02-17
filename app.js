@@ -919,19 +919,20 @@ io.on('connection', function(socket){
       stdout: 1,
       stderr: 1,
       tail:100,
-      follow:0
+      follow:true
     };
     io.sockets.in(socket.id).emit('senddockerodeoutstart','Getting logs for ' + containerid);
     var logStream = new stream.PassThrough();
     logcontainer.logs(logOpts,function (err, stream) {
       if (err){
         io.sockets.in(socket.id).emit('sendconsoleoutdone','Error Getting logs for ' + containerid);
+        console.log(err);
       }
       else{
         if (Buffer.isBuffer(stream)){
           var lines = stream.toString('utf8').split(/\r?\n/);
           lines.forEach(function(line){
-            io.sockets.in(socket.id).emit('sendconsoleout',line.substr(28));
+            io.sockets.in(socket.id).emit('sendconsoleout',line.substr(8));
           });
           io.sockets.in(socket.id).emit('sendconsoleoutdone','Logs for ' + containerid + ' below');
         }
@@ -940,6 +941,11 @@ io.on('connection', function(socket){
           logStream.on('data', (data) => {
             io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
           });
+          // End the stream after 2 seconds
+          setTimeout(endstream, 2000);
+          function endstream(){
+            stream.push(null);
+          }
           stream.on('end', function(){
             io.sockets.in(socket.id).emit('sendconsoleoutdone','Logs for ' + containerid + ' below');
           });
