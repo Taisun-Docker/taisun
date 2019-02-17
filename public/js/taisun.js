@@ -1321,6 +1321,9 @@ function stackrestart(stackname){
   $('#modalconsole').show();
   socket.emit('restartstack',stackname);
 }
+$('body').on('click', '.stackrestartbutton', function(){
+  stackrestart($(this).attr("value"));
+});
 
 // When the stop button is clicked send to server
 function stackstop(stackname){
@@ -1329,6 +1332,9 @@ function stackstop(stackname){
   $('#modalconsole').show();
   socket.emit('stopstack',stackname);
 }
+$('body').on('click', '.stackstopbutton', function(){
+  stackstop($(this).attr("value"));
+});
 
 // When the start button is clicked send to server
 function stackstart(stackname){
@@ -1337,6 +1343,9 @@ function stackstart(stackname){
   $('#modalconsole').show();
   socket.emit('startstack',stackname);
 }
+$('body').on('click', '.stackstartbutton', function(){
+  stackstart($(this).attr("value"));
+});
 
 // When the logs button is clicked send to server
 $('body').on('click', '.containerlogsbutton', function(){

@@ -1,7 +1,7 @@
 #Dockerfile for Taisun base image
 #2019
 #Use LinuxServer Base Image
-FROM lsiobase/alpine:3.8
+FROM lsiobase/alpine:3.9
 MAINTAINER Ryan Kuba <ryankuba@gmail.com>
 # Set Label info
 ARG BUILD_DATE

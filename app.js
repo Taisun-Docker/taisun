@@ -928,13 +928,22 @@ io.on('connection', function(socket){
         io.sockets.in(socket.id).emit('sendconsoleoutdone','Error Getting logs for ' + containerid);
       }
       else{
-        logcontainer.modem.demuxStream(stream, logStream, logStream);
-        logStream.on('data', (data) => {
-          io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
-        });
-        stream.on('end', function(){
+        if (Buffer.isBuffer(stream)){
+          var lines = stream.toString('utf8').split(/\r?\n/);
+          lines.forEach(function(line){
+            io.sockets.in(socket.id).emit('sendconsoleout',line.substr(28));
+          });
           io.sockets.in(socket.id).emit('sendconsoleoutdone','Logs for ' + containerid + ' below');
-        });
+        }
+        else {
+          logcontainer.modem.demuxStream(stream, logStream, logStream);
+          logStream.on('data', (data) => {
+            io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
+          });
+          stream.on('end', function(){
+            io.sockets.in(socket.id).emit('sendconsoleoutdone','Logs for ' + containerid + ' below');
+          });
+        }
       }
     });
   }
