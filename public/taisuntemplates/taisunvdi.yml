@@ -6,7 +6,7 @@ description: |
   This will launch a stateful web based Linux desktop accessible from the Taisun application.
 
   The Default Credentials are:
-    - User: taisun
+    - User: abc
     - Pass: taisun
 
   To change your password launch a terminal and run:
@@ -29,10 +29,27 @@ form:
     label: os
     FormName: OS
     options:
-      - "ubuntu-xenial"
       - "ubuntu-bionic"
-      - "debian-jessie"
-      - "debian-stretch"
+      - "ubuntu-xenial"
+  - type: input
+    label: configvolume
+    FormName: Home Directory
+    placeholder: Optional mount your home directory to your host (/config)
+    required: false
+  - type: input
+    label: uid
+    FormName: User ID
+    placeholder: UserID to run as if you are mounting home directory
+    validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
+    errormessage: Values must be in the number range 1-65535
+    required: false
+  - type: input
+    label: gid
+    FormName: Group ID
+    placeholder: GroupID to run as if you are mounting home directory
+    validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
+    errormessage: Values must be in the number range 1-65535
+    required: false
   - type: checkbox
     label: dockersock
     FormName: Enable Docker Socket
@@ -44,9 +61,13 @@ compose: |
       image: taisun/vdi:{{ os }}
       container_name: taisunvdi_{{ name }}
       network_mode: bridge
+      {% if uid|length and gid|length%}environment:
+        - PUID={{ uid }}
+        - PGID={{ gid }}{% endif %}
       labels:
         - "stackname={{ stackname }}"
         - "stacktype={{ stacktype }}"
         - "stackurl={{ stackurl }}"
-      {% if dockersock == 'true' %}volumes:
-        - "/var/run/docker.sock:/var/run/docker.sock"{% endif %}
+      {% if configvolume|length or dockersock == 'true' %}volumes:{% endif %}
+        {% if configvolume|length %}- "{{ configvolume }}:/config"{% endif %}
+        {% if dockersock == 'true' %}- "/var/run/docker.sock:/var/run/docker.sock"{% endif %}

@@ -101,7 +101,11 @@ $('#clipboard').on('input', function() {
 display.appendChild(guac.getDisplay().getElement());
 // Error handler
 guac.onerror = function(error) {
-  alert(error);
+  $('#display').empty();
+  $('#display').append(
+    '<center><h1>Error Connecting to Desktop</h1><br><p>' 
+     + JSON.stringify(error) + '</p><br>' + 
+     '<h1>If you just spun up the container allow a minute for it to finish booting</h1></center>');
 };
 // Connect
 guac.connect();

@@ -2007,6 +2007,9 @@ socket.on('updatestacks', function(containers) {
   if ($('#gateways').length > 0) {
     updategateway(containers);
   }
+  if ($('#termstacks').length > 0) {
+    updateterm(containers);
+  }
 });
 
 // Purge the modal of data
