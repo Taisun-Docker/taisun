@@ -603,7 +603,7 @@ socket.on('updatedev', function(containers){
 });
 function updatedev(containers){
   $('#devstacks').empty();
-  $('#devstacks').append('<table style="width:100%" id="devresults" class="table table-hover"><thead><tr><th>Name</th><th>URL</th><th>Language</th><th>IDE</th><th>Status</th><th>Created</th></tr></thead></table>');
+  $('#devstacks').append('<table style="width:100%" id="devresults" class="table table-hover"><thead><tr><th>Name</th><th>URL</th><th>Language</th><th></th><th>Status</th><th>Created</th><th></th></tr></thead></table>');
   var devcontainers = [];
   $(containers).each(function(index,container){
     var labels = container.Labels;
@@ -627,29 +627,17 @@ function updatedev(containers){
       devtable.clear();
       //Loop through the containers to build the developer table
       $(devcontainers).each(function(index, container) {
-        var labels = container.Labels;
-        // This is a VDI container
-        if (labels.devport == 'vdi'){
-          devtable.row.add( 
-            [labels.stackname, 
-            '<a href="/desktop/' + container.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
-            labels.devlanguage,
-            'VDI',
-            container.State + ' ' + container.Status, 
-            new Date( container.Created * 1e3).toISOString().slice(0,19)] 
-          );
-        }
-        else{
-          var host = window.location.hostname;
-          devtable.row.add( 
-            [labels.stackname, 
-            '<a href="http://' + host + ':' + labels.devport + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
-            labels.devlanguage,
-            labels.ide,
-            container.State + ' ' + container.Status, 
-            new Date( container.Created * 1e3).toISOString().slice(0,19)] 
-          );          
-        }
+      var labels = container.Labels;
+        var host = window.location.hostname;
+        devtable.row.add( 
+          [labels.stackname, 
+          '<a href="http://' + host + ':' + labels.devport + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+          labels.devlanguage,
+          '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary containerlogsbutton" value="' + container.Id + '">Logs <i class="fas fa-file-alt"></i></button>',
+          container.State + ' ' + container.Status, 
+          new Date( container.Created * 1e3).toISOString().slice(0,19),
+          '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackrestartbutton" value="' + labels.stackname + '">Restart <i class="fas fa-fw fa-sync"></i></button>']
+        );          
       }).promise().done(devtable.draw());
     }
   });

@@ -4,21 +4,19 @@ description: |
   ============
   
   This will launch a blank development container that checks out the git URL passed to it below.
-  When launching a VDI type container you can ignore the Dev Interface port value and Language. The base Ubuntu VDI container will have the following environments installed:
-    * Node.JS
-    * Go
-    * Python
-    * Ruby
-    
-  It will also include the following code editors:
-    * Sublime Text
-    * Atom
-    * VSCode
-    * Emacs
-
-  The cloud9 variants are language specific and need a developer port to bind to. Upon launching into the web based IDE you will need to set a username and email, this is simply to enable collaboration with other users.
+  
+  At the core of these images is the <a href="https://github.com/c9/core" target="_blank">Cloud9</a> web based IDE, it is available in a few pre-configured flavors, all with a <a href="https://www.linuxserver.io/" target="_blank">LinuxServer.io</a> Ubuntu Bionic base: 
+    * Python - 3 and 2.7 installed by default with common development tools
+    * Node.js - 10.x series with npm and nodemon
+    * Go - Latest stable release of GoLang
+    * Ruby - System level packages for Ruby and Bundle pre-installed
+    * Docker - For working on docker only logic, you should enable the Docker Socket to be able to build from inside the IDE
+  
+  All of these flavors have base Docker tools for interacting with your host level Docker Socket.
   
   If your application needs access to the Docker API make sure to enable the Docker Socket.
+  
+  **Note the internal port 8000 will be occupied by the Cloud9 interface you cannot pass that as an application port internally**
 
 form:
   - type: input
@@ -35,7 +33,7 @@ form:
   - type: input
     label: devport
     FormName: Dev Interface Port
-    placeholder: Port to use to access the development interface (ignore for VDI)
+    placeholder: Port to use to access the development interface
     validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
     errormessage: Values must be in a valid port range 1-65535
     required: true
@@ -46,49 +44,19 @@ form:
     validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])+(:([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))$
     errormessage: Values must be in the format hostport:containerport 1-65535
   - type: select
-    label: ide
-    FormName: IDE
-    options:
-      - cloud9
-      - VDI
-  - type: select
     label: language
     FormName: Language
     options:
-      - Node.js
       - Python
-      - Ruby
+      - Node.js
       - Go
+      - Ruby
+      - Docker
   - type: checkbox
     label: dockersock
     FormName: Enable Docker Socket
 
 compose: |
-  {% if ide == 'VDI' %}
-  version: "3"
-  services:
-    taisunvdi_{{ name }}:
-      image: taisun/vdi_ubuntu:dev
-      container_name: taisunvdi_{{ name }}
-      network_mode: bridge
-      {% if ports %}
-      ports:
-        {% for port in ports %}- "{{ port }}"
-        {% endfor %}
-      {% endif %}
-      environment:
-        - "GITURL={{ giturl }}"
-        - "PROJECTNAME={{ name }}"
-      labels:
-        - "stackname={{ stackname }}"
-        - "stacktype={{ stacktype }}"
-        - "stackurl={{ stackurl }}"
-        - "devport=vdi"
-        - "devlanguage={{ language }}"
-        - "ide={{ ide }}"
-      {% if dockersock == 'true' %}volumes:
-        - "/var/run/docker.sock:/var/run/docker.sock"{% endif %}
-  {% elif ide == 'cloud9' %}
   version: "3"
   services:
     {{ name }}:
@@ -108,7 +76,5 @@ compose: |
         - "stackurl={{ stackurl }}"
         - "devport={{ devport }}"
         - "devlanguage={{ language }}"
-        - "ide={{ ide }}"
       {% if dockersock == 'true' %}volumes:
         - "/var/run/docker.sock:/var/run/docker.sock"{% endif %}
-  {% endif %}
