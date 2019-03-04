@@ -205,18 +205,6 @@ socket.on('rendervdi', function(response){
         </div>\
       </div>\
       <div class="col-xl-3 col-sm-6 mb-3">\
-        <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="vdibuildermodal()">\
-          <div class="card text-white bg-primary o-hidden h-60">\
-            <div class="card-body">\
-              <div class="card-body-icon">\
-                <i class="fab fa-fw fa-linux"></i>\
-              </div>\
-              <div class="mr-5">\
-                Desktop Builder\
-              </div>\
-            </div>\
-          </a>\
-        </div>\
       </div>\
       <div class="col-xl-3 col-sm-6 mb-3">\
         <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="guacstatusmodal()">\
@@ -251,7 +239,6 @@ socket.on('rendervdi', function(response){
                 <th>Status</th>\
                 <th>Logs</th>\
                 <th>Manage</th>\
-                <th>Upgrade</th>\
               </tr>\
             </thead>\
           </table>\
@@ -288,8 +275,7 @@ function updatevdi(containers){
           container.Image, 
           container.State + ' ' + container.Status, 
           '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary containerlogsbutton" value="' + container.Id + '">Logs <i class="fa fa-fw fa-terminal"></i></button>',
-          management,
-          '<button type="button" style="cursor:pointer;" class="btn btn-success stackupgradebutton" data-toggle="modal" data-target="#modal" value="' + labels.stackname + '">Upgrade <i class="fa fa-arrow-up"></i></button>'] 
+          management]
         );
       }
     }
@@ -315,15 +301,6 @@ socket.on('modal_finish', function(message) {
   setTimeout(location.reload.bind(location), 5000);
   $('#modalconsole').append('<div>' + message + '</div>');
 });
-// VDI Builder modal
-function vdibuildermodal(){
-  modalpurge();
-  $('#modaltitle').append('Build Custom Desktop');
-  $('#modalbody').show();
-  $('#modalbody').append('\
-  Coming Soon\
-  ');
-}
 // Form to build a container from git repo
 function gitmodal(){
   modalpurge();
@@ -719,7 +696,7 @@ function updateterm(containers){
     }
     // Found some Terminal containers
     else{
-      // Loop through the VDIs deployed to show them on the vdi page
+      // Loop through the terminals deployed to show them on the terminal page
       $("#termresults").dataTable().fnDestroy();
       var termtable = $('#termresults').DataTable( {} );
       termtable.clear();
