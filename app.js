@@ -396,22 +396,36 @@ io.on('connection', function(socket){
       var yml = yaml.safeLoad(body);
       var compose = yml.compose;
       var composefile = nunjucks.renderString(compose, inputs);
-      var composecommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -p '+ inputs.stackname+' -f - up -d'];
-      const composeup = spawn('unbuffer', composecommand);
-      composeup.stdout.setEncoding('utf8');
-      composeup.stdout.on('data', (data) => {
+      var composeupcommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -p '+ inputs.stackname+' -f - up -d'];
+      var composepullcommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -p '+ inputs.stackname+' -f - pull'];
+      const composepull = spawn('unbuffer', composepullcommand);
+      composepull.stdout.setEncoding('utf8');
+      composepull.stdout.on('data', (data) => {
         io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
       });
-      composeup.on('close', (code) => {
-        io.sockets.in(socket.id).emit('sendconsoleoutdone','Compose up process exited with code ' + code);
-        containerinfo('updatestacks');
+      composepull.on('close', (code) => {
         if (code != '0'){
           destroystack(inputs.stackname);
+          io.sockets.in(socket.id).emit('sendconsoleoutdone','Compose pull process exited with code ' + code);
         }
-        if (stacktype == 'community'){
-          var guid = templatename.replace('.yml','');
-          request.get({url:'https://api.taisun.io/stacks/download?guid=' + guid},function(error, response, body){
-            console.log('updated download count for stack ' + guid);
+        else{
+          const composeup = spawn('unbuffer', composeupcommand);
+          composeup.stdout.setEncoding('utf8');
+          composeup.stdout.on('data', (data) => {
+            io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
+          });
+          composeup.on('close', (code) => {
+            io.sockets.in(socket.id).emit('sendconsoleoutdone','Compose up process exited with code ' + code);
+            containerinfo('updatestacks');
+            if (code != '0'){
+              destroystack(inputs.stackname);
+            }
+            if (stacktype == 'community'){
+              var guid = templatename.replace('.yml','');
+              request.get({url:'https://api.taisun.io/stacks/download?guid=' + guid},function(error, response, body){
+                console.log('updated download count for stack ' + guid);
+              });
+            }
           });
         }
       });

@@ -1677,13 +1677,26 @@ socket.on('sendconsoleout', function(data) {
   if (data.split(':')[0].length == 12){
     var uuid = data.split(':')[0].toString();
     // If div allready exists then just update it
-    if ($('#' + uuid).length > 0) {
+    if ($('#' + uuid).length) {
       $('#' + uuid).empty();
       $('#' + uuid).append(data);
     }
     // Div does not exist create it and put the data in it
     else{
       $('#modalconsole').append('<div id="' + uuid + '">' + data + '</div>');
+    }
+  }
+  // If this data is in the compose pull format create a div for updating
+  else if (data.split('...')[0].toString().includes('Pulling')){
+    var pullid = data.split('...')[0].toString().replace(/\s/g,'');
+    // If div allready exists then just update it
+    if ($('#' + pullid).length) {
+      $('#' + pullid).empty();
+      $('#' + pullid).append(data);
+    }
+    // Div does not exist create it and put the data in it
+    else{
+      $('#modalconsole').append('<div id="' + pullid + '">' + data + '</div>');
     }
   }
   else{
