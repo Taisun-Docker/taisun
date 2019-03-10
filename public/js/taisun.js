@@ -1533,6 +1533,7 @@ socket.on('stackurlresults', function(data) {
   var name = data[0];
   var markdown = data[1];
   var url = data[3];
+  var template = data[4];
   $('#modaltitle').empty();
   $('#modaltitle').append(name);
   $('#modalbody').show();
@@ -1550,7 +1551,9 @@ socket.on('stackurlresults', function(data) {
   $('#modalfooter').append('\
   <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel <i class="far fa-times-circle"></i></button>\
   <button type="button" class="btn btn-success" id="createstack" value="' + url + '">Create<i class="fa fa-rocket"></i></button>\
+  <div id="template-store" style="display: none;">\
   ');
+  $('#template-store').val(template);
 });
 // Convert the body object we get from the server into a bootstrap form
 function formbuilder(data){
@@ -1637,6 +1640,8 @@ $('body').on('click', '#createstack', function(){
   var inputs = {};
   var error = 'false';
   var url = $("#createstack").val();
+  var template = $("#template-store").val();
+  $("#template-store").empty();
   // Create an object with all the inputs for nunchucks and hide any previous errors
   $(".stackinputdata").each(function() {
     var validation = $(this).data('validation');
@@ -1701,7 +1706,7 @@ $('body').on('click', '#createstack', function(){
     }
   }).promise().then(function(){
       if (error == 'false'){
-      socket.emit('launchstack',{"stackurl":url,"inputs":inputs});
+      socket.emit('launchstack',{"stackurl":url,"inputs":inputs,"template":template});
       modalpurge();
       $('#modalloading').show();
       $('#modaltitle').append('Launching ' + url);

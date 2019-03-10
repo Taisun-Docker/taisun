@@ -333,7 +333,7 @@ io.on('connection', function(socket){
         var name = yml.name;
         var description = yml.description;
         var form = yml.form;
-        io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,url]);
+        io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,url,body]);
       });
     }
     // Try to grab a dockerhub endpoint for stack data if this is not a URL
@@ -371,6 +371,7 @@ io.on('connection', function(socket){
   socket.on('launchstack', function(userinput){
     var url = userinput.stackurl;
     var inputs = userinput.inputs;
+    var template = userinput.template;
     var templatename = url.split('/').slice(-1)[0];
     if (templatename == 'basetemplate.yml'){
       var stacktype = 'container';
@@ -398,43 +399,41 @@ io.on('connection', function(socket){
     else {
       inputs['stackname'] = uuidv4().substring(0,8);
     }
-    request.get({url:url},function(error, response, body){
-      var yml = yaml.safeLoad(body);
-      var compose = yml.compose;
-      var composefile = nunjucks.renderString(compose, inputs);
-      var composeupcommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -p '+ inputs.stackname+' -f - up -d'];
-      var composepullcommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -p '+ inputs.stackname+' -f - pull'];
-      const composepull = spawn('unbuffer', composepullcommand);
-      composepull.stdout.setEncoding('utf8');
-      composepull.stdout.on('data', (data) => {
-        io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
-      });
-      composepull.on('close', (code) => {
-        if (code != '0'){
-          destroystack(inputs.stackname);
-          io.sockets.in(socket.id).emit('sendconsoleoutdone','Compose pull process exited with code ' + code);
-        }
-        else{
-          const composeup = spawn('unbuffer', composeupcommand);
-          composeup.stdout.setEncoding('utf8');
-          composeup.stdout.on('data', (data) => {
-            io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
-          });
-          composeup.on('close', (code) => {
-            io.sockets.in(socket.id).emit('sendconsoleoutdone','Compose up process exited with code ' + code);
-            containerinfo('updatestacks');
-            if (code != '0'){
-              destroystack(inputs.stackname);
-            }
-            if (stacktype == 'community'){
-              var guid = templatename.replace('.yml','');
-              request.get({url:'https://api.taisun.io/stacks/download?guid=' + guid},function(error, response, body){
-                console.log('updated download count for stack ' + guid);
-              });
-            }
-          });
-        }
-      });
+    var yml = yaml.safeLoad(template);
+    var compose = yml.compose;
+    var composefile = nunjucks.renderString(compose, inputs);
+    var composeupcommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -p '+ inputs.stackname+' -f - up -d'];
+    var composepullcommand = ['sh','-c','echo \'' + composefile + '\' | docker-compose -p '+ inputs.stackname+' -f - pull'];
+    const composepull = spawn('unbuffer', composepullcommand);
+    composepull.stdout.setEncoding('utf8');
+    composepull.stdout.on('data', (data) => {
+      io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
+    });
+    composepull.on('close', (code) => {
+      if (code != '0'){
+        destroystack(inputs.stackname);
+        io.sockets.in(socket.id).emit('sendconsoleoutdone','Compose pull process exited with code ' + code);
+      }
+      else{
+        const composeup = spawn('unbuffer', composeupcommand);
+        composeup.stdout.setEncoding('utf8');
+        composeup.stdout.on('data', (data) => {
+          io.sockets.in(socket.id).emit('sendconsoleout',ansi_up.ansi_to_html(data).trim());
+        });
+        composeup.on('close', (code) => {
+          io.sockets.in(socket.id).emit('sendconsoleoutdone','Compose up process exited with code ' + code);
+          containerinfo('updatestacks');
+          if (code != '0'){
+            destroystack(inputs.stackname);
+          }
+          if (stacktype == 'community' && url.indexOf('https://stacks.taisun.io/templates/') > -1){
+            var guid = templatename.replace('.yml','');
+            request.get({url:'https://api.taisun.io/stacks/download?guid=' + guid},function(error, response, body){
+              console.log('updated download count for stack ' + guid);
+            });
+          }
+        });
+      }
     });
   });
   // Get GuacD full container information and render VDI page based on status
@@ -955,7 +954,7 @@ io.on('connection', function(socket){
               var name = yml.name;
               var description = yml.description;
               var form = yml.form;
-              io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,url]);
+              io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,url,template]);
             });
           });
       }
