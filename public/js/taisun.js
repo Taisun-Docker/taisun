@@ -429,13 +429,13 @@ function renderimages(){
       </div>\
     </div>\
     <div class="col-xl-3 col-sm-6 mb-3">\
-        <div class="card text-white bg-info o-hidden h-60" id="stacks" style="cursor:pointer;" onclick="renderstacks()">\
+        <div class="card text-white bg-info o-hidden h-60" onclick="window.open(\'https://stacks.taisun.io\');" style="cursor:pointer;">\
           <div class="card-body">\
             <div class="card-body-icon">\
               <i class="fa fa-fw fa-cubes"></i>\
             </div>\
             <div class="mr-5">\
-              Taisun Stacks\
+              stacks.taisun.io\
             </div>\
           </div>\
       </div>\
@@ -946,13 +946,13 @@ function renderstacks(){
       </div>\
     </div>\
     <div class="col-xl-3 col-sm-6 mb-3">\
-        <div class="card text-white bg-info o-hidden h-60" onclick="window.open(\'https://stacks.taisun.io\');" style="cursor:pointer;">\
+        <div class="card text-white bg-info o-hidden h-60" data-toggle="modal" data-target="#modal" onclick="privateuploadmodal()" style="cursor:pointer;">\
           <div class="card-body">\
             <div class="card-body-icon">\
-              <i class="fa fa-fw fa-cubes"></i>\
+              <i class="fab fa-fw fa-docker"></i>\
             </div>\
             <div class="mr-5">\
-              stacks.taisun.io\
+              Upload Private\
             </div>\
           </div>\
       </div>\
@@ -1013,7 +1013,7 @@ function updatelocalstacks(containers){
       $("#stackresults").dataTable().fnDestroy();
       var stacktable = $('#stackresults').DataTable( {} );
       stacktable.clear();
-      //Loop through the containers to build the developer table
+      //Loop through the containers
       $(stackcontainers).each(function(index, container) {
         var labels = container.Labels;
         var host = window.location.hostname;
@@ -1022,6 +1022,11 @@ function updatelocalstacks(containers){
           // This is being accessed remote do not show links
           if (host.indexOf('taisun.io') > -1){
             var launch = '<button class="btn btn-sm btn-danger">NA Remote <i class="far fa-times-circle" aria-hidden="true"></i></button>';
+          }
+          // Handle stacks without ports
+          else if (apport == 'NA'){
+            var launch = '<button class="btn btn-sm btn-danger">NA <i class="far fa-times-circle" aria-hidden="true"></i></button>';
+            addrowlocal(launch, container, labels, stacktable);
           }
           // Local mode show links
           else{
@@ -1102,6 +1107,12 @@ socket.on('manageinfo', function(containers) {
       var name = container.Names[0];
       var mounts = container.Mounts;
       var ports = container.Ports;
+      if (labels.stackurl){
+        var url = labels.stackurl;
+      }
+      else{
+        var url = 'Not Set';
+      }
       $('#manageheader').empty();
       $('#manageheader').append('\
      <div class="row">\
@@ -1208,6 +1219,10 @@ socket.on('manageinfo', function(containers) {
       ').ready(function () {
         $('#status_' + id).append('\
         <table class="table">\
+          <tr>\
+            <td>Stack URL</td>\
+            <td>' + url + '</td>\
+          </tr>\
           <tr>\
             <td>Status</td>\
             <td>' + container.State + ' ' + container.Status + '</td>\
@@ -1324,14 +1339,28 @@ $('body').on('click', '.containerlogsbutton', function(){
 function renderbrowsestacks(){
   $('#pagecontent').empty();
   $('#pagecontent').append('\
-  <form class="form-inline mb-3" onsubmit="return false;">\
-    <div class="input-group">\
-      <input type="text" class="form-control" placeholder="Search" id="stacksearch">\
-      <div class="input-group-btn">\
-        <button onclick="stacksearch(1)" type="button" class="btn btn-default"><i class="fa fa-search"></i></button>\
-      </div>\
+  <div class="row">\
+    <div class="col-6">\
+      <form class="form-inline mb-3" onsubmit="return false;">\
+        <div class="input-group">\
+          <input type="text" class="form-control" placeholder="Search" id="stacksearch">\
+          <div class="input-group-btn">\
+            <button onclick="stacksearch(1)" type="button" class="btn btn-default"><i class="fa fa-search"></i></button>\
+          </div>\
+        </div>\
+      </form>\
     </div>\
-  </form>\
+    <div class="col-6">\
+      <form class="form-inline mb-3" onsubmit="return false;">\
+        <div class="input-group col-12">\
+          <input type="text" class="form-control" placeholder="From Endpoint" id="stackurl">\
+          <div class="input-group-btn">\
+            <button id="stackurlbutton" data-toggle="modal" data-target="#modal" type="button" class="btn btn-default stackurlbutton"><i class="fa fa-download"></i></button>\
+          </div>\
+        </div>\
+      </form>\
+    </div>\
+  </div>\
   <div class="card mb-3">\
     <div class="card-header">\
       <i class="fa fa-bars"></i>\
@@ -1348,8 +1377,21 @@ function renderbrowsestacks(){
       stacksearch(1);
     }
   });
+  document.getElementById("stackurl").addEventListener("keydown", function (e) {
+    if (e.keyCode === 13) { 
+      document.getElementById("stackurlbutton").click();
+    }
+  });
 }
 
+// When the configure button is clicked send the URL to the server and give the user a spinner
+$('body').on('click', '.stackurlbutton', function(){
+  var endpoint = $('#stackurl').val();
+  socket.emit('sendstackurl', endpoint);
+  modalpurge();
+  $('#modaltitle').append('Pulling definition from ' + endpoint);
+  $('#modalloading').show();
+});
 
 // When the server gives us the stacks parse them
 socket.on('stacksresults', function(data) {
@@ -1742,6 +1784,55 @@ function yamluploadmodal(){
   <button type="button" class="btn btn-success" onclick="uploadyaml()">Upload</button>\
   ');
 }
+// Upload Private Modal
+function privateuploadmodal(){
+  modalpurge();
+  $('#modaltitle').append('Private Stacks');
+  $('#modalbody').show();
+  $('#modalbody').append('\
+    <p>This process will take the template below, encrypt it, upload it to DockerHub, and give you a link you can use to launch this stack from any installation of Taisun.</p>\
+    <p>You will need a DockerHub account to push these but not to consume them, format is USER/REPO:TAG. The endpoints will be automatically generated, no need to use existing ones.</p>\
+    <form>\
+      <div class="form-group row">\
+        <label for="dockeruser" class="col-sm-2 col-form-label">DockerHub User</label>\
+        <div class="col-sm-10">\
+          <input type="text" class="form-control" id="dockeruser" placeholder="Docker Username">\
+        </div>\
+      </div>\
+      <div class="form-group row">\
+        <label for="dockerpass" class="col-sm-2 col-form-label">DockerHub Password</label>\
+        <div class="col-sm-10">\
+          <input type="password" class="form-control" id="dockerpass" placeholder="Password">\
+        </div>\
+      </div>\
+      <div class="form-group row">\
+        <label for="repo" class="col-sm-2 col-form-label">DockerHub Repo</label>\
+        <div class="col-sm-10">\
+          <input type="text" class="form-control" id="repo" placeholder="Repo to use IE taisun-templates">\
+        </div>\
+      </div>\
+      <div class="form-group row">\
+        <label for="tag" class="col-sm-2 col-form-label">DockerHub Tag</label>\
+        <div class="col-sm-10">\
+          <input type="text" class="form-control" id="tag" placeholder="Tag to use IE stackname">\
+        </div>\
+      </div>\
+    </form>\
+    <div id="editor" style="height: 500px; width: 100%"></div>\
+  ');
+  // Ace editor
+  var editor = ace.edit("editor");
+  editor.setTheme("ace/theme/chrome");
+  editor.session.setMode("ace/mode/yaml");
+  editor.session.setOptions({
+      tabSize: 2
+  });  
+  $('#modalfooter').show();
+  $('#modalfooter').append('\
+  <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>\
+  <button type="button" class="btn btn-success" onclick="pushstack()">Upload</button>\
+  ');
+}
 // Send custom yaml to application
 function uploadyaml(){
   var editor = ace.edit("editor");
@@ -1749,6 +1840,20 @@ function uploadyaml(){
   modalpurge()
   $('#modalloading').show();
   socket.emit('sendyaml',code);
+}
+// pushstack
+function pushstack(){
+  var editor = ace.edit("editor");
+  var code = btoa(editor.getValue());
+  $('#modalloading').show();
+  var dockeruser = $("#dockeruser").val();
+  var dockerpass = $("#dockerpass").val();
+  var repo = $("#repo").val();
+  var tag = $("#tag").val();
+  var full = dockeruser + '/' + repo + ':' + tag;
+  var data = [full,code,dockeruser,dockerpass];
+  modalpurge();
+  socket.emit('buildencrypto',data);
 }
 
 //// Render the remote access pages ////
@@ -1779,7 +1884,7 @@ function renderremotestart() {
     </div>\
     <div class="card-body">\
       <center>\
-        <h2>You will need a DNS endpoint that points to your IP to continue login at <a href="https://www.taisun.io" target="_blank">Taisun.io</a> and click on Taisun DynDNS</h2>\
+        <h2>You will need a DNS endpoint that points to your IP to continue, login at <a href="https://www.taisun.io" target="_blank">Taisun.io</a> and click on Taisun DynDNS</h2>\
         <br>\
         <button type="button" class="btn btn-lg btn-primary configurestack" data-toggle="modal" data-target="#modal" value="http://localhost:3000/public/taisuntemplates/taisungateway.yml">I have an Endpoint</button>\
       </center>\

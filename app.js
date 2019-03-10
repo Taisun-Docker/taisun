@@ -327,13 +327,19 @@ io.on('connection', function(socket){
   });
   // Parse Taisun Stacks Yaml and send form to client
   socket.on('sendstackurl', function(url){
-    request.get({url:url},function(error, response, body){
-      var yml = yaml.safeLoad(body);
-      var name = yml.name;
-      var description = yml.description;
-      var form = yml.form;
-      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,url]);
-    });
+    if (url.substring(0,4) == 'http'){
+      request.get({url:url},function(error, response, body){
+        var yml = yaml.safeLoad(body);
+        var name = yml.name;
+        var description = yml.description;
+        var form = yml.form;
+        io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,url]);
+      });
+    }
+    // Try to grab a dockerhub endpoint for stack data if this is not a URL
+    else{
+      renderprivatestack(url);
+    }
   });
   // Parse Yaml for single container and send to user
   socket.on('sendimagename', function(imagename){
@@ -519,6 +525,15 @@ io.on('connection', function(socket){
     var checkout = formdata[2];
     var tag = formdata[3];
     builddockergit(repo,path,checkout,tag);
+  });
+  // When user chooses to push a stack template to dockerhub execute
+  socket.on('buildencrypto', function(formdata){
+    var tag = formdata[0];
+    var template = formdata[1];
+    var dockeruser = formdata[2];
+    var dockerpass = formdata[3];
+    var pass = uuidv4();
+    buildencrypto(tag,pass,template,dockeruser,dockerpass);
   });
   // When the user requests a remote access check ping the port checker with the URL
   socket.on('checkremoteaccess', function(domain){
@@ -843,6 +858,107 @@ io.on('connection', function(socket){
             }
           });
     	  }
+    });
+  }
+  // Build and push an encrypto image with a stack in it
+  function buildencrypto(tag,pass,template,dockeruser,dockerpass){
+    var tarStream = tar.pack('/usr/src/Taisun/buildlocal/encrypto/');
+    docker.buildImage(tarStream, {
+      t: tag,
+      buildargs: {
+        "INPUT": template,
+        "PASS": pass
+      }
+    }, function(err, output) {
+      if (err) {
+        io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Error executing build');
+        console.log(err);
+      }
+      else{
+        io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Building ' + tag);
+        docker.modem.followProgress(output, onFinished, onProgress);
+        function onProgress(event) {
+          io.sockets.in(socket.id).emit('senddockerodeout', event);
+        }
+        function onFinished(err, output) {
+          if (err) return;
+          io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Finished Build process for ' + tag);
+          console.log('Finished building ' + tag);
+          pushencrypto(tag,pass,dockeruser,dockerpass);
+        }
+      }
+    });
+  }
+  // Push an encrypted blob to dockerhub
+  function pushencrypto(tag,pass,dockeruser,dockerpass){
+    var image = docker.getImage(tag);
+    var auth = {
+      username: dockeruser,
+      password: dockerpass,
+      serveraddress: "https://index.docker.io/v1",
+      auth: "",
+      email: ""
+    };
+    image.push({authconfig: auth}, function(err, output){
+      if (err) {
+        io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Error executing Push');
+        console.log(err);
+      }
+      else {
+        io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Pushing ' + tag);
+        docker.modem.followProgress(output, onFinished, onProgress);
+        function onProgress(event) {
+          io.sockets.in(socket.id).emit('senddockerodeout', event);
+        }
+        function onFinished(err, output) {
+          if (err) return;
+          io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Finished Push process for ' + tag);
+          io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Your Taisun stack link is : ' + tag + '|' + pass  );
+          console.log('Finished Pushing ' + tag);
+        }
+      }
+    });
+  }
+  // Decrypt remote stack on Dockerhub
+  function renderprivatestack(url){
+    var image = url.split('|')[0];
+    var pass = url.split('|')[1];
+    io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Starting Pull process for ' + image);
+    console.log('Pulling ' + image);
+    docker.pull(image, function(err, stream) {
+      if (err) return;
+      docker.modem.followProgress(stream, onFinished, onProgress);
+      function onProgress(event) {
+        io.sockets.in(socket.id).emit('senddockerodeout', event);
+      }
+      function onFinished(err, output) {
+        if (err) return;
+        io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Finished Pull process for ' + image + ' rendering template');
+        console.log('Finished Pulling ' + image);
+        docker.run(image, [], undefined, {
+            env: ['PASS=' + pass],
+            HostConfig: {
+                AutoRemove: true
+            }
+        },function (err, data, container) {
+            if(err)
+                console.log("Error: "+ err);
+          }).on('stream', function (stream) {
+            var basestring = '';
+            stream.setEncoding('utf8');
+            stream.on('data', (data) => {
+              basestring += data;
+            });
+            stream.on('end', function(){
+              var template = new Buffer(basestring, 'base64').toString('utf8');
+              var yml = yaml.safeLoad(template);
+              var name = yml.name;
+              var description = yml.description;
+              var form = yml.form;
+              io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,url]);
+            });
+          });
+      }
     });
   }
   // Restart all containers in a stack
