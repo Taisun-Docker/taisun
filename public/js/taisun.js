@@ -1048,7 +1048,12 @@ function updatelocalstacks(containers){
               });
             }
             else{
-              var launch = '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Open <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>';
+              if (labels.https){
+                var launch = '<a href="https://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Open <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>';
+              }
+              else{
+                var launch = '<a href="http://' + host + ':' + labels.appport + '" target="_blank" class="btn btn-sm btn-primary">Open <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>';
+              }
             }
           }
         }
