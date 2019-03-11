@@ -349,7 +349,7 @@ io.on('connection', function(socket){
       var description = yml.description;
       var form = yml.form;
       form.push({type:'input',format:'text',label:'image',FormName:'Image',placeholder:'',value:imagename});
-      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost:3000/public/taisuntemplates/basetemplate.yml']);
+      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost:3000/public/taisuntemplates/basetemplate.yml',body]);
     });
   });
   // Get custom Yaml from user and create a temp file for using the standard workflow
@@ -364,7 +364,7 @@ io.on('connection', function(socket){
       var name = yml.name;
       var description = yml.description;
       var form = yml.form;
-      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost:3000/public/stackstemp/' + guid + '.yml']);
+      io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,'http://localhost:3000/public/stackstemp/' + guid + '.yml',code]);
     });
   });
   // When user submits stack data launch the stack
