@@ -1540,7 +1540,7 @@ socket.on('stackurlresults', function(data) {
   var url = data[3];
   var template = data[4];
   $('#modaltitle').empty();
-  $('#modaltitle').append(name);
+  $('#modaltitle').append(name + ' <button type="button" class="btn" onclick="yamluploadmodal(\'template-store\')">Edit <i class="fa fa-edit"></i></button>');
   $('#modalbody').show();
   $('#modalbody').append(converter.makeHtml(markdown));
   $('#modalbody').append('\
@@ -1773,7 +1773,11 @@ socket.on('sendconsoleoutdone', function(data) {
 });
 
 // Upload Yaml Modal
-function yamluploadmodal(){
+function yamluploadmodal(stackdata){
+  var template = '';
+  if (stackdata){
+    var template = $('#' + stackdata).val();
+  }
   modalpurge();
   $('#modaltitle').append('Custom YAML');
   $('#modalbody').show();
@@ -1787,7 +1791,8 @@ function yamluploadmodal(){
   editor.session.setMode("ace/mode/yaml");
   editor.session.setOptions({
       tabSize: 2
-  });  
+  });
+  editor.setValue(template, -1);
   $('#modalfooter').show();
   $('#modalfooter').append('\
   <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>\

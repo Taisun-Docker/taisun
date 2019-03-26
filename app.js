@@ -923,42 +923,48 @@ io.on('connection', function(socket){
     var image = url.split('|')[0];
     var pass = url.split('|')[1];
     io.sockets.in(socket.id).emit('senddockerodeoutstart', 'Starting Pull process for ' + image);
-    console.log('Pulling ' + image);
-    docker.pull(image, function(err, stream) {
-      if (err) return;
-      docker.modem.followProgress(stream, onFinished, onProgress);
-      function onProgress(event) {
-        io.sockets.in(socket.id).emit('senddockerodeout', event);
-      }
-      function onFinished(err, output) {
+    if (! pass){
+      console.log('nothing set for pass malformed encrypted dockerhub endpoint');
+      io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Error pulling ' + url);
+    }
+    else{
+      console.log('Pulling ' + image);
+      docker.pull(image, function(err, stream) {
         if (err) return;
-        io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Finished Pull process for ' + image + ' rendering template');
-        console.log('Finished Pulling ' + image);
-        docker.run(image, [], undefined, {
-            env: ['PASS=' + pass],
-            HostConfig: {
-                AutoRemove: true
-            }
-        },function (err, data, container) {
-            if(err)
-                console.log("Error: "+ err);
-          }).on('stream', function (stream) {
-            var basestring = '';
-            stream.setEncoding('utf8');
-            stream.on('data', (data) => {
-              basestring += data;
+        docker.modem.followProgress(stream, onFinished, onProgress);
+        function onProgress(event) {
+          io.sockets.in(socket.id).emit('senddockerodeout', event);
+        }
+        function onFinished(err, output) {
+          if (err) return;
+          io.sockets.in(socket.id).emit('senddockerodeoutdone', 'Finished Pull process for ' + image + ' rendering template');
+          console.log('Finished Pulling ' + image);
+          docker.run(image, [], undefined, {
+              env: ['PASS=' + pass],
+              HostConfig: {
+                  AutoRemove: true
+              }
+          },function (err, data, container) {
+              if(err)
+                  console.log("Error: "+ err);
+            }).on('stream', function (stream) {
+              var basestring = '';
+              stream.setEncoding('utf8');
+              stream.on('data', (data) => {
+                basestring += data;
+              });
+              stream.on('end', function(){
+                var template = new Buffer(basestring, 'base64').toString('utf8');
+                var yml = yaml.safeLoad(template);
+                var name = yml.name;
+                var description = yml.description;
+                var form = yml.form;
+                io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,url,template]);
+              });
             });
-            stream.on('end', function(){
-              var template = new Buffer(basestring, 'base64').toString('utf8');
-              var yml = yaml.safeLoad(template);
-              var name = yml.name;
-              var description = yml.description;
-              var form = yml.form;
-              io.sockets.in(socket.id).emit('stackurlresults', [name,description,form,url,template]);
-            });
-          });
-      }
-    });
+        }
+      });
+    }
   }
   // Restart all containers in a stack
   function restartstack(stackname){
