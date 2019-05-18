@@ -11,8 +11,14 @@ RUN \
  echo "**** install build packages ****" && \
  apk add --no-cache --virtual=build-dependencies \
 	curl \
+	gcc \
+	libffi-dev \
+	make \
+	musl-dev \
 	nodejs-npm \
-	py-pip && \
+	openssl-dev \
+	py-pip \
+    python-dev && \
  echo "**** install runtime packages ****" && \
  apk add --no-cache \
 	nodejs \
