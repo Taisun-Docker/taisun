@@ -1020,8 +1020,9 @@ function updatelocalstacks(containers){
         var apport = labels.appport;
         if (apport){
           // This is being accessed remote do not show links
-          if (host.indexOf('taisun.io') > -1){
+          if (host.includes('taisun.io')){
             var launch = '<button class="btn btn-sm btn-danger">NA Remote <i class="far fa-times-circle" aria-hidden="true"></i></button>';
+            addrowlocal(launch, container, labels, stacktable);
           }
           // Handle stacks without ports
           else if (apport == 'NA'){
@@ -1063,7 +1064,7 @@ function updatelocalstacks(containers){
         if ( labels.stacktype == 'community' && launch == 'Not Set' || isNaN(apport) ){
           // Community Stacks without ports set, set logic for this if they are single container stacks
         }
-        else {
+        else if  (!host.includes('taisun.io')){
           addrowlocal(launch, container, labels, stacktable);
         }
       }).promise().done(stacktable.draw());
