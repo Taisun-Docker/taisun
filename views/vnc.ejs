@@ -1,0 +1,70 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Taisun VNC">
+    <meta name="author" content="Ryan Kuba">
+    <title>Taisun VNC</title>
+    <link href="/public/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/public/vendor/font-awesome/css/fontawesome.min.css" rel="stylesheet" type="text/css">
+    <link href="/public/css/vdi.css" rel="stylesheet" type="text/css">
+    <link rel="apple-touch-icon" sizes="57x57" href="/public/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/public/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/public/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/public/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/public/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/public/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/public/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/public/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/public/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/public/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/public/favicon/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/public/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+  </head>
+  <body>
+    <!-- SideBar -->
+    <div class="sidebar" style="cursor:initial;">
+      <!-- On Screen Keyboard Launcher -->
+      <center><button type="button" style="cursor:pointer;" class="btn btn-secondary" data-toggle="modal" data-target="#Keyboard" onclick="poposk()">Touch <i class="fa fa-keyboard-o"></i></button></center>
+      <!-- Clipboard -->
+      ClipBoard:<br>
+      <textarea id="clipboard" class="stopcapture form-control" rows="7"></textarea>
+    </div>
+    <!--On Screen Keyboard Modal-->
+    <div id="Keyboard" data-backdrop="false" class="modal fade taisunosk" tabindex="-1" style="cursor:initial;">
+      <div class="modal-dialog" style="opacity:0.5;max-width:100%!important;">
+        <div class="modal-content">
+          <div class="modal-body">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div id="osk"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Fake checkbox to show/hide the sidebar -->
+    <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+    <label id="sidebaricon" for="nav-trigger"><i class="fa fa-arrow-right"></i></label>
+    <!-- Display -->
+    <div class="site-wrap" onmouseover="this.focus();" tabindex="0" style="outline:none;">
+      <div id="display" style="width:100%;height:100vh;position:absolute;left:0;top:0;"></div>
+    </div>
+    <!-- Storage for encoded connection string -->
+    <input type="hidden" id="connectionstring" value="<%- token -%>" />
+    <!-- Guacamole -->
+    <script type="text/javascript" src="/public/vendor/guac/js/guac.min.js"></script>
+    <!-- Helpers -->
+    <script type="text/javascript" src="/public/vendor/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/public/vendor/popper/popper.min.js"></script>
+    <script type="text/javascript" src="/public/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/public/vendor/shortcut/js/shortcut.js"></script>
+    <!-- Client side -->
+    <script type="text/javascript" src="/public/js/vnc.js"></script>
+  </body>
+</html>

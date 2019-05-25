@@ -53,7 +53,7 @@ compose: |
       network_mode: bridge
       labels:
         - "stackname={{ stackname }}"
-        - "stacktype={{ stacktype }}"
+        - "stacktype=portforward"
         - "stackurl={{ stackurl }}"
         - "frontend={{ frontendport }}"
         - "backend=http://{{ backendhost }}:{{ backendport }}"

@@ -1,0 +1,66 @@
+name: Taisun VNC/RDP
+description: |
+  Taisun Remote VNC/RDP Launcher
+  ============
+  
+  This will launch a metadata container with the login details for a remote RDP/VNC host on your network.
+  
+  You will be able to use the Taisun web interface to access this endpoint locally and remotely through the Taisun Remote Gateway.
+
+form:
+  - type: input
+    label: name
+    FormName: Name
+    placeholder: Unique Name to identify *required
+    validation: ^[\w\d-\_]+$
+    errormessage: Name must only container letters, numbers, and - or _
+    required: true
+  - type: select
+    label: type
+    FormName: Type
+    options:
+      - VNC
+      - RDP
+  - type: input
+    format: text
+    label: host
+    FormName: Host IP
+    placeholder: The IP of your desktop
+    validation: ^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
+    errormessage: Value must be a valid IP IE 192.168.1.100
+    required: true
+  - type: input
+    format: text
+    label: port
+    FormName: Host Port
+    placeholder: Default RDP is 3389 VNC is 5900
+    validation: ^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
+    errormessage: Values must be in a valid port range 1-65535
+    required: true
+  - type: input
+    label: user
+    FormName: User Name
+    placeholder: User Name for server
+    required: true
+  - type: input
+    label: password
+    FormName: User Password
+    placeholder: User Password for server
+    required: true
+
+compose: |
+  version: "3"
+  services:
+    {{ name }}:
+      image: taisun/runner:latest
+      container_name: rdpvnc_{{ name }}
+      network_mode: bridge
+      labels:
+        - "stackname={{ stackname }}"
+        - "stacktype=rdpvnc"
+        - "stackurl={{ stackurl }}"
+        - "remote_type={{ type }}"
+        - "host={{ host }}"
+        - "port={{ port }}"
+        - "user={{ user }}"
+        - "password={{ password }}"

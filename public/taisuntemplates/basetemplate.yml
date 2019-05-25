@@ -44,7 +44,7 @@ compose: |
       network_mode: bridge
       labels:
         - "stackname={{ stackname }}"
-        - "stacktype={{ stacktype }}"
+        - "stacktype=container"
         - "stackurl={{ stackurl }}"
       {% if command %}
       command: {{ command }}

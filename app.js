@@ -125,8 +125,73 @@ app.get("/desktop/:containerid", function (req, res) {
       res.send('container does not exist');
     }
     else{
-      var connectionstring = encrypt({"connection":{"type":"vnc","settings":{"hostname":data.NetworkSettings.IPAddress,"port":"5900"}}});
+      var connectionstring = encrypt(
+        {
+          "connection":{
+            "type":"vnc",
+            "settings":{
+              "hostname":data.NetworkSettings.IPAddress,
+              "port":"5900"
+            }
+          }
+        });
       res.render(__dirname + '/views/guac.ejs', {token : connectionstring});
+    }
+  });
+});
+//// Embedded VNC ////
+app.get("/VNC/:containerid", function (req, res) {
+  var container = docker.getContainer(req.params.containerid);
+  // Make sure this is a container
+  container.inspect(function (err, data) {
+    if (data == null){
+      res.send('container does not exist');
+    }
+    else{
+      var labels = data.Config.Labels;
+      var connectionstring = encrypt(
+        {
+          "connection":{
+            "type":"vnc",
+            "settings":{
+              "hostname":labels.host,
+              "port":labels.port,
+              "username":labels.host,
+              "password":labels.password
+            }
+          }
+        });
+      console.log(connectionstring);
+      res.render(__dirname + '/views/vnc.ejs', {token : connectionstring});
+    }
+  });
+});
+//// Embedded RDP ////
+app.get("/RDP/:containerid", function (req, res) {
+  var container = docker.getContainer(req.params.containerid);
+  // Make sure this is a container
+  container.inspect(function (err, data) {
+    if (data == null){
+      res.send('container does not exist');
+    }
+    else{
+      var labels = data.Config.Labels;
+      var connectionstring = encrypt(
+        {
+          "connection":{
+            "type":"rdp",
+            "settings":{
+              "hostname":labels.host,
+              "port":labels.port,
+              "username":labels.user,
+              "password":labels.password,
+              "security": "any",
+              "ignore-cert": true
+            }
+          }
+        });
+      console.log(connectionstring);
+      res.render(__dirname + '/views/rdp.ejs', {token : connectionstring});
     }
   });
 });
@@ -373,24 +438,7 @@ io.on('connection', function(socket){
     var inputs = userinput.inputs;
     var template = userinput.template;
     var templatename = url.split('/').slice(-1)[0];
-    if (templatename == 'basetemplate.yml'){
-      var stacktype = 'container';
-    }
-    else if  (templatename == 'taisunvdi.yml'){
-      var stacktype = 'vdi';
-    }
-    else if  (templatename == 'taisungateway.yml'){
-      var stacktype = 'gateway';
-    }
-    else if  (templatename == 'taisundeveloper.yml'){
-      var stacktype = 'developer';
-    }
-    else if  (templatename == 'taisunportforward.yml'){
-      var stacktype = 'portforward';
-    }
-    else{
-      var stacktype = 'community';
-    }
+    var stacktype = 'community';
     inputs['stacktype'] = stacktype;
     inputs['stackurl'] = url;
     if (inputs.name){
@@ -437,14 +485,14 @@ io.on('connection', function(socket){
     });
   });
   // Get GuacD full container information and render VDI page based on status
-  socket.on('checkguac', function(){
+  socket.on('checkguac', function(return_name){
     var guacontainer = docker.getContainer('guacd');
     guacontainer.inspect(function (err, data) {
       if (data == null){
-        io.sockets.in(socket.id).emit('rendervdi', 'no');
+        io.sockets.in(socket.id).emit(return_name, 'no');
       }
       else{
-        io.sockets.in(socket.id).emit('rendervdi', 'yes');
+        io.sockets.in(socket.id).emit(return_name, 'yes');
       }
     });
   });
@@ -480,6 +528,10 @@ io.on('connection', function(socket){
   // When termstacks info is requested send to client
   socket.on('getterm', function(){
     containerinfo('updateterm');
+  });
+  // When rdpvnc info is requested send to client
+  socket.on('getrdpvnc', function(){
+    containerinfo('updaterdbvnc');
   });
   // When stack destruction is requested initiate
   socket.on('destroystack', function(name){

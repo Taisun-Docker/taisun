@@ -153,7 +153,7 @@ function rendervdi (){
   $('#VDInav').addClass('active');
   $('#pagecontent').empty();
   $('#pageheader').empty();
-  socket.emit('checkguac');
+  socket.emit('checkguac', 'rendervdi');
 }
 socket.on('rendervdi', function(response){
   if (response == "no"){
@@ -228,25 +228,12 @@ socket.on('rendervdi', function(response){
         <i class="fa fa-desktop"></i>\
         Deployed Desktops\
       </div>\
-      <div class="card-body" style="overflow-x:auto">\
-        <div class="table-responsive">\
-          <table id="desktops" class="table table-hover" width="100%" cellspacing="0">\
-            <thead>\
-              <tr>\
-                <th>Name</th>\
-                <th>URL</th>\
-                <th>Image</th>\
-                <th>Status</th>\
-                <th>Logs</th>\
-                <th>Manage</th>\
-              </tr>\
-            </thead>\
-          </table>\
-        </div>\
+      <div style="overflow-x:auto" class="card-body" id="vdistacks">\
+      <center><i class="fas fa-spinner fa-pulse" style="font-size:36px"></i><br><h2>Fetching Info from Taisun</h2></center>\
       </div>\
     </div>\
     ');
-    socket.emit('getvdi');
+    socket.emit('getvdi', '1');
   }
 });
 // Whenever the stack list is updated rebuild the displayed table
@@ -254,33 +241,63 @@ socket.on('updatevdi', function(containers) {
   updatevdi(containers);
 });
 function updatevdi(containers){
-  // Loop through the VDIs deployed to show them on the vdi page
-  $("#desktops").dataTable().fnDestroy();
-  var desktoptable = $('#desktops').DataTable( {} );
-  desktoptable.clear();
+  $('#vdistacks').empty();
+  $('#vdistacks').append('\
+  <table style="width:100%" id="vdiresults" class="table table-hover">\
+    <thead>\
+      <tr>\
+        <th>Name</th>\
+        <th>URL</th>\
+        <th>Image</th>\
+        <th>Status</th>\
+        <th>Logs</th>\
+        <th>Manage</th>\
+      </tr>\
+    </thead>\
+  </table>\
+  ');
   //Loop through the containers to build the containers table
+  var vdicontainers = [];
   $(containers).each(function(index,container){
     var labels = container.Labels;
     if (labels.stacktype){
-      if (labels.stacktype == 'vdi'){
-        if (container.State == 'running'){
-          var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackrestartbutton" value="' + labels.stackname + '">Restart <i class="fas fa-fw fa-sync"></i></button>' + '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-danger stackstopbutton" value="' + labels.stackname + '">Stop <i class="fa fa-fw fa-stop"></i></button>';
-        }
-        else{
-          var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackstartbutton" value="' + labels.stackname + '">Start <i class="fa fa-fw fa-play"></i></button>';
-        }
-        desktoptable.row.add( 
-          [labels.stackname, 
-          '<a href="/desktop/' + container.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
-          container.Image, 
-          container.State + ' ' + container.Status, 
-          '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary containerlogsbutton" value="' + container.Id + '">Logs <i class="fa fa-fw fa-terminal"></i></button>',
-          management]
-        );
+      var stacktype = labels.stacktype;
+      if (stacktype == 'vdi'){
+        vdicontainers.push(container);
       }
     }
   }).promise().done(function(){
-    desktoptable.draw();
+    // No VDI containers found
+    if (vdicontainers.length == 0){
+      $('#vdistacks').empty();
+      $('#vdistacks').append('<center><h2>No VDI Containers found</h2><br><button type="button" data-toggle="modal" data-target="#modal" class="btn btn-primary configurestack" style="cursor:pointer;" value="http://localhost:3000/public/taisuntemplates/taisunvdi.yml" >Add Desktop <i class="fa fa-plus-square"></i></button></center>');
+    }
+    // Found some VDI containers
+    else{
+      // Loop through the VDIs deployed to show them on the vdi page
+      $("#vdiresults").dataTable().fnDestroy();
+      var desktoptable = $('#vdiresults').DataTable( {} );
+      desktoptable.clear();
+      $(vdicontainers).each(function(index, container) {
+          var labels = container.Labels;
+          if (container.State == 'running'){
+            var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackrestartbutton" value="' + labels.stackname + '">Restart <i class="fas fa-fw fa-sync"></i></button>' + '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-danger stackstopbutton" value="' + labels.stackname + '">Stop <i class="fa fa-fw fa-stop"></i></button>';
+          }
+          else{
+            var management = '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary stackstartbutton" value="' + labels.stackname + '">Start <i class="fa fa-fw fa-play"></i></button>';
+          }
+          desktoptable.row.add( 
+            [
+              labels.stackname, 
+              '<a href="/desktop/' + container.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+              container.Image, 
+              container.State + ' ' + container.Status, 
+              '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary containerlogsbutton" value="' + container.Id + '">Logs <i class="fa fa-fw fa-terminal"></i></button>',
+              management
+            ]
+          );
+      }).promise().done(function(){desktoptable.draw();});
+    }
   });
 }
 
@@ -2021,6 +2038,156 @@ function rendergateway(container) {
     }
   });
 }
+
+// RDP/VNC Page
+function renderrdpvnc(){
+  $('.nav-item').removeClass('active');
+  $('#RDPVNCnav').addClass('active');
+  $('#pageheader').empty();
+  $('#pagecontent').empty();
+  socket.emit('checkguac', 'renderrdpvnc');
+}
+socket.on('renderrdpvnc', function(response){
+  if (response == "no"){
+    $('#pagecontent').append('\
+    <div class="card mb-3">\
+      <div class="card-header">\
+        <i class="fa fa-laptop"></i>\
+         Endpoints\
+      </div>\
+      <div class="card-body">\
+        <center>\
+          <h2>To run VNC/RDP you must first launch Guacamole Server</h2>\
+          <br>\
+          <button type="button" class="btn btn-lg btn-primary guacdlaunch" data-toggle="modal" data-target="#modal">Launch Now</button>\
+        </center>\
+      </div>\
+    </div>\
+    ');
+  }
+  else if (response == "yes"){
+    $('#pageheader').append('\
+    <div class="row">\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost:3000/public/taisuntemplates/taisunrdpvnc.yml">\
+          <div class="card text-white bg-success o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="far fa-fw fa-plus-square"></i>\
+              </div>\
+              <div class="mr-5">\
+                Add RDP/VNC Endpoint\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="stackdestroymodal()">\
+          <div class="card text-white bg-danger o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="fa fa-fw fa-minus-circle"></i>\
+              </div>\
+              <div class="mr-5">\
+                Remove RDP/VNC Endpoint\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+      </div>\
+      <div class="col-xl-3 col-sm-6 mb-3">\
+        <a data-toggle="modal" data-target="#modal" class="text-white" style="cursor:pointer;" onclick="guacstatusmodal()">\
+          <div class="card text-white bg-success o-hidden h-60">\
+            <div class="card-body">\
+              <div class="card-body-icon">\
+                <i class="far fa-fw fa-thumbs-up"></i>\
+              </div>\
+              <div class="mr-5">\
+                GuacD\
+              </div>\
+            </div>\
+          </a>\
+        </div>\
+      </div>\
+    </div>\
+    ');
+    $('#pagecontent').empty();
+    $('#pagecontent').append('\
+    <div class="card mb-3">\
+      <div class="card-header">\
+        <i class="fa fa-laptop"></i>\
+        Endpoints\
+      </div>\
+      <div style="overflow-x:auto" class="card-body" id="rdpvncstacks">\
+      <center><i class="fas fa-spinner fa-pulse" style="font-size:36px"></i><br><h2>Fetching endpoints from Taisun</h2></center>\
+      </div>\
+    </div>\
+    ');
+    socket.emit('getrdpvnc', '1');
+  }
+});
+// When the server sends us the running stacks render
+socket.on('updaterdbvnc', function(containers) {
+  updaterdpvnc(containers);
+});
+function updaterdpvnc(containers){
+  $('#rdpvncstacks').empty();
+  $('#rdpvncstacks').append('\
+  <table style="width:100%" id="rdpvncresults" class="table table-hover">\
+    <thead>\
+      <tr>\
+        <th>Name</th>\
+        <th>Launch</th>\
+        <th>Type</th>\
+        <th>Host</th>\
+        <th>User</th>\
+      </tr>\
+    </thead>\
+  </table>\
+  ');
+  var rdpvnccontainers = [];
+  $(containers).each(function(index,container){
+    var labels = container.Labels;
+    if (labels.stacktype){
+      var stacktype = labels.stacktype;
+      if (stacktype == 'rdpvnc'){
+        rdpvnccontainers.push(container);
+      }
+    }
+  }).promise().done(function(){
+    // No RDP/VNC containers found
+    if (rdpvnccontainers.length == 0){
+      $('#rdpvncstacks').empty();
+      $('#rdpvncstacks').append('<center><h2>No Endpoints found</h2><br><button type="button" data-toggle="modal" data-target="#modal" class="btn btn-primary configurestack" style="cursor:pointer;" value="http://localhost:3000/public/taisuntemplates/taisunrdpvnc.yml" >Add Endpoint <i class="fa fa-plus-square"></i></button></center>');
+    }
+    // Found some RDP/VNC containers
+    else{
+      // Loop through the stacks to render them
+      $("#rdpvncresults").dataTable().fnDestroy();
+      var rdpvnctable = $('#rdpvncresults').DataTable( {} );
+      rdpvnctable.clear();
+      //Loop through the containers
+      $(rdpvnccontainers).each(function(index, container) {
+        var labels = container.Labels;
+        var type = labels.remote_type;
+        rdpvnctable.row.add(
+          [
+            labels.stackname,
+            '<a href="/' + type + '/' + container.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+            type,
+            labels.host + ':' + labels.port,
+            labels.user
+          ]
+        );
+      }).promise().done(rdpvnctable.draw());
+    }
+  });
+}
+
+
 // Whenever the stack list is updated rebuild the displayed table for port forwarders
 socket.on('updategateway', function(containers) {
   updategateway(containers);
@@ -2103,7 +2270,7 @@ $('body').on('click', '.taisunupdate', function(){
 //// Page updating ////
 // When the server sends data call update funtions with it based on the dom elements present
 socket.on('updatestacks', function(containers) {
-  if ($('#desktops').length > 0) {
+  if ($('#vdistacks').length > 0) {
     updatevdi(containers);
   }
   if ($('#devstacks').length > 0) {
@@ -2117,6 +2284,9 @@ socket.on('updatestacks', function(containers) {
   }
   if ($('#termstacks').length > 0) {
     updateterm(containers);
+  }
+  if ($('#rdpvncstacks').length > 0) {
+    updaterdpvnc(containers);
   }
 });
 

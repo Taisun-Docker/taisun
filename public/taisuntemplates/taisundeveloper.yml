@@ -72,7 +72,7 @@ compose: |
         - "PROJECTNAME={{ name }}"
       labels:
         - "stackname={{ stackname }}"
-        - "stacktype={{ stacktype }}"
+        - "stacktype=developer"
         - "stackurl={{ stackurl }}"
         - "devport={{ devport }}"
         - "devlanguage={{ language }}"

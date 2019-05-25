@@ -82,7 +82,7 @@ compose: |
       network_mode: bridge
       labels:
         - "stackname={{ stackname }}"
-        - "stacktype={{ stacktype }}"
+        - "stacktype=gateway"
         - "stackurl={{ stackurl }}"
       volumes:
         - "ssl:/etc/letsencrypt"

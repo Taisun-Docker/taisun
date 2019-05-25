@@ -72,7 +72,7 @@ compose: |
         - PGID={{ gid }}{% endif %}
       labels:
         - "stackname={{ stackname }}"
-        - "stacktype={{ stacktype }}"
+        - "stacktype=vdi"
         - "stackurl={{ stackurl }}"
       {% if configvolume|length or dockersock == 'true' or datavolumes %}volumes:{% endif %}
         {% if configvolume|length %}- "{{ configvolume }}:/config"{% endif %}
