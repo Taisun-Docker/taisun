@@ -316,12 +316,12 @@ io.on('connection', function(socket){
     // Check if the guacd image exists on this server
     images.list(function (err, res) {
       if (err) return;
-      if (JSON.stringify(res).indexOf('taisun/guacd:latest') > -1 ){
+      if (JSON.stringify(res).indexOf('linuxserver/guacd:latest') > -1 ){
         deployguac();
       }
       else {
         io.sockets.in(socket.id).emit('modal_update','Guacd image not present on server downloading now');
-        docker.pull('taisun/guacd:latest', function(err, stream) {
+        docker.pull('linuxserver/guacd:latest', function(err, stream) {
           if (err) return;
           stream.pipe(process.stdout);
           stream.once('end', deployguac);
@@ -745,7 +745,7 @@ io.on('connection', function(socket){
       }
       else{
           var guacoptions ={
-            Image: 'taisun/guacd',
+            Image: 'linuxserver/guacd',
             name: 'guacd'
           };
           docker.createContainer(guacoptions, function (err, container){
@@ -776,11 +776,11 @@ io.on('connection', function(socket){
     // Check if the upgrade image exists on this server
     images.list(function (err, res) {
       if (err) return;
-      if (JSON.stringify(res).indexOf('taisun/updater:latest') > -1 ){
+      if (JSON.stringify(res).indexOf('containrrr/watchtower:latest') > -1 ){
         runupgrade();
       }
       else {
-        docker.pull('taisun/updater:latest', function(err, stream) {
+        docker.pull('containrrr/watchtower:latest', function(err, stream) {
           if (err) return;
           stream.pipe(process.stdout);
           stream.once('end', runupgrade);
@@ -795,7 +795,7 @@ io.on('connection', function(socket){
         io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
       }
       else{
-        docker.run('taisun/updater:latest', ['--oneshot', 'taisun'], process.stdout, {
+        docker.run('containrrr/watchtower:latest', ['--run-once', 'taisun'], process.stdout, {
             HostConfig: {
                 Binds: ["/var/run/docker.sock:/var/run/docker.sock"],
                 AutoRemove: true
@@ -814,12 +814,12 @@ io.on('connection', function(socket){
     // Check if the upgrade image exists on this server
     images.list(function (err, res) {
       if (err) return;
-      if (JSON.stringify(res).indexOf('taisun/updater:latest') > -1 ){
+      if (JSON.stringify(res).indexOf('containrrr/watchtower:latest') > -1 ){
         stackupgrade(stackname);
       }
       else {
         io.sockets.in(socket.id).emit('senddockerodeoutstart','Need to pull the updater image');
-        docker.pull('taisun/updater:latest', function(err, stream) {
+        docker.pull('containrrr/watchtower:latest', function(err, stream) {
           if (err) return;
           docker.modem.followProgress(stream, onFinished, onProgress);
           function onProgress(event) {
@@ -846,7 +846,7 @@ io.on('connection', function(socket){
           // If the container has the stackname passed
           if (container.Labels.stackname == stackname){
             io.sockets.in(socket.id).emit('senddockerodeoutstart','Started upgrade run for ' + container.Names[0]);
-            docker.run('taisun/updater:latest', ['--oneshot', container.Names[0]], process.stdout,{
+            docker.run('containrrr/watchtower:latest', ['--run-once', container.Names[0]], process.stdout,{
                 HostConfig: {
                     Binds: ["/var/run/docker.sock:/var/run/docker.sock"],
                     AutoRemove: true
