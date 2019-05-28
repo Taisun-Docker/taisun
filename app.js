@@ -125,17 +125,37 @@ app.get("/desktop/:containerid", function (req, res) {
       res.send('container does not exist');
     }
     else{
-      var connectionstring = encrypt(
-        {
-          "connection":{
-            "type":"vnc",
-            "settings":{
-              "hostname":data.NetworkSettings.IPAddress,
-              "port":"5900"
+      var labels = data.Config.Labels;
+      if (typeof labels.vditype != 'undefined' && labels.vditype == 'RDP' ){
+        var connectionstring = encrypt(
+          {
+            "connection":{
+              "type":"rdp",
+              "settings":{
+                "hostname":data.NetworkSettings.IPAddress,
+                "port":"3389",
+                "username":"abc",
+                "password":"taisun",
+                "security": "any",
+                "ignore-cert": true
+              }
             }
-          }
-        });
-      res.render(__dirname + '/views/guac.ejs', {token : connectionstring});
+          });
+        res.render(__dirname + '/views/rdp.ejs', {token : connectionstring});
+      }
+      else {
+        var connectionstring = encrypt(
+          {
+            "connection":{
+              "type":"vnc",
+              "settings":{
+                "hostname":data.NetworkSettings.IPAddress,
+                "port":"5900"
+              }
+            }
+          });
+        res.render(__dirname + '/views/guac.ejs', {token : connectionstring});
+      }
     }
   });
 });

@@ -384,7 +384,6 @@ socket.on('guacinfo', function (data){
   $('#modalconsole').append('\
     <div> State: '+ data.State.Status + '</div>\
     <div> Created: '+ data.Created + '</div>\
-    <div> Command: '+ data.Config.Cmd[0] + '</div>\
   ');
 });
 
