@@ -1432,12 +1432,12 @@ socket.on('stacksresults', function(data) {
           <tr>\
             <th></th>\
             <th>Name</th>\
-            <th>User</th>\
             <th>Description</th>\
             <th>Downloads</th>\
             <th></th>\
           </tr>\
-        </thead>');
+        </thead>\
+        <tbody id="stacksbody"></tbody>');
       for (i = 0; i < data.stacktemplates.length; i++){
         var name = data.stacktemplates[i].name;
         var description = data.stacktemplates[i].description;
@@ -1445,11 +1445,11 @@ socket.on('stacksresults', function(data) {
         var dataurl = data.stacktemplates[i].stackdata;
         var downloads = data.stacktemplates[i].downloads;
         var user = data.stacktemplates[i].user;
-        $('#stackstable').append('\
+        var exstackurl = 'https://stacks.taisun.io/?stack=' + dataurl.replace('https://stacks.taisun.io/templates/','');
+        $('#stacksbody').append('\
           <tr height="130">\
             <td><center><img src="' + iconurl + '"></center></td>\
-            <td>' + name + '</td>\
-            <td><a href="https://github.com/' + user + '" target="_blank">' + user + '</a></td>\
+            <td><a href="' + exstackurl + '" target="_blank">' + name + '</a></td>\
             <td>' + description + '</td>\
             <td>' + downloads + '</td>\
             <td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td>\
@@ -1462,7 +1462,6 @@ socket.on('stacksresults', function(data) {
         <thead>\
           <tr>\
             <th>Name</th>\
-            <th>User</th>\
             <th>Downloads</th>\
             <th></th>\
           </tr>\
@@ -1473,10 +1472,10 @@ socket.on('stacksresults', function(data) {
         var dataurl = data.stacktemplates[i].stackdata;
         var downloads = data.stacktemplates[i].downloads;
         var user = data.stacktemplates[i].user;
+        var exstackurl = 'https://stacks.taisun.io/?stack=' + dataurl.replace('https://stacks.taisun.io/templates/','');
         $('#stackstable').append('\
           <tr height="130">\
-            <td>' + name + '</td>\
-            <td><a href="https://github.com/' + user + '" target="_blank">' + user + '</a></td>\
+            <td><a href="' + exstackurl + '" target="_blank">' + name + '</a></td>\
             <td>' + downloads + '</td>\
             <td><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + dataurl + '">Configure and Launch <i class="fa fa-rocket"></i></button></td>\
           </tr>');
