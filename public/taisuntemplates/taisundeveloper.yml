@@ -1,18 +1,16 @@
 name: Taisun Developer
 description: |
-  Taisun Developer launcher
+  Cloud9 from [LinuxServer.io](https://linuxserver.io/) [linuxserver/cloud9](https://hub.docker.com/r/linuxserver/cloud9/)
   ============
   
   This will launch a blank development container that checks out the git URL passed to it below.
   
   At the core of these images is the <a href="https://github.com/c9/core" target="_blank">Cloud9</a> web based IDE, it is available in a few pre-configured flavors, all with a <a href="https://www.linuxserver.io/" target="_blank">LinuxServer.io</a> Ubuntu Bionic base: 
-    * Python - 3 and 2.7 installed by default with common development tools
-    * Node.js - 10.x series with npm and nodemon
+    * Python - 3 installed by default with common development tools
+    * Node.js - 12.x series with npm and yarn
     * Go - Latest stable release of GoLang
     * Ruby - System level packages for Ruby and Bundle pre-installed
     * Docker - For working on docker only logic, you should enable the Docker Socket to be able to build from inside the IDE
-  
-  All of these flavors have base Docker tools for interacting with your host level Docker Socket.
   
   If your application needs access to the Docker API make sure to enable the Docker Socket.
   
@@ -47,11 +45,11 @@ form:
     label: language
     FormName: Language
     options:
-      - Python
-      - Node.js
-      - Go
-      - Ruby
-      - Docker
+      - docker
+      - python
+      - nodejs
+      - go
+      - ruby
   - type: checkbox
     label: dockersock
     FormName: Enable Docker Socket
@@ -60,7 +58,7 @@ compose: |
   version: "3"
   services:
     {{ name }}:
-      image: taisun/dev_cloud9:{{ language }}
+      image: linuxserver/cloud9:{% if language == 'docker' %}latest{% else %}{{ language }}{% endif %}
       container_name: {{ name }}
       network_mode: bridge
       ports:
@@ -69,7 +67,6 @@ compose: |
         {% endfor %}
       environment:
         - "GITURL={{ giturl }}"
-        - "PROJECTNAME={{ name }}"
       labels:
         - "stackname={{ stackname }}"
         - "stacktype=developer"
