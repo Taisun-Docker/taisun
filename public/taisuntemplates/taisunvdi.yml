@@ -24,6 +24,22 @@ form:
     validation: ^[\w\d-\_]+$
     errormessage: Name must only container letters, numbers, and - or _
     required: true
+  - type: select
+    label: flavor
+    FormName: Flavor
+    options:
+      - xfce
+      - mate
+      - kde
+      - openbox
+      - i3
+      - icewm
+  - type: select
+    label: os
+    FormName: OS
+    options:
+      - focal
+      - bionic
   - type: input
     label: configvolume
     FormName: Home Directory
@@ -52,17 +68,32 @@ form:
   - type: checkbox
     label: dockersock
     FormName: Enable Docker Socket
+  - type: select
+    label: tz
+    FormName: TimeZone
+    options:
+      - US/Pacific
+      - US/Eastern
+      - US/Central
+      - US/Mountain
+      - Europe/London
+      - Europe/Paris
+      - Europe/Athens
+      - Europe/Moscow
+      - Asia/Shanghai
 
 compose: |
   version: "3"
   services:
     taisunvdi_{{ name }}:
-      image: taisun/vdi-rdp:ubuntu
+      image: linuxserver/rdesktop:{% if flavor == 'xfce' and os == 'focal' %}latest{% else %}{{ flavor }}-{{ os }}{% endif %}
       container_name: taisunvdi_{{ name }}
       network_mode: bridge
+      privileged: {% if flavor == 'kde' or flavor == 'i3' %}true{% else %}false{% endif %}
       shm_size: '1gb'
-      {% if uid|length and gid|length%}environment:
-        - PUID={{ uid }}
+      environment:
+        - TZ={{ tz }}
+        {% if uid|length and gid|length%}- PUID={{ uid }}
         - PGID={{ gid }}{% endif %}
       labels:
         - "stackname={{ stackname }}"

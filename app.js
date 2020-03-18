@@ -135,7 +135,7 @@ app.get("/desktop/:containerid", function (req, res) {
                 "hostname":data.NetworkSettings.IPAddress,
                 "port":"3389",
                 "username":"abc",
-                "password":"taisun",
+                "password":"abc",
                 "security": "any",
                 "ignore-cert": true
               }
