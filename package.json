@@ -1,6 +1,6 @@
 {
   "name": "Taisun",
-  "version": "0.1.2",
+  "version": "v0.5.0",
   "description": "Taisun docker server management",
   "main": "app.js",
   "scripts": {
@@ -17,22 +17,22 @@
     "ansi_up": "^4.0.4",
     "crypto": "^1.0.1",
     "docker-hub-api": "^0.8.0",
-    "dockerode": "^3.0.2",
+    "dockerode": "^3.1.0",
     "dockops": "^0.2.1",
-    "ejs": "^2.7.1",
+    "ejs": "^3.0.1",
     "express": "^4.17.1",
     "git-clone": "^0.1.0",
     "guacamole-lite": "^0.6.2",
     "http": "0.0.0",
     "js-yaml": "^3.13.1",
-    "nunjucks": "^3.2.0",
-    "request": "^2.88.0",
+    "nunjucks": "^3.2.1",
+    "request": "^2.88.2",
     "rmdir": "^1.2.0",
     "socket.io": "^2.3.0",
-    "systeminformation": "^4.14.17",
+    "systeminformation": "^4.23.1",
     "tar-fs": "^2.0.0",
-    "util": "^0.12.1",
-    "uuid": "^3.3.3",
+    "util": "^0.12.2",
+    "uuid": "^7.0.2",
     "xrandr-parse": "^1.0.0"
   }
 }

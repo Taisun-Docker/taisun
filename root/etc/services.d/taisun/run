@@ -13,6 +13,7 @@ else
 	usermod -a -G docker abc
 fi
 
-cd /usr/src/Taisun || exit
+# Run App in development mode
+cd /code || exit
 exec \
-	s6-setuidgid abc node app.js
+	s6-setuidgid abc /usr/bin/nodemon app.js > /applogs/app.log

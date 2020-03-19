@@ -20,10 +20,10 @@ jobs:
         - /bin/bash pre_install
       script:
         # Build Dev image
-        - docker build --no-cache -f Dockerfile.dev --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT}.dev .
-        - docker tag ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT}.dev ${DOCKERHUB_LIVE}:latest.dev
+        - docker build --no-cache -f Dockerfile --build-arg BUILD_DATE="${BUILD_DATE}" -t ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT} .
+        - docker tag ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT} ${DOCKERHUB_LIVE}:latest
         # Login to DockerHub
         - echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
         # Push all of the tags
-        - docker push ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT}.dev
-        - docker push ${DOCKERHUB_LIVE}:latest.dev
+        - docker push ${DOCKERHUB_LIVE}:${TRAVIS_COMMIT}
+        - docker push ${DOCKERHUB_LIVE}:latest

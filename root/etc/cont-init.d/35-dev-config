@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv bash
+
+# create local logs dir
+mkdir -p /applogs
+chown -R abc:abc /applogs
