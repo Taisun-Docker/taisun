@@ -547,7 +547,7 @@ function renderdeveloper(){
   $('#pageheader').append('\
     <div class="row">\
       <div class="col-xl-3 col-sm-6 mb-3">\
-        <a data-toggle="modal" data-target="#modal" class="text-white configurestack" style="cursor:pointer;" value="http://localhost:3000/public/taisuntemplates/taisundeveloper.yml">\
+        <a data-toggle="modal" data-target="#modal" class="text-white multistack" style="cursor:pointer;" value="Cloud9|http://localhost:3000/public/taisuntemplates/cloud9.yml Code-Server|http://localhost:3000/public/taisuntemplates/codeserver.yml Pylon|http://localhost:3000/public/taisuntemplates/pylon.yml">\
           <div class="card text-white bg-success o-hidden h-60">\
             <div class="card-body">\
               <div class="card-body-icon">\
@@ -610,7 +610,7 @@ function updatedev(containers){
     // No Dev containers found render launcher
     if (devcontainers.length == 0){
       $('#devstacks').empty();
-      $('#devstacks').append('<center><h2>No Running Development Containers</h2><br><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary configurestack" value="http://localhost:3000/public/taisuntemplates/taisundeveloper.yml">Launch Developer Container <i class="far fa-plus-square"></i></button></center>');
+      $('#devstacks').append('<center><h2>No Running Development Containers</h2><br><button type="button" data-toggle="modal" data-target="#modal" style="cursor:pointer;" class="btn btn-primary multistack" value="Cloud9|http://localhost:3000/public/taisuntemplates/cloud9.yml Code-Server|http://localhost:3000/public/taisuntemplates/codeserver.yml Pylon|http://localhost:3000/public/taisuntemplates/pylon.yml">Launch Developer Container <i class="far fa-plus-square"></i></button></center>');
     }
     // Found some dev containers
     else{
@@ -635,6 +635,18 @@ function updatedev(containers){
     }
   });
 }
+// Multi Launch menu
+$('body').on('click', '.multistack', function(){
+  var stacks = $(this).attr("value").split(' ');
+  modalpurge();
+  $('#modaltitle').append('Choose A Stack Below');
+  $('#modalbody').show();
+  $(stacks).each(function( key, value ){
+    var stackname = value.split('|')[0];
+    var stackurl = value.split('|')[1];
+    $('#modalbody').append('<div class="text-center form-group"><button type="button" style="cursor:pointer;" class="btn btn-primary btn-xs configurestack" value="' + stackurl + '">' + stackname + ' <i class="fa fa-rocket"></i></button></div>');
+  });
+});
 
 // Terminals Page
 function renderterminals(){
