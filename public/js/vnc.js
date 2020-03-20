@@ -41,6 +41,18 @@ shortcut.add("Ctrl+Alt+Shift",function() {
     side_open();
   }
 });
+// Modify the arrow pointer on click
+$('#nav-trigger').change(function () {
+  if ($('#nav-trigger').prop('checked') == true){
+    $('#sidebaricon').empty();
+    side_open();
+  }
+  else{
+    $('#sidebaricon').empty();
+    side_close();
+    $('#sidebaricon').append('<i class="fa fa-arrow-right"></i>');
+  }
+});
 
 //// Guacamole related ////
 // Get display div from document
