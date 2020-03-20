@@ -14,27 +14,43 @@ document.body.style.cursor = 'none';
 // Initiate a websocket connection to the server
 var socket = io.connect(protocol + '//' + host + ':' + port, {
 });
+// Sidebar expansion
+function side_open() {
+  $('#display').css("marginLeft","200px");
+  $('#sidebar').css("width", "200px");
+  $('#sidebar').css("display", "block");
+}
+function side_close() {
+  $('#display').css("marginLeft", "0px");
+  $('#sidebar').css("display", "none");
+}
+function closeside() {
+  $('#nav-trigger').prop('checked', false);
+  side_close();
+  $('#sidebaricon').append('<i class="fa fa-arrow-right"></i>');
+}
 // Sidebar shortcut
 shortcut.add("Ctrl+Alt+Shift",function() {
   if ($('#nav-trigger').prop('checked') == true){
     $('#nav-trigger').prop('checked', false);
-    $('#sidebaricon').empty();
+    side_close();
     $('#sidebaricon').append('<i class="fa fa-arrow-right"></i>');
   }
   else{
     $('#nav-trigger').prop('checked', true);
     $('#sidebaricon').empty();
-    $('#sidebaricon').append('<i class="fa fa-arrow-left"></i>');
+    side_open();
   }
 });
 // Modify the arrow pointer on click
 $('#nav-trigger').change(function () {
   if ($('#nav-trigger').prop('checked') == true){
     $('#sidebaricon').empty();
-    $('#sidebaricon').append('<i class="fa fa-arrow-left"></i>');
+    side_open();
   }
   else{
     $('#sidebaricon').empty();
+    side_close();
     $('#sidebaricon').append('<i class="fa fa-arrow-right"></i>');
   }
 });
@@ -45,7 +61,7 @@ var display = document.getElementById("display");
 // Instantiate client, using an HTTP tunnel for communications.
 var connectionstring = $('#connectionstring').val();
 var guac = new Guacamole.Client(
-  new Guacamole.WebSocketTunnel(wsprotocol + '//' + host + ':' + port + '/guaclite?token=' + connectionstring + '&width=' + $(window).width() + '&height=' + $(window).height())
+  new Guacamole.WebSocketTunnel(wsprotocol + '//' + host + ':' + port + '/guaclite?token=' + connectionstring + '&width=' + $(document).width() + '&height=' + $(document).height())
 );
 // Show current client clipboard
 guac.onclipboard = function clientClipboardReceived(stream, mimetype) {
@@ -121,6 +137,7 @@ function poposk(){
   if ($('#nav-trigger').prop('checked') == true){
     $('#nav-trigger').prop('checked', false);
     $('#sidebaricon').empty();
+    side_close();
     $('#sidebaricon').append('<i class="fa fa-arrow-right"></i>');
   }
   // Create the element for the keyboard and append it to the modal

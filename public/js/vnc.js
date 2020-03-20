@@ -13,28 +13,32 @@ document.body.style.cursor = 'none';
 // Initiate a websocket connection to the server
 var socket = io.connect(protocol + '//' + host + ':' + port, {
 });
+// Sidebar expansion
+function side_open() {
+  $('#display').css("marginLeft","200px");
+  $('#sidebar').css("width", "200px");
+  $('#sidebar').css("display", "block");
+}
+function side_close() {
+  $('#display').css("marginLeft", "0px");
+  $('#sidebar').css("display", "none");
+}
+function closeside() {
+  $('#nav-trigger').prop('checked', false);
+  side_close();
+  $('#sidebaricon').append('<i class="fa fa-arrow-right"></i>');
+}
 // Sidebar shortcut
 shortcut.add("Ctrl+Alt+Shift",function() {
   if ($('#nav-trigger').prop('checked') == true){
     $('#nav-trigger').prop('checked', false);
-    $('#sidebaricon').empty();
+    side_close();
     $('#sidebaricon').append('<i class="fa fa-arrow-right"></i>');
   }
   else{
     $('#nav-trigger').prop('checked', true);
     $('#sidebaricon').empty();
-    $('#sidebaricon').append('<i class="fa fa-arrow-left"></i>');
-  }
-});
-// Modify the arrow pointer on click
-$('#nav-trigger').change(function () {
-  if ($('#nav-trigger').prop('checked') == true){
-    $('#sidebaricon').empty();
-    $('#sidebaricon').append('<i class="fa fa-arrow-left"></i>');
-  }
-  else{
-    $('#sidebaricon').empty();
-    $('#sidebaricon').append('<i class="fa fa-arrow-right"></i>');
+    side_open();
   }
 });
 
@@ -120,6 +124,7 @@ function poposk(){
   if ($('#nav-trigger').prop('checked') == true){
     $('#nav-trigger').prop('checked', false);
     $('#sidebaricon').empty();
+    side_close();
     $('#sidebaricon').append('<i class="fa fa-arrow-right"></i>');
   }
   // Create the element for the keyboard and append it to the modal

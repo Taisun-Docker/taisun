@@ -15,7 +15,6 @@
   "homepage": "http://taisun.io",
   "dependencies": {
     "ansi_up": "^4.0.4",
-    "crypto": "^1.0.1",
     "docker-hub-api": "^0.8.0",
     "dockerode": "^3.1.0",
     "dockops": "^0.2.1",

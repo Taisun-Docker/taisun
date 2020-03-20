@@ -1,29 +1,7 @@
 input, textarea, .osk {
   max-width: 180px;
 }
-.sidebar {
-  width: 200px;
-  height: 100%;
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 0;
-  background:#353430;
-  color:white;
-  padding: 5px 10px;
-}
-.site-wrap {
-  min-height: 100%;
-  min-width: 100%;
-  background-color: white;
-  position: relative;
-  top: 0;
-  bottom: 100%;
-  left: 0;
-  z-index: 1;
-}
+
 .nav-trigger {
   position: absolute;
   clip: rect(0, 0, 0, 0);
@@ -36,31 +14,6 @@ label[for="nav-trigger"] {
   width: 8px;
   cursor: pointer;
 }
-.nav-trigger + label, .site-wrap {
-  transition: left 0.2s;
-}
-.nav-trigger:checked + label {
-  left: 200px;
-}
-.nav-trigger:checked ~ .site-wrap {
-  left: 200px;
-  box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
-}
-body {
-  overflow-x: hidden;
-}
-h1, h3, p {
-  max-width: 600px;
-  margin: 0 auto 1em;
-}
-code {
-  padding: 2px;
-  background: #ddd;
-}
-*,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
-html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }
-
-
 
 /* Allow user to interact outside of keyboard Modal */
 .taisunosk {

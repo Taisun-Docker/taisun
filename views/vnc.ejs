@@ -27,11 +27,12 @@
     <meta name="msapplication-TileImage" content="/public/favicon/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
   </head>
-  <body>
+  <body style="overflow:hidden;">
     <!-- SideBar -->
-    <div class="sidebar" style="cursor:initial;">
+    <div id="sidebar" style="cursor:initial;display:none;width:200px;height:100%;background:#353430;padding: 5px 10px;color:white;">
       <!-- On Screen Keyboard Launcher -->
-      <center><button type="button" style="cursor:pointer;" class="btn btn-secondary" data-toggle="modal" data-target="#Keyboard" onclick="poposk()">Touch <i class="fa fa-keyboard-o"></i></button></center>
+      <button type="button" class="close" aria-label="Close" style="color:white;" onclick="closeside()"><span aria-hidden="true">x</span></button>
+      <center><button type="button" style="cursor:pointer;" class="btn btn-secondary" data-toggle="modal" data-target="#Keyboard" onclick="poposk()">Touch <i class="far fa-keyboard"></i></button></center>
       <!-- Clipboard -->
       ClipBoard:<br>
       <textarea id="clipboard" class="stopcapture form-control" rows="7"></textarea>
