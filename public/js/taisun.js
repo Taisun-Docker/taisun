@@ -289,7 +289,7 @@ function updatevdi(containers){
           desktoptable.row.add( 
             [
               labels.stackname, 
-              '<a href="/desktop/' + container.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a>',
+              '<a href="/desktop/' + container.Id + '" target="_blank" class="btn btn-sm btn-primary">Launch</a> <a href="/desktop/' + container.Id + '?login=true" target="_blank" class="btn btn-sm btn-primary">Login</a>',
               container.Image, 
               container.State + ' ' + container.Status, 
               '<button type="button" style="cursor:pointer;" data-toggle="modal" data-target="#modal" class="btn btn-sm btn-primary containerlogsbutton" value="' + container.Id + '">Logs <i class="fa fa-fw fa-terminal"></i></button>',

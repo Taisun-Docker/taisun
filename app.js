@@ -127,20 +127,37 @@ app.get("/desktop/:containerid", function (req, res) {
     else{
       var labels = data.Config.Labels;
       if (typeof labels.vditype != 'undefined' && labels.vditype == 'RDP' ){
-        var connectionstring = encrypt(
-          {
-            "connection":{
-              "type":"rdp",
-              "settings":{
-                "hostname":data.NetworkSettings.IPAddress,
-                "port":"3389",
-                "username":"abc",
-                "password":"abc",
-                "security": "any",
-                "ignore-cert": true
+        console.log(req.query);
+        if (req.query.login){
+          var connectionstring = encrypt(
+            {
+              "connection":{
+                "type":"rdp",
+                "settings":{
+                  "hostname":data.NetworkSettings.IPAddress,
+                  "port":"3389",
+                  "security": "any",
+                  "ignore-cert": true
+                }
               }
-            }
-          });
+            });
+        }
+        else{
+          var connectionstring = encrypt(
+            {
+              "connection":{
+                "type":"rdp",
+                "settings":{
+                  "hostname":data.NetworkSettings.IPAddress,
+                  "port":"3389",
+                  "username":"abc",
+                  "password":"abc",
+                  "security": "any",
+                  "ignore-cert": true
+                }
+              }
+            });
+        }
         res.render(__dirname + '/views/rdp.ejs', {token : connectionstring});
       }
       else {
