@@ -578,6 +578,10 @@ io.on('connection', function(socket){
   socket.on('upgradetaisun', function(){
     upgradetaisun();
   });
+  // When Guacd Upgrade is requested launch upgrade helper
+  socket.on('upgradeguacd', function(){
+    upgradeguacd();
+  });
   // When version is requested send
   socket.on('getversion', function(){
     fs.readFile('version', 'utf8', function (err, version) {
@@ -833,6 +837,44 @@ io.on('connection', function(socket){
       }
       else{
         docker.run('containrrr/watchtower:latest', ['--run-once', 'taisun'], process.stdout, {
+            HostConfig: {
+                Binds: ["/var/run/docker.sock:/var/run/docker.sock"],
+                AutoRemove: true
+            }
+        }, {},function (err, data, container) {
+            if(err)
+                console.log("Error: ", err);
+            else
+                console.log(data.StatusCode);
+        });
+      }
+    });
+  }
+  // Launch Upgrade container
+  function upgradeguacd(){
+    // Check if the upgrade image exists on this server
+    images.list(function (err, res) {
+      if (err) return;
+      if (JSON.stringify(res).indexOf('containrrr/watchtower:latest') > -1 ){
+        runupgrade();
+      }
+      else {
+        docker.pull('containrrr/watchtower:latest', function(err, stream) {
+          if (err) return;
+          stream.pipe(process.stdout);
+          stream.once('end', runupgradeguacd);
+        });
+      }
+    });
+  }
+  function runupgradeguacd(){
+    // Grab the current running docker container information
+    docker.listContainers(function (err, containers) {
+      if (err){
+        io.sockets.in(socket.id).emit('error_popup','Could not list containers something is wrong with docker on this host');
+      }
+      else{
+        docker.run('containrrr/watchtower:latest', ['--run-once', 'guacd'], process.stdout, {
             HostConfig: {
                 Binds: ["/var/run/docker.sock:/var/run/docker.sock"],
                 AutoRemove: true

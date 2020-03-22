@@ -375,6 +375,7 @@ function guacstatusmodal(){
   socket.emit('getguacinfo');
   $('#modalfooter').show();
   $('#modalfooter').append('\
+  <button type="button" class="btn btn-primary updateguacd">Upgrade GuacD</button>\
   <button type="button" class="btn btn-danger" onclick="destroycontainer(\'guacd\')">Destroy GuacD</button>\
   ');
 }
@@ -2276,6 +2277,14 @@ $('body').on('click', '.taisunupdate', function(){
   setTimeout(location.reload.bind(location), 20000);
   socket.emit('upgradetaisun');
 });
+// Guacd Update Modal
+$('body').on('click', '.updateguacd', function(){
+  modalpurge();
+  $('#modalbody').show();
+  $('#modalbody').append('Running Guacd upgrade in the background using an external container, no further output will be displayed');
+  socket.emit('upgradeguacd');
+});
+
 
 //// Page updating ////
 // When the server sends data call update funtions with it based on the dom elements present
