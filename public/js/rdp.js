@@ -60,9 +60,8 @@ $('#nav-trigger').change(function () {
 var display = document.getElementById("display");
 // Instantiate client, using an HTTP tunnel for communications.
 var connectionstring = $('#connectionstring').val();
-var guac = new Guacamole.Client(
-  new Guacamole.WebSocketTunnel(wsprotocol + '//' + host + ':' + port + '/guaclite?token=' + connectionstring + '&width=' + $(document).width() + '&height=' + $(document).height())
-);
+var tunnel = new Guacamole.WebSocketTunnel(wsprotocol + '//' + host + ':' + port + '/guaclite?token=' + connectionstring + '&width=' + $(document).width() + '&height=' + $(document).height() + '&audio=audio/L8&audio=audio/L16');
+var guac = new Guacamole.Client(tunnel);
 // Show current client clipboard
 guac.onclipboard = function clientClipboardReceived(stream, mimetype) {
   var reader;
