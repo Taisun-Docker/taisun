@@ -115,6 +115,11 @@ keyboard.onkeydown = function (keysym) {
 keyboard.onkeyup = function (keysym) {
   guac.sendKeyEvent(0, keysym);
 };
+// Audio
+guac.onaudio = function clientAudio(stream, mimetype) {
+    let context = Guacamole.AudioContextFactory.getAudioContext();
+    context.resume().then(() => console.log('play audio'));
+};
 // Disable keyboard events if our sidebar inputs are used
 $(".stopcapture").click(function(e) {
   keyboard.onkeydown = null;
