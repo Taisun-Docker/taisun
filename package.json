@@ -1,6 +1,6 @@
 {
   "name": "Taisun",
-  "version": "v0.5.1",
+  "version": "v0.6.0",
   "description": "Taisun docker server management",
   "main": "app.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "ejs": "^3.0.1",
     "express": "^4.17.1",
     "git-clone": "^0.1.0",
-    "guacamole-lite": "^0.6.2",
+    "guacamole-lite": "^0.6.3",
     "http": "0.0.0",
     "js-yaml": "^3.13.1",
     "nunjucks": "^3.2.1",
