@@ -1,3 +1,7 @@
+# No longer being developed
+
+This project started in the hopes of community users writing out complex templates for large application stacks and automating them which never really came to fruition. It has since given birth to concepts like https://github.com/linuxserver/docker-mods and https://github.com/linuxserver/docker-webtop. There is no encompassing replacement, but in general this code has not been maintained for some time and I cannot in good conscious reccomend people still use it as is.
+
 ## Taisun ![Taisun](http://taisun.io/img/TaisunSmall.png)
 
 http://taisun.io
